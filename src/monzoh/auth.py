@@ -1,6 +1,6 @@
 """OAuth2 authentication client for Monzo API."""
 
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 import httpx
@@ -20,7 +20,7 @@ class MonzoOAuth:
         client_id: str,
         client_secret: str,
         redirect_uri: str,
-        http_client: Optional[httpx.Client] = None,
+        http_client: httpx.Client | None = None,
     ) -> None:
         """Initialize OAuth client.
 
@@ -52,7 +52,7 @@ class MonzoOAuth:
         if self._own_client and self._http_client:
             self._http_client.close()
 
-    def get_authorization_url(self, state: Optional[str] = None) -> str:
+    def get_authorization_url(self, state: str | None = None) -> str:
         """Generate authorization URL for OAuth flow.
 
         Args:
@@ -98,7 +98,7 @@ class MonzoOAuth:
                 error_data = {}
                 try:
                     error_data = response.json()
-                except Exception:
+                except (ValueError, KeyError, TypeError):
                     pass
                 raise create_error_from_response(
                     response.status_code,
@@ -137,7 +137,7 @@ class MonzoOAuth:
                 error_data = {}
                 try:
                     error_data = response.json()
-                except Exception:
+                except (ValueError, KeyError, TypeError):
                     pass
                 raise create_error_from_response(
                     response.status_code,
@@ -170,7 +170,7 @@ class MonzoOAuth:
                 error_data = {}
                 try:
                     error_data = response.json()
-                except Exception:
+                except (ValueError, KeyError, TypeError):
                     pass
                 raise create_error_from_response(
                     response.status_code, f"Logout failed: {response.text}", error_data

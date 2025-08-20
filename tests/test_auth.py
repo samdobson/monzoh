@@ -129,9 +129,7 @@ class TestMonzoOAuth:
         assert token.refresh_token == "refresh_token_123"
         assert token.user_id == "user_123"
 
-    def test_refresh_token(
-        self, mock_http_client: Any, mock_response: Any
-    ) -> None:
+    def test_refresh_token(self, mock_http_client: Any, mock_response: Any) -> None:
         """Test refresh_token method."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
