@@ -1,0 +1,464 @@
+---
+title: 'Data Models'
+description: 'Complete reference for all Pydantic data models in Monzoh'
+---
+
+## Overview
+
+Monzoh uses Pydantic models for type-safe data validation and serialization. All API responses are automatically parsed into these structured models, providing excellent IDE support and runtime validation.
+
+## Core Models
+
+### Account
+
+Represents a Monzo bank account.
+
+```python
+class Account(BaseModel):
+    id: str                           # Unique account identifier (e.g., "acc_00009237aqC8c5umZmrRdh")
+    closed: bool                      # Whether the account is closed
+    created: str                      # ISO 8601 timestamp of account creation
+    description: str                  # Human-readable account description
+    type: str                         # Account type (see Account Types below)
+    currency: str                     # ISO 4217 currency code (e.g., "GBP")
+    country_code: str                 # ISO 3166-1 country code (e.g., "GB")
+    owners: list[dict]               # List of account owners
+    account_number: str              # Masked account number
+    sort_code: str                   # Masked sort code
+    payment_details: dict            # Payment details and metadata
+```
+
+**Account Types**:
+- `uk_retail` - Personal current account
+- `uk_retail_joint` - Joint current account  
+- `uk_prepaid` - Prepaid card (legacy)
+
+**Example**:
+```python
+account = client.accounts.list()[0]
+print(f"Account: {account.description}")
+print(f"ID: {account.id}")
+print(f"Type: {account.type}")
+print(f"Created: {account.created}")
+print(f"Closed: {account.closed}")
+```
+
+### Balance
+
+Represents account balance information.
+
+```python
+class Balance(BaseModel):
+    balance: int                                    # Current balance in minor currency units (pence)
+    total_balance: int                              # Total balance including pending transactions
+    currency: str                                   # ISO 4217 currency code
+    local_currency: str                            # Currency for local display
+    spend_today: int                               # Amount spent today in minor currency units
+    balance_including_flexible_savings: int        # Balance including flexible savings
+```
+
+**Example**:
+```python
+balance = client.accounts.get_balance(account_id="acc_123")
+print(f"Balance: £{balance.balance / 100:.2f}")
+print(f"Spent today: £{balance.spend_today / 100:.2f}")
+print(f"Currency: {balance.currency}")
+```
+
+### Transaction
+
+Represents a financial transaction.
+
+```python
+class Transaction(BaseModel):
+    id: str                          # Unique transaction identifier
+    created: str                     # ISO 8601 timestamp
+    description: str                 # Transaction description
+    amount: int                      # Amount in minor currency units (negative for spending)
+    currency: str                    # ISO 4217 currency code
+    merchant: Optional[Merchant]     # Merchant information (if applicable)
+    notes: str                       # User notes
+    metadata: dict                   # Custom metadata
+    labels: Optional[list]           # Transaction labels
+    account_balance: int             # Account balance after transaction
+    attachments: Optional[list]      # File attachments
+    category: str                    # Spending category
+    is_load: bool                    # Whether this is a top-up transaction
+    settled: str                     # Settlement timestamp
+    local_amount: int                # Amount in local currency
+    local_currency: str              # Local currency code
+    updated: str                     # Last update timestamp
+    account_id: str                  # Associated account ID
+    user_id: str                     # User ID
+    counterparty: dict               # Counterparty information
+    scheme: str                      # Payment scheme used
+    dedupe_id: str                   # Deduplication identifier
+    originator: bool                 # Whether user initiated the transaction
+    include_in_spending: bool        # Whether to include in spending calculations
+    can_be_excluded_from_breakdown: bool  # Whether can be excluded from breakdowns
+    can_be_made_subscription: bool   # Whether can be made into a subscription
+    can_split_the_bill: bool         # Whether bill splitting is available
+    can_add_to_tab: bool             # Whether can be added to a tab
+    amount_is_pending: bool          # Whether the amount is still pending
+    decline_reason: Optional[str]    # Decline reason (for failed transactions)
+```
+
+**Example**:
+```python
+transactions = client.transactions.list(account_id="acc_123", limit=5)
+for txn in transactions:
+    amount = txn.amount / 100
+    emoji = "💸" if amount < 0 else "💰"
+    print(f"{emoji} {txn.description}: £{amount:.2f}")
+    
+    if txn.merchant:
+        print(f"   🏪 {txn.merchant.name}")
+    
+    print(f"   📅 {txn.created}")
+    print(f"   🏷️ {txn.category}")
+```
+
+### Merchant
+
+Represents merchant information for transactions.
+
+```python
+class Merchant(BaseModel):
+    id: str                          # Unique merchant identifier
+    group_id: str                    # Merchant group identifier
+    created: str                     # ISO 8601 timestamp
+    name: str                        # Merchant name
+    logo: str                        # Logo URL
+    emoji: str                       # Emoji representation
+    category: str                    # Merchant category
+    online: bool                     # Whether merchant is online
+    atm: bool                        # Whether this is an ATM
+    address: dict                    # Merchant address
+    updated: str                     # Last update timestamp
+    metadata: dict                   # Additional metadata
+    disable_feedback: bool           # Whether feedback is disabled
+```
+
+### Pot
+
+Represents a savings pot.
+
+```python
+class Pot(BaseModel):
+    id: str                          # Unique pot identifier
+    name: str                        # Pot name
+    style: str                       # Visual style identifier
+    balance: int                     # Current balance in minor currency units
+    currency: str                    # ISO 4217 currency code
+    goal_amount: Optional[int]       # Goal amount in minor currency units
+    type: str                        # Pot type
+    product_id: str                  # Associated product ID
+    current_account_id: str          # Associated current account ID
+    cover_image_url: str             # Cover image URL
+    isa_wrapper: Optional[str]       # ISA wrapper information (if applicable)
+    round_up: bool                   # Whether round-up is enabled
+    created: str                     # ISO 8601 timestamp
+    updated: str                     # Last update timestamp
+    deleted: bool                    # Whether the pot is deleted
+    locked: bool                     # Whether the pot is locked
+    charity_id: Optional[str]        # Charity ID (for charity pots)
+    available_for_bills: bool        # Whether available for bill payments
+    toggle_visible: bool             # Whether pot toggle is visible
+```
+
+**Example**:
+```python
+pots = client.pots.list()
+for pot in pots:
+    if pot.deleted:
+        continue
+        
+    balance = pot.balance / 100
+    print(f"🐷 {pot.name}: £{balance:.2f}")
+    
+    if pot.goal_amount:
+        goal = pot.goal_amount / 100
+        progress = (balance / goal) * 100
+        print(f"   🎯 Goal: £{goal:.2f} ({progress:.1f}% complete)")
+    
+    if pot.round_up:
+        print("   🔄 Round-up enabled")
+```
+
+### Attachment
+
+Represents a file attachment.
+
+```python
+class Attachment(BaseModel):
+    id: str                          # Unique attachment identifier
+    user_id: str                     # User who uploaded the attachment
+    external_id: str                 # External identifier
+    file_url: str                    # URL to access the file
+    file_type: str                   # MIME type
+    created: str                     # ISO 8601 timestamp
+    upload_url: Optional[str]        # Upload URL (for uploading)
+    upload_headers: Optional[dict]   # Upload headers (for uploading)
+```
+
+### Receipt
+
+Represents detailed receipt information.
+
+```python
+class Receipt(BaseModel):
+    id: str                          # Unique receipt identifier
+    transaction_id: str              # Associated transaction ID
+    external_id: str                 # External identifier
+    total: int                       # Total amount in minor currency units
+    currency: str                    # ISO 4217 currency code
+    merchant_name: str               # Merchant name
+    merchant_address: Optional[str]  # Merchant address
+    merchant_phone: Optional[str]    # Merchant phone
+    merchant_email: Optional[str]    # Merchant email
+    merchant_vat_number: Optional[str] # Merchant VAT number
+    items: list[ReceiptItem]         # Receipt line items
+    taxes: list[ReceiptTax]          # Tax information
+    payments: list[ReceiptPayment]   # Payment information
+    created: str                     # ISO 8601 timestamp
+    updated: str                     # Last update timestamp
+```
+
+### ReceiptItem
+
+Represents an individual item on a receipt.
+
+```python
+class ReceiptItem(BaseModel):
+    description: str                 # Item description
+    unit_price: int                  # Unit price in minor currency units
+    quantity: float                  # Quantity
+    total_price: int                # Total price in minor currency units
+    currency: str                    # ISO 4217 currency code
+    category: Optional[str]          # Item category
+    sub_items: list[dict]            # Sub-items (for bundled items)
+```
+
+### ReceiptTax
+
+Represents tax information on a receipt.
+
+```python
+class ReceiptTax(BaseModel):
+    description: str                 # Tax description (e.g., "VAT")
+    amount: int                      # Tax amount in minor currency units
+    currency: str                    # ISO 4217 currency code
+    tax_number: Optional[str]        # Tax identification number
+```
+
+### Webhook
+
+Represents a webhook registration.
+
+```python
+class Webhook(BaseModel):
+    id: str                          # Unique webhook identifier
+    account_id: str                  # Associated account ID
+    url: str                         # Webhook URL endpoint
+    status: str                      # Webhook status ("active", "inactive", etc.)
+    created: str                     # ISO 8601 timestamp
+    updated: str                     # Last update timestamp
+```
+
+### WhoAmI
+
+Represents authentication information.
+
+```python
+class WhoAmI(BaseModel):
+    authenticated: bool              # Whether the token is valid
+    client_id: str                   # OAuth2 client ID
+    user_id: str                     # Authenticated user ID
+```
+
+**Example**:
+```python
+whoami = client.whoami()
+print(f"Authenticated: {whoami.authenticated}")
+print(f"User ID: {whoami.user_id}")
+print(f"Client ID: {whoami.client_id}")
+```
+
+### OAuthToken
+
+Represents OAuth2 token information.
+
+```python
+class OAuthToken(BaseModel):
+    access_token: str                # OAuth2 access token
+    client_id: str                   # OAuth2 client ID
+    expires_in: int                  # Token expiry time in seconds
+    refresh_token: str               # OAuth2 refresh token  
+    scope: str                       # Token scope
+    token_type: str                  # Token type (usually "Bearer")
+    user_id: str                     # Associated user ID
+```
+
+## Response Models
+
+### AccountsResponse
+
+Container for accounts list response.
+
+```python
+class AccountsResponse(BaseModel):
+    accounts: list[Account]          # List of accounts
+```
+
+## Usage Examples
+
+### Type Safety and Validation
+
+```python
+from monzoh import MonzoClient
+from monzoh.models import Account, Balance, Transaction
+
+client = MonzoClient()
+
+# Type-safe account operations
+accounts: list[Account] = client.accounts.list()
+account: Account = accounts[0]
+
+# IDE provides full autocomplete and type checking
+print(f"Account ID: {account.id}")         # ✅ Type: str
+print(f"Is closed: {account.closed}")      # ✅ Type: bool  
+print(f"Created: {account.created}")       # ✅ Type: str
+
+# Type-safe balance operations
+balance: Balance = client.accounts.get_balance(account_id=account.id)
+print(f"Balance: £{balance.balance / 100:.2f}")  # ✅ Type: int
+```
+
+### Model Serialization
+
+```python
+# Convert models to dictionaries
+account_dict = account.model_dump()
+print(account_dict)
+
+# Convert models to JSON
+account_json = account.model_dump_json()
+print(account_json)
+
+# Create models from dictionaries
+account_data = {
+    "id": "acc_123",
+    "description": "Test Account",
+    "type": "uk_retail",
+    "currency": "GBP",
+    "country_code": "GB",
+    "closed": False,
+    "created": "2023-01-01T00:00:00Z",
+    "owners": [],
+    "account_number": "****1234",
+    "sort_code": "**-**-**",
+    "payment_details": {}
+}
+
+account = Account(**account_data)
+```
+
+### Custom Processing
+
+```python
+def analyze_transactions(transactions: list[Transaction]) -> dict:
+    """Analyze a list of transactions."""
+    
+    spending = [t for t in transactions if t.amount < 0]
+    income = [t for t in transactions if t.amount > 0]
+    
+    total_spent = sum(abs(t.amount) for t in spending) / 100
+    total_income = sum(t.amount for t in income) / 100
+    
+    # Group by category
+    by_category = {}
+    for t in spending:
+        category = t.category or "Other"
+        if category not in by_category:
+            by_category[category] = []
+        by_category[category].append(t)
+    
+    return {
+        "total_transactions": len(transactions),
+        "spending_count": len(spending), 
+        "income_count": len(income),
+        "total_spent": total_spent,
+        "total_income": total_income,
+        "net": total_income - total_spent,
+        "categories": {
+            cat: {
+                "count": len(txns),
+                "total": sum(abs(t.amount) for t in txns) / 100
+            }
+            for cat, txns in by_category.items()
+        }
+    }
+
+# Usage
+transactions = client.transactions.list(account_id="acc_123", limit=100)
+analysis = analyze_transactions(transactions)
+print(f"Analysis: {analysis}")
+```
+
+## Validation and Error Handling
+
+Pydantic models provide automatic validation:
+
+```python
+from pydantic import ValidationError
+from monzoh.models import Account
+
+# This will raise ValidationError due to missing required fields
+try:
+    invalid_account = Account(id="acc_123")  # Missing required fields
+except ValidationError as e:
+    print(f"Validation error: {e}")
+
+# Proper model creation
+valid_account = Account(
+    id="acc_123",
+    description="Test Account",
+    type="uk_retail",
+    currency="GBP",
+    country_code="GB", 
+    closed=False,
+    created="2023-01-01T00:00:00Z",
+    owners=[],
+    account_number="****1234",
+    sort_code="**-**-**",
+    payment_details={}
+)
+```
+
+## Working with Optional Fields
+
+Many model fields are optional and may be `None`:
+
+```python
+transaction = client.transactions.list(account_id="acc_123", limit=1)[0]
+
+# Safe access to optional fields
+if transaction.merchant:
+    print(f"Merchant: {transaction.merchant.name}")
+    print(f"Category: {transaction.merchant.category}")
+else:
+    print("No merchant information")
+
+# Check for attachments
+if transaction.attachments:
+    print(f"Has {len(transaction.attachments)} attachments")
+else:
+    print("No attachments")
+
+# Labels might be None or empty
+labels = transaction.labels or []
+if labels:
+    print(f"Labels: {', '.join(labels)}")
+```
+
+All models are fully typed and provide excellent IDE support with autocomplete, type checking, and inline documentation.

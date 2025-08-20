@@ -1,0 +1,653 @@
+---
+title: 'Exceptions'
+description: 'Complete reference for all exception types in Monzoh'
+---
+
+## Overview
+
+Monzoh provides a comprehensive hierarchy of exception types to help you handle different error conditions that can occur when interacting with the Monzo API. All exceptions inherit from the base `MonzoError` class.
+
+## Exception Hierarchy
+
+```
+MonzoError (base exception)
+├── MonzoNetworkError (network/connection issues)  
+├── MonzoAuthenticationError (authentication failures)
+├── MonzoValidationError (request validation errors)
+├── MonzoBadRequestError (HTTP 400 errors)
+├── MonzoNotFoundError (HTTP 404 errors) 
+├── MonzoRateLimitError (HTTP 429 errors)
+└── MonzoServerError (HTTP 5xx errors)
+```
+
+## Base Exception
+
+### MonzoError
+
+The base exception class that all other Monzoh exceptions inherit from.
+
+```python
+class MonzoError(Exception):
+    """Base exception for all Monzo API errors."""
+    
+    def __init__(
+        self, 
+        message: str, 
+        response_data: Optional[dict] = None,
+        status_code: Optional[int] = None
+    ):
+        super().__init__(message)
+        self.message = message
+        self.response_data = response_data
+        self.status_code = status_code
+```
+
+**Attributes**:
+- `message`: Human-readable error message
+- `response_data`: Raw API response data (if available)
+- `status_code`: HTTP status code (if applicable)
+
+**Example**:
+```python
+from monzoh import MonzoError, MonzoClient
+
+try:
+    client = MonzoClient()
+    accounts = client.accounts.list()
+except MonzoError as e:
+    print(f"Monzo API error: {e.message}")
+    
+    if e.status_code:
+        print(f"HTTP status: {e.status_code}")
+        
+    if e.response_data:
+        print(f"Response data: {e.response_data}")
+```
+
+## Network and Connection Errors
+
+### MonzoNetworkError
+
+Raised when network connectivity issues occur.
+
+```python
+class MonzoNetworkError(MonzoError):
+    """Raised for network connectivity issues."""
+```
+
+**Common causes**:
+- No internet connection
+- DNS resolution failures  
+- Connection timeouts
+- SSL/TLS handshake failures
+- Proxy connection issues
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoNetworkError
+import time
+
+def robust_api_call():
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            client = MonzoClient()
+            return client.accounts.list()
+            
+        except MonzoNetworkError as e:
+            print(f"Network error (attempt {attempt + 1}): {e}")
+            
+            if attempt < max_retries - 1:
+                delay = 2 ** attempt  # Exponential backoff
+                print(f"Retrying in {delay} seconds...")
+                time.sleep(delay)
+            else:
+                print("Max retries reached, giving up")
+                raise
+
+accounts = robust_api_call()
+```
+
+## Authentication Errors
+
+### MonzoAuthenticationError
+
+Raised when authentication fails.
+
+```python
+class MonzoAuthenticationError(MonzoError):
+    """Raised when authentication fails."""
+```
+
+**Common causes**:
+- Expired access token with invalid refresh token
+- Revoked access token
+- Invalid OAuth2 credentials
+- Missing authentication headers
+- Insufficient permissions for the requested operation
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoAuthenticationError
+
+def check_authentication():
+    try:
+        client = MonzoClient()
+        whoami = client.whoami()
+        print(f"✅ Authenticated as: {whoami.user_id}")
+        return True
+        
+    except MonzoAuthenticationError as e:
+        print(f"❌ Authentication failed: {e}")
+        print("💡 Run 'monzoh-auth' to re-authenticate")
+        return False
+
+if check_authentication():
+    # Proceed with API calls
+    accounts = client.accounts.list()
+else:
+    # Handle authentication failure
+    exit(1)
+```
+
+## Request Validation Errors
+
+### MonzoValidationError
+
+Raised when request parameters fail validation.
+
+```python
+class MonzoValidationError(MonzoError):
+    """Raised when request parameters fail validation."""
+```
+
+**Common causes**:
+- Invalid parameter formats (e.g., malformed account IDs)
+- Missing required parameters  
+- Parameter values out of allowed range
+- Invalid data types
+- Malformed request structure
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoValidationError
+
+client = MonzoClient()
+
+try:
+    # Invalid account ID format
+    balance = client.accounts.get_balance(account_id="invalid_id")
+    
+except MonzoValidationError as e:
+    print(f"Validation error: {e}")
+    print("Please check your account ID format")
+    
+    # Response data might contain detailed validation errors
+    if e.response_data and 'errors' in e.response_data:
+        for error in e.response_data['errors']:
+            field = error.get('field', 'unknown')
+            message = error.get('message', 'validation failed')
+            print(f"  Field '{field}': {message}")
+```
+
+## HTTP Status Code Errors
+
+### MonzoBadRequestError
+
+Raised for HTTP 400 Bad Request errors.
+
+```python
+class MonzoBadRequestError(MonzoError):
+    """Raised for HTTP 400 Bad Request errors."""
+```
+
+**Common causes**:
+- Malformed request data
+- Invalid parameter combinations
+- Business logic violations
+- Conflicting request parameters
+- Invalid request format
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoBadRequestError
+
+client = MonzoClient()
+
+try:
+    # Invalid webhook URL format
+    webhook = client.webhooks.create(
+        account_id="acc_123",
+        url="not-a-valid-url"  # Invalid URL
+    )
+    
+except MonzoBadRequestError as e:
+    print(f"Bad request: {e}")
+    
+    # Check for specific error details
+    if e.response_data:
+        error_code = e.response_data.get('code')
+        error_message = e.response_data.get('message')
+        print(f"Error code: {error_code}")
+        print(f"Error message: {error_message}")
+```
+
+### MonzoNotFoundError
+
+Raised when requested resources don't exist (HTTP 404).
+
+```python
+class MonzoNotFoundError(MonzoError):
+    """Raised when requested resources are not found."""
+```
+
+**Common causes**:
+- Invalid or non-existent resource IDs
+- Resources that have been deleted
+- Attempting to access resources you don't have permission for
+- Incorrect endpoint URLs
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoNotFoundError
+
+client = MonzoClient()
+
+def safe_get_balance(account_id):
+    try:
+        balance = client.accounts.get_balance(account_id=account_id)
+        return balance
+        
+    except MonzoNotFoundError:
+        print(f"❌ Account {account_id} not found or not accessible")
+        return None
+        
+    except Exception as e:
+        print(f"❌ Unexpected error: {e}")
+        return None
+
+# Usage
+accounts = client.accounts.list()
+for account in accounts:
+    balance = safe_get_balance(account.id)
+    if balance:
+        print(f"{account.description}: £{balance.balance / 100:.2f}")
+```
+
+### MonzoRateLimitError
+
+Raised when API rate limits are exceeded (HTTP 429).
+
+```python
+class MonzoRateLimitError(MonzoError):
+    """Raised when API rate limits are exceeded."""
+```
+
+**Common causes**:
+- Making too many requests in a short time period
+- Exceeding daily/hourly request quotas
+- Multiple clients using the same credentials
+- Automated scripts making frequent requests
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoRateLimitError
+import time
+import random
+
+def make_request_with_backoff(operation, max_retries=3):
+    """Make API request with exponential backoff for rate limits."""
+    
+    for attempt in range(max_retries):
+        try:
+            return operation()
+            
+        except MonzoRateLimitError as e:
+            if attempt < max_retries - 1:
+                # Extract rate limit info from headers if available
+                retry_after = None
+                if e.response_data and 'retry_after' in e.response_data:
+                    retry_after = e.response_data['retry_after']
+                
+                # Calculate delay with exponential backoff and jitter
+                base_delay = retry_after or (2 ** attempt)
+                jitter = random.uniform(0.1, 0.5)
+                delay = base_delay + jitter
+                
+                print(f"Rate limited, retrying in {delay:.1f} seconds...")
+                time.sleep(delay)
+            else:
+                print("Max retries exceeded for rate limit")
+                raise
+
+# Usage
+client = MonzoClient()
+accounts = make_request_with_backoff(lambda: client.accounts.list())
+```
+
+### MonzoServerError
+
+Raised for server-side errors (HTTP 5xx).
+
+```python
+class MonzoServerError(MonzoError):
+    """Raised for server-side errors (HTTP 5xx)."""
+```
+
+**Common causes**:
+- Temporary API server issues
+- Database connectivity problems on Monzo's side
+- Internal server errors
+- Service maintenance or outages
+
+**Example**:
+```python
+from monzoh import MonzoClient, MonzoServerError
+import time
+
+def handle_server_errors():
+    client = MonzoClient()
+    max_retries = 3
+    
+    for attempt in range(max_retries):
+        try:
+            accounts = client.accounts.list()
+            return accounts
+            
+        except MonzoServerError as e:
+            print(f"Server error (attempt {attempt + 1}): {e}")
+            
+            if attempt < max_retries - 1:
+                # Server errors usually warrant longer delays
+                delay = 30 * (attempt + 1)  # 30s, 60s, 90s
+                print(f"Server error, waiting {delay}s before retry...")
+                time.sleep(delay)
+            else:
+                print("Server appears to be unavailable")
+                # Consider falling back to cached data or showing maintenance message
+                raise
+
+accounts = handle_server_errors()
+```
+
+## Error Response Details
+
+Many exceptions include additional details from the API response:
+
+```python
+from monzoh import MonzoClient, MonzoBadRequestError
+
+client = MonzoClient()
+
+try:
+    # Some operation that fails
+    result = client.some_operation()
+    
+except MonzoBadRequestError as e:
+    print(f"Error: {e.message}")
+    print(f"Status code: {e.status_code}")
+    
+    # Access detailed error information
+    if e.response_data:
+        print("Response details:")
+        
+        # Common error fields
+        if 'code' in e.response_data:
+            print(f"  Error code: {e.response_data['code']}")
+            
+        if 'message' in e.response_data:
+            print(f"  Message: {e.response_data['message']}")
+            
+        if 'errors' in e.response_data:
+            print("  Field errors:")
+            for field_error in e.response_data['errors']:
+                field = field_error.get('field', 'unknown')
+                message = field_error.get('message', 'error')
+                print(f"    {field}: {message}")
+                
+        if 'request_id' in e.response_data:
+            print(f"  Request ID: {e.response_data['request_id']}")
+```
+
+## Best Practices for Error Handling
+
+### 1. Specific Exception Handling
+
+Handle specific exceptions rather than catching all errors:
+
+```python
+from monzoh import (
+    MonzoClient,
+    MonzoAuthenticationError,
+    MonzoRateLimitError, 
+    MonzoNetworkError,
+    MonzoNotFoundError,
+    MonzoError
+)
+
+def robust_operation():
+    client = MonzoClient()
+    
+    try:
+        accounts = client.accounts.list()
+        return accounts
+        
+    except MonzoAuthenticationError:
+        print("🔐 Authentication required - run 'monzoh-auth'")
+        return None
+        
+    except MonzoRateLimitError:
+        print("⏱️ Rate limit exceeded - please wait")
+        return None
+        
+    except MonzoNetworkError:
+        print("🌐 Network error - check connection")
+        return None
+        
+    except MonzoNotFoundError:
+        print("🔍 Resource not found")
+        return None
+        
+    except MonzoError as e:
+        print(f"⚠️ API error: {e}")
+        return None
+```
+
+### 2. Retry Logic with Different Strategies
+
+```python
+import time
+import random
+from monzoh import *
+
+def smart_retry(operation, max_retries=3):
+    """Smart retry with different strategies for different error types."""
+    
+    for attempt in range(max_retries):
+        try:
+            return operation()
+            
+        except MonzoRateLimitError as e:
+            if attempt < max_retries - 1:
+                # Longer delays for rate limits
+                delay = 60 * (2 ** attempt)  # 60s, 120s, 240s
+                print(f"Rate limited, waiting {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
+                
+        except MonzoNetworkError as e:
+            if attempt < max_retries - 1:
+                # Shorter delays for network errors
+                delay = 2 ** attempt + random.uniform(0, 1)  # 1-2s, 2-3s, 4-5s
+                print(f"Network error, retrying in {delay:.1f}s...")
+                time.sleep(delay)
+            else:
+                raise
+                
+        except MonzoServerError as e:
+            if attempt < max_retries - 1:
+                # Medium delays for server errors
+                delay = 15 * (attempt + 1)  # 15s, 30s, 45s
+                print(f"Server error, waiting {delay}s...")
+                time.sleep(delay)
+            else:
+                raise
+                
+        except (MonzoAuthenticationError, MonzoNotFoundError, MonzoValidationError):
+            # Don't retry these - they won't succeed
+            raise
+```
+
+### 3. Logging and Monitoring
+
+```python
+import logging
+from monzoh import MonzoClient, MonzoError
+
+# Set up logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def logged_operation():
+    """Operation with comprehensive error logging."""
+    client = MonzoClient()
+    
+    try:
+        logger.info("Fetching account list")
+        accounts = client.accounts.list()
+        logger.info(f"Successfully retrieved {len(accounts)} accounts")
+        return accounts
+        
+    except MonzoAuthenticationError as e:
+        logger.error(f"Authentication failed: {e}")
+        # Could trigger alert to re-authenticate
+        raise
+        
+    except MonzoRateLimitError as e:
+        logger.warning(f"Rate limit hit: {e}")
+        # Could trigger rate limit monitoring alert
+        raise
+        
+    except MonzoError as e:
+        logger.error(f"API error: {e}")
+        
+        # Log additional context
+        if hasattr(e, 'status_code') and e.status_code:
+            logger.error(f"HTTP status: {e.status_code}")
+            
+        if hasattr(e, 'response_data') and e.response_data:
+            logger.error(f"Response data: {e.response_data}")
+            
+        raise
+```
+
+### 4. Graceful Degradation
+
+```python
+from monzoh import MonzoClient, MonzoError
+import json
+from pathlib import Path
+
+class ResilientMonzoService:
+    def __init__(self, cache_file="monzo_cache.json"):
+        self.client = MonzoClient()
+        self.cache_file = Path(cache_file)
+    
+    def get_accounts_with_fallback(self):
+        """Get accounts with fallback to cached data."""
+        try:
+            # Try to get fresh data
+            accounts = self.client.accounts.list()
+            
+            # Cache successful response
+            self._save_to_cache('accounts', [acc.model_dump() for acc in accounts])
+            
+            return accounts
+            
+        except MonzoError as e:
+            logger.warning(f"API call failed: {e}")
+            
+            # Fallback to cached data
+            cached_accounts = self._load_from_cache('accounts')
+            
+            if cached_accounts:
+                logger.info("Using cached account data")
+                # Convert back to Account objects
+                from monzoh.models import Account
+                return [Account(**acc_data) for acc_data in cached_accounts]
+            else:
+                logger.error("No cached data available")
+                raise
+    
+    def _save_to_cache(self, key, data):
+        """Save data to cache file."""
+        try:
+            cache_data = {}
+            if self.cache_file.exists():
+                cache_data = json.loads(self.cache_file.read_text())
+            
+            cache_data[key] = {
+                'data': data,
+                'timestamp': time.time()
+            }
+            
+            self.cache_file.write_text(json.dumps(cache_data))
+        except Exception as e:
+            logger.warning(f"Failed to save cache: {e}")
+    
+    def _load_from_cache(self, key, max_age_hours=24):
+        """Load data from cache if not too old."""
+        try:
+            if not self.cache_file.exists():
+                return None
+                
+            cache_data = json.loads(self.cache_file.read_text())
+            
+            if key not in cache_data:
+                return None
+                
+            cached_item = cache_data[key]
+            age = time.time() - cached_item['timestamp']
+            
+            if age > (max_age_hours * 3600):
+                logger.info(f"Cached {key} is too old ({age/3600:.1f}h)")
+                return None
+                
+            return cached_item['data']
+            
+        except Exception as e:
+            logger.warning(f"Failed to load cache: {e}")
+            return None
+```
+
+## Testing Exception Handling
+
+```python
+import pytest
+from unittest.mock import patch, MagicMock
+from monzoh import MonzoClient, MonzoNetworkError, MonzoRateLimitError
+
+def test_network_error_handling():
+    """Test handling of network errors."""
+    client = MonzoClient(access_token="test")
+    
+    with patch.object(client._base_client, '_request') as mock_request:
+        mock_request.side_effect = MonzoNetworkError("Connection failed")
+        
+        with pytest.raises(MonzoNetworkError):
+            client.accounts.list()
+
+def test_rate_limit_error_handling():
+    """Test handling of rate limit errors.""" 
+    client = MonzoClient(access_token="test")
+    
+    with patch.object(client._base_client, '_request') as mock_request:
+        mock_request.side_effect = MonzoRateLimitError("Rate limit exceeded")
+        
+        with pytest.raises(MonzoRateLimitError):
+            client.accounts.list()
+```
+
+Proper exception handling is crucial for building robust applications with Monzoh. Always handle specific exception types and implement appropriate retry and fallback strategies based on the error type.

@@ -1,0 +1,328 @@
+---
+title: 'Accounts API'
+description: 'Account listing and balance operations'
+---
+
+## Overview
+
+The `AccountsAPI` provides methods to list accounts and retrieve balance information. All account operations are accessed through the `client.accounts` property.
+
+## Methods
+
+### list()
+
+List all accounts owned by the current user.
+
+```python
+def list(self, account_type: Optional[str] = None) -> list[Account]:
+    """List accounts owned by the current user."""
+```
+
+**Parameters**:
+- `account_type` (optional): Filter by account type
+  - `"uk_retail"` - Personal current accounts
+  - `"uk_retail_joint"` - Joint current accounts
+
+**Returns**: `list[Account]` - List of account objects
+
+**Example**:
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Get all accounts
+accounts = client.accounts.list()
+print(f"Found {len(accounts)} accounts")
+
+for account in accounts:
+    print(f"Account: {account.description}")
+    print(f"Type: {account.type}")
+    print(f"ID: {account.id}")
+
+# Filter by account type
+current_accounts = client.accounts.list(account_type="uk_retail")
+joint_accounts = client.accounts.list(account_type="uk_retail_joint")
+```
+
+### get_balance()
+
+Get balance information for a specific account.
+
+```python
+def get_balance(self, account_id: str) -> Balance:
+    """Get balance information for a specific account."""
+```
+
+**Parameters**:
+- `account_id`: The unique account identifier
+
+**Returns**: `Balance` - Account balance information
+
+**Example**:
+```python
+# Get first account
+accounts = client.accounts.list()
+account = accounts[0]
+
+# Get balance
+balance = client.accounts.get_balance(account_id=account.id)
+
+print(f"Current balance: £{balance.balance / 100:.2f}")
+print(f"Total balance: £{balance.total_balance / 100:.2f}")
+print(f"Spent today: £{balance.spend_today / 100:.2f}")
+print(f"Currency: {balance.currency}")
+print(f"Local currency: {balance.local_currency}")
+```
+
+## Data Models
+
+### Account
+
+Represents a Monzo account.
+
+```python
+class Account(BaseModel):
+    id: str                    # Unique account identifier
+    closed: bool               # Whether the account is closed
+    created: str               # Creation timestamp (ISO 8601)
+    description: str           # Account description (e.g., "Peter Pan's Account")
+    type: str                  # Account type (e.g., "uk_retail")
+    currency: str              # Account currency (e.g., "GBP")
+    country_code: str          # Country code (e.g., "GB")
+    owners: list[dict]         # List of account owners
+    account_number: str        # Account number (masked)
+    sort_code: str             # Sort code (masked)
+    payment_details: dict      # Payment details
+```
+
+**Common Account Types**:
+- `uk_retail` - Personal current account
+- `uk_retail_joint` - Joint current account
+- `uk_prepaid` - Prepaid card (legacy)
+
+### Balance
+
+Represents account balance information.
+
+```python
+class Balance(BaseModel):
+    balance: int               # Current balance in pence
+    total_balance: int         # Total balance including pending transactions  
+    currency: str              # Account currency (e.g., "GBP")
+    local_currency: str        # Local currency for display
+    spend_today: int           # Amount spent today in pence
+    balance_including_flexible_savings: int  # Balance including flexible savings
+```
+
+**Note**: All monetary amounts are in the account's base currency unit (pence for GBP).
+
+## Usage Examples
+
+### Basic Account Information
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# List all accounts
+accounts = client.accounts.list()
+
+print("Your Monzo Accounts:")
+print("=" * 40)
+
+for i, account in enumerate(accounts, 1):
+    print(f"\n{i}. {account.description}")
+    print(f"   Account ID: {account.id}")
+    print(f"   Type: {account.type}")
+    print(f"   Currency: {account.currency}")
+    print(f"   Created: {account.created}")
+    print(f"   Status: {'Open' if not account.closed else 'Closed'}")
+    
+    # Get balance for this account
+    balance = client.accounts.get_balance(account_id=account.id)
+    print(f"   Balance: £{balance.balance / 100:.2f}")
+```
+
+### Account Type Filtering
+
+```python
+# Get only personal accounts
+personal_accounts = client.accounts.list(account_type="uk_retail")
+print(f"Personal accounts: {len(personal_accounts)}")
+
+# Get only joint accounts  
+joint_accounts = client.accounts.list(account_type="uk_retail_joint")
+print(f"Joint accounts: {len(joint_accounts)}")
+
+# Process different account types
+for account in personal_accounts:
+    print(f"Personal: {account.description}")
+    
+for account in joint_accounts:
+    print(f"Joint: {account.description}")
+```
+
+### Balance Details
+
+```python
+# Get detailed balance information
+accounts = client.accounts.list()
+
+for account in accounts:
+    balance = client.accounts.get_balance(account_id=account.id)
+    
+    print(f"\n{account.description}")
+    print("-" * len(account.description))
+    print(f"Current Balance: £{balance.balance / 100:.2f}")
+    print(f"Total Balance: £{balance.total_balance / 100:.2f}")
+    print(f"Spent Today: £{balance.spend_today / 100:.2f}")
+    
+    # Calculate available spending money
+    available = balance.balance / 100
+    spent_today = balance.spend_today / 100
+    
+    print(f"Available: £{available:.2f}")
+    
+    if spent_today > 0:
+        print(f"💸 You've spent £{spent_today:.2f} today")
+    else:
+        print("💰 No spending today yet")
+```
+
+### Account Summary Dashboard
+
+```python
+def create_account_summary():
+    """Create a summary of all accounts."""
+    client = MonzoClient()
+    
+    accounts = client.accounts.list()
+    total_balance = 0
+    total_spent_today = 0
+    
+    print("MONZO ACCOUNT SUMMARY")
+    print("=" * 50)
+    
+    for account in accounts:
+        if account.closed:
+            continue  # Skip closed accounts
+            
+        balance = client.accounts.get_balance(account_id=account.id)
+        
+        balance_gbp = balance.balance / 100
+        spent_today_gbp = balance.spend_today / 100
+        
+        total_balance += balance_gbp
+        total_spent_today += spent_today_gbp
+        
+        # Account status indicator
+        if balance_gbp < 10:
+            status = "⚠️ Low"
+        elif balance_gbp < 100:
+            status = "💛 Medium"  
+        else:
+            status = "💚 Good"
+            
+        print(f"\n{account.description} {status}")
+        print(f"  Balance: £{balance_gbp:.2f}")
+        print(f"  Spent today: £{spent_today_gbp:.2f}")
+        print(f"  Type: {account.type}")
+    
+    print(f"\n{'TOTALS'}")
+    print("=" * 50)
+    print(f"Total Balance: £{total_balance:.2f}")
+    print(f"Total Spent Today: £{total_spent_today:.2f}")
+    print(f"Net Position: £{total_balance - total_spent_today:.2f}")
+
+# Run the summary
+create_account_summary()
+```
+
+### Error Handling
+
+```python
+from monzoh import MonzoClient, MonzoNotFoundError, MonzoError
+
+client = MonzoClient()
+
+try:
+    # List accounts
+    accounts = client.accounts.list()
+    
+    if not accounts:
+        print("No accounts found")
+        return
+    
+    # Get balance for each account
+    for account in accounts:
+        try:
+            balance = client.accounts.get_balance(account_id=account.id)
+            print(f"{account.description}: £{balance.balance / 100:.2f}")
+            
+        except MonzoNotFoundError:
+            print(f"Account {account.id} not found or inaccessible")
+            
+        except MonzoError as e:
+            print(f"Error getting balance for {account.description}: {e}")
+            
+except MonzoError as e:
+    print(f"Error listing accounts: {e}")
+```
+
+### Working with Account Metadata
+
+```python
+# Access account metadata
+accounts = client.accounts.list()
+
+for account in accounts:
+    print(f"\nAccount: {account.description}")
+    print(f"Owners: {len(account.owners)} person(s)")
+    
+    # Account number and sort code (masked for security)
+    print(f"Account Number: {account.account_number}")
+    print(f"Sort Code: {account.sort_code}")
+    
+    # Payment details
+    if account.payment_details:
+        print("Payment Details:")
+        for key, value in account.payment_details.items():
+            print(f"  {key}: {value}")
+    
+    # Ownership information
+    for i, owner in enumerate(account.owners):
+        print(f"Owner {i + 1}: {owner.get('preferred_name', 'Unknown')}")
+```
+
+## Mock Mode
+
+When using mock mode (`access_token="test"`), the accounts API returns predefined test data:
+
+```python
+# Enable mock mode
+client = MonzoClient(access_token="test")
+
+# Returns mock accounts
+accounts = client.accounts.list()
+print(f"Mock accounts: {len(accounts)}")  # Returns 2 mock accounts
+
+# Mock balance data
+balance = client.accounts.get_balance(accounts[0].id) 
+print(f"Mock balance: £{balance.balance / 100:.2f}")
+```
+
+Mock data includes:
+- 2 sample accounts (current and savings)
+- Realistic balance information
+- Proper account structure and IDs
+- Simulated spend_today values
+
+## Best Practices
+
+1. **Cache Account Lists**: Account information doesn't change frequently, so cache the results
+2. **Handle Closed Accounts**: Check `account.closed` before performing operations
+3. **Currency Awareness**: Always check `balance.currency` when displaying amounts
+4. **Error Handling**: Wrap API calls in try/catch blocks for robust error handling
+5. **Rate Limiting**: Be mindful of API rate limits when making multiple balance requests

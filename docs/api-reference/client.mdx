@@ -1,0 +1,383 @@
+---
+title: 'MonzoClient'
+description: 'Main client class for interacting with the Monzo API'
+---
+
+## Overview
+
+The `MonzoClient` is the primary interface for all Monzo API operations. It handles authentication, provides access to all API endpoints, and manages HTTP connections.
+
+## Class Definition
+
+```python
+class MonzoClient:
+    """Main Monzo API client."""
+    
+    def __init__(
+        self,
+        access_token: Optional[str] = None,
+        http_client: Optional[httpx.Client] = None,
+        timeout: float = 30.0,
+        async_mode: bool = False,  # No longer supported
+    ) -> None:
+```
+
+## Initialization
+
+### Basic Usage
+
+```python
+from monzoh import MonzoClient
+
+# Automatic token loading from cache
+client = MonzoClient()
+
+# Explicit token
+client = MonzoClient(access_token="your_access_token_here")
+```
+
+### Parameters
+
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| `access_token` | `Optional[str]` | `None` | OAuth2 access token. If not provided, loads from cache |
+| `http_client` | `Optional[httpx.Client]` | `None` | Custom httpx client instance |
+| `timeout` | `float` | `30.0` | Request timeout in seconds |
+| `async_mode` | `bool` | `False` | **Deprecated**: Raises ValueError if True |
+
+### Authentication
+
+The client handles authentication in several ways:
+
+<Tabs>
+  <Tab title="Automatic Token Loading">
+    ```python
+    # Loads token from system cache directory
+    client = MonzoClient()
+    
+    # Check if authenticated
+    whoami = client.whoami()
+    print(f"User: {whoami.user_id}")
+    ```
+  </Tab>
+  
+  <Tab title="Explicit Token">
+    ```python
+    # Provide token directly
+    client = MonzoClient(access_token="oauth2_access_...")
+    ```
+  </Tab>
+  
+  <Tab title="Mock Mode">
+    ```python
+    # Use mock data for testing
+    client = MonzoClient(access_token="test")
+    ```
+  </Tab>
+</Tabs>
+
+### Custom HTTP Client
+
+You can provide a custom httpx client for advanced configuration:
+
+```python
+import httpx
+from monzoh import MonzoClient
+
+# Custom HTTP client with specific settings
+http_client = httpx.Client(
+    timeout=httpx.Timeout(60.0),
+    limits=httpx.Limits(
+        max_connections=10,
+        max_keepalive_connections=5
+    ),
+    headers={
+        "User-Agent": "MyApp/1.0.0"
+    },
+    proxies={
+        "http://": "http://proxy.example.com:8080",
+        "https://": "http://proxy.example.com:8080"
+    }
+)
+
+client = MonzoClient(
+    access_token="your_token",
+    http_client=http_client
+)
+```
+
+## Properties
+
+The client provides access to all API endpoints through dedicated properties:
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `accounts` | `AccountsAPI` | Account and balance operations |
+| `transactions` | `TransactionsAPI` | Transaction management |
+| `pots` | `PotsAPI` | Savings pot operations |
+| `attachments` | `AttachmentsAPI` | File attachment management |
+| `receipts` | `ReceiptsAPI` | Receipt management |
+| `webhooks` | `WebhooksAPI` | Webhook management |
+| `feed` | `FeedAPI` | Feed item creation |
+
+## Methods
+
+### whoami()
+
+Get information about the current access token.
+
+```python
+def whoami(self) -> WhoAmI:
+    """Get information about the current access token."""
+```
+
+**Returns**: `WhoAmI` object with authentication details
+
+**Example**:
+```python
+whoami = client.whoami()
+print(f"User ID: {whoami.user_id}")
+print(f"Client ID: {whoami.client_id}")  
+print(f"Authenticated: {whoami.authenticated}")
+```
+
+### create_oauth_client()
+
+Class method to create an OAuth client for authentication.
+
+```python
+@classmethod
+def create_oauth_client(
+    cls,
+    client_id: str,
+    client_secret: str, 
+    redirect_uri: str,
+    http_client: Optional[httpx.Client] = None,
+) -> MonzoOAuth:
+    """Create OAuth client for authentication."""
+```
+
+**Parameters**:
+- `client_id`: OAuth2 client ID from Monzo Developer Portal
+- `client_secret`: OAuth2 client secret
+- `redirect_uri`: OAuth2 redirect URI  
+- `http_client`: Optional custom httpx client
+
+**Returns**: `MonzoOAuth` instance for handling authentication flow
+
+**Example**:
+```python
+oauth_client = MonzoClient.create_oauth_client(
+    client_id="oauth2_client_123",
+    client_secret="oauth2_secret_456", 
+    redirect_uri="http://localhost:8080/callback"
+)
+
+# Get authorization URL
+auth_url = oauth_client.get_authorization_url()
+print(f"Visit: {auth_url}")
+```
+
+## Context Manager Support
+
+The client supports context manager protocol for automatic resource cleanup:
+
+```python
+with MonzoClient() as client:
+    accounts = client.accounts.list()
+    for account in accounts:
+        balance = client.accounts.get_balance(account.id)
+        print(f"{account.description}: £{balance.balance / 100:.2f}")
+# Resources automatically cleaned up
+```
+
+## Error Handling
+
+The client raises specific exceptions for different error conditions:
+
+```python
+from monzoh import (
+    MonzoClient,
+    MonzoAuthenticationError,
+    MonzoNetworkError,
+    MonzoError
+)
+
+try:
+    client = MonzoClient()
+    accounts = client.accounts.list()
+    
+except MonzoAuthenticationError as e:
+    print(f"Authentication failed: {e}")
+    # Run monzoh-auth to re-authenticate
+    
+except MonzoNetworkError as e:
+    print(f"Network error: {e}")
+    # Check internet connection
+    
+except MonzoError as e:
+    print(f"API error: {e}")
+```
+
+## Complete Example
+
+```python
+from monzoh import MonzoClient, MonzoError
+
+def main():
+    try:
+        # Initialize client
+        client = MonzoClient()
+        
+        # Verify authentication
+        whoami = client.whoami()
+        print(f"✅ Authenticated as: {whoami.user_id}")
+        
+        # Get accounts
+        accounts = client.accounts.list()
+        print(f"📱 Found {len(accounts)} accounts")
+        
+        for account in accounts:
+            print(f"\n🏦 {account.description}")
+            print(f"   ID: {account.id}")
+            print(f"   Type: {account.type}")
+            
+            # Get balance
+            balance = client.accounts.get_balance(account.id)
+            print(f"   Balance: £{balance.balance / 100:.2f}")
+            print(f"   Spent today: £{balance.spend_today / 100:.2f}")
+            
+            # Get recent transactions
+            transactions = client.transactions.list(
+                account_id=account.id,
+                limit=5
+            )
+            print(f"   Recent transactions: {len(transactions)}")
+            
+            for transaction in transactions:
+                amount = transaction.amount / 100
+                print(f"     • {transaction.description}: £{amount:.2f}")
+        
+        # Get pots
+        pots = client.pots.list()
+        if pots:
+            print(f"\n🐷 Found {len(pots)} savings pots")
+            for pot in pots:
+                print(f"   {pot.name}: £{pot.balance / 100:.2f}")
+        
+    except MonzoError as e:
+        print(f"❌ Error: {e}")
+        return 1
+    
+    return 0
+
+if __name__ == "__main__":
+    exit(main())
+```
+
+## Advanced Configuration
+
+### Connection Pooling
+
+For applications making many concurrent requests:
+
+```python
+import httpx
+from monzoh import MonzoClient
+
+# Configure connection pooling
+http_client = httpx.Client(
+    limits=httpx.Limits(
+        max_connections=20,          # Total connections
+        max_keepalive_connections=5  # Keep-alive connections
+    ),
+    timeout=httpx.Timeout(
+        connect=10.0,    # Connection timeout
+        read=30.0,       # Read timeout
+        write=10.0,      # Write timeout
+        pool=5.0         # Pool timeout
+    )
+)
+
+client = MonzoClient(http_client=http_client)
+```
+
+### Proxy Configuration
+
+For clients behind corporate proxies:
+
+```python
+import httpx
+from monzoh import MonzoClient
+
+# Configure proxy
+proxies = {
+    "http://": "http://corporate.proxy.com:8080",
+    "https://": "http://corporate.proxy.com:8080"
+}
+
+http_client = httpx.Client(
+    proxies=proxies,
+    verify="/path/to/corporate-ca-bundle.crt"  # Custom CA bundle
+)
+
+client = MonzoClient(http_client=http_client)
+```
+
+### Custom Headers
+
+Add custom headers to all requests:
+
+```python
+import httpx
+from monzoh import MonzoClient
+
+http_client = httpx.Client(
+    headers={
+        "User-Agent": "MyApp/2.0.0 (contact@myapp.com)",
+        "X-Custom-Header": "custom-value"
+    }
+)
+
+client = MonzoClient(http_client=http_client)
+```
+
+## Thread Safety
+
+The `MonzoClient` is thread-safe when using the default httpx client. However, if you provide a custom `http_client`, ensure it's configured for thread safety:
+
+```python
+import httpx
+from monzoh import MonzoClient
+import threading
+
+# Thread-safe client
+http_client = httpx.Client(
+    limits=httpx.Limits(max_connections=50)  # Allow multiple concurrent connections  
+)
+
+client = MonzoClient(http_client=http_client)
+
+def worker():
+    accounts = client.accounts.list()
+    print(f"Thread {threading.current_thread().name}: {len(accounts)} accounts")
+
+# Multiple threads can safely use the same client
+threads = [threading.Thread(target=worker) for _ in range(5)]
+for t in threads:
+    t.start()
+for t in threads:
+    t.join()
+```
+
+<Warning>
+The `async_mode` parameter is deprecated and will raise a `ValueError` if set to `True`. Use the synchronous client with `asyncio.to_thread()` for async operations instead.
+</Warning>
+
+## Migration Notes
+
+### From v0.0.x to v0.1.x
+
+- `async_mode` parameter is no longer supported
+- Use `asyncio.to_thread()` for async operations
+- Token loading is now automatic by default

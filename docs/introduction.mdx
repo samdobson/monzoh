@@ -1,0 +1,118 @@
+---
+title: Introduction
+description: 'Welcome to Monzoh - A Python library for the Monzo Developer API'
+---
+
+## What is Monzoh?
+
+Monzoh is a Python library that makes it easy to work with the [Monzo Developer API](https://docs.monzo.com/). It enables developers to build applications that interact with their Monzo bank account.
+
+<CardGroup cols={2}>
+  <Card
+    title="Type-Safe"
+    icon="shield-check"
+    href="/guides/type-safety"
+  >
+    Built with Pydantic models for complete type safety and validation
+  </Card>
+  <Card
+    title="Full API Coverage"
+    icon="list-check"
+    href="/api-reference/introduction"
+  >
+    Comprehensive coverage of all Monzo API endpoints and features
+  </Card>
+  <Card
+    title="OAuth2 Authentication"
+    icon="key"
+    href="/authentication"
+  >
+    Simple OAuth2 flow with automatic token management
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="triangle-exclamation"
+    href="/guides/error-handling"
+  >
+    Comprehensive error handling with custom exception types
+  </Card>
+</CardGroup>
+
+## Features
+
+- **Full Monzo API Coverage**: Access all Monzo API endpoints including accounts, transactions, pots, attachments, receipts, webhooks, and feed items
+- **Type-Safe**: Built with Pydantic models for complete type safety and runtime validation
+- **Simple OAuth2**: Easy-to-use OAuth2 authentication flow with automatic token management
+- **Comprehensive Error Handling**: Custom exception types for different API error conditions
+- **Mock Mode**: Built-in mock data for testing without API calls
+- **Well-Tested**: Comprehensive test suite with high code coverage
+
+## Quick Example
+
+```python
+from monzoh import MonzoClient
+
+# Initialize client with OAuth2 authentication
+client = MonzoClient()
+
+# List all accounts
+accounts = client.accounts.list()
+print(f"Found {len(accounts)} accounts")
+
+# Get account balance
+balance = client.accounts.get_balance(account_id=accounts[0].id)
+print(f"Balance: {balance.balance / 100:.2f} {balance.currency}")
+
+# List recent transactions
+transactions = client.transactions.list(
+    account_id=accounts[0].id,
+    limit=10
+)
+for transaction in transactions:
+    print(f"{transaction.description}: {transaction.amount / 100:.2f}")
+```
+
+## API Coverage
+
+Monzoh provides comprehensive coverage of the Monzo API:
+
+| Feature | Status | Description |
+|---------|--------|-------------|
+| OAuth2 Authentication | ✅ | Complete OAuth2 flow with token management |
+| Accounts | ✅ | List accounts and get balance information |
+| Transactions | ✅ | List, retrieve, and annotate transactions |
+| Pots | ✅ | Manage savings pots and transfers |
+| Attachments | ✅ | Upload and manage transaction attachments |
+| Receipts | ✅ | Add detailed receipt information to transactions |
+| Webhooks | ✅ | Register and manage webhook endpoints |
+| Feed Items | ✅ | Create custom feed items |
+
+## Installation
+
+Install Monzoh using your preferred package manager:
+
+<CodeGroup>
+
+```bash pip
+pip install monzoh
+```
+
+```bash uv
+uv add monzoh
+```
+
+```bash poetry
+poetry add monzoh
+```
+
+</CodeGroup>
+
+## Requirements
+
+- Python 3.9 or higher
+- A Monzo developer account and OAuth2 credentials
+- Internet connection for API calls (unless using mock mode)
+
+## Get Started
+
+Ready to start building with Monzoh? Check out our [quickstart guide](/quickstart) to get up and running in minutes.

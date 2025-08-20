@@ -1,0 +1,605 @@
+---
+title: 'Feed API'  
+description: 'Create custom feed items in the Monzo app'
+---
+
+## Overview
+
+The `FeedAPI` provides methods to create custom feed items that appear in the Monzo app's transaction feed. This enables you to add rich, contextual information and notifications to enhance the user experience.
+
+## Methods
+
+### create_feed_item()
+
+Create a custom feed item that appears in the Monzo app.
+
+```python
+def create_feed_item(
+    self,
+    account_id: str,
+    type: str,
+    url: Optional[str] = None,
+    params: Optional[dict] = None
+) -> dict:
+    """Create a custom feed item."""
+```
+
+**Parameters**:
+- `account_id`: The account to create the feed item for
+- `type`: The type of feed item (see Feed Item Types below)
+- `url`: Optional URL for the feed item
+- `params`: Additional parameters specific to the feed item type
+
+**Returns**: `dict` - Feed item creation confirmation
+
+## Feed Item Types
+
+### Basic Feed Item
+
+Create a simple text-based feed item:
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Get account
+accounts = client.accounts.list()
+account_id = accounts[0].id
+
+# Create basic feed item
+feed_item = client.feed.create_feed_item(
+    account_id=account_id,
+    type="basic",
+    params={
+        "title": "🎉 Congratulations!",
+        "body": "You've reached your savings goal for this month",
+        "background_color": "#00D4AA",
+        "title_color": "#FFFFFF",
+        "body_color": "#FFFFFF"
+    }
+)
+
+print("✅ Feed item created")
+```
+
+### Rich Feed Item
+
+Create a feed item with images and actions:
+
+```python
+# Rich feed item with image and action
+feed_item = client.feed.create_feed_item(
+    account_id=account_id,
+    type="rich",
+    params={
+        "title": "💰 Spending Insights",
+        "body": "You've spent 15% less on dining out this month compared to last month!",
+        "image_url": "https://example.com/spending-chart.png",
+        "background_color": "#1E88E5",
+        "title_color": "#FFFFFF", 
+        "body_color": "#FFFFFF",
+        "action": {
+            "type": "link",
+            "url": "https://your-app.com/insights"
+        }
+    }
+)
+```
+
+## Feed Item Examples
+
+### Savings Milestone Notifications
+
+Create feed items to celebrate savings milestones:
+
+```python
+class SavingsMilestones:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def check_and_notify_milestones(self):
+        """Check for savings milestones and create feed notifications."""
+        
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get pots and check for milestones
+        pots = self.client.pots.list()
+        
+        for pot in pots:
+            if pot.deleted or not pot.goal_amount:
+                continue
+                
+            balance = pot.balance / 100
+            goal = pot.goal_amount / 100
+            progress = (balance / goal) * 100
+            
+            # Check for milestone thresholds
+            milestone = self._get_milestone_threshold(progress)
+            
+            if milestone and not self._milestone_already_celebrated(pot.id, milestone):
+                self._create_milestone_feed_item(
+                    current_account.id,
+                    pot.name,
+                    balance,
+                    goal, 
+                    milestone
+                )
+                self._mark_milestone_celebrated(pot.id, milestone)
+    
+    def _get_milestone_threshold(self, progress):
+        """Get milestone if progress crosses a threshold."""
+        
+        milestones = [25, 50, 75, 90, 100]
+        
+        for milestone in milestones:
+            if progress >= milestone:
+                return milestone
+        
+        return None
+    
+    def _milestone_already_celebrated(self, pot_id, milestone):
+        """Check if milestone was already celebrated (simplified)."""
+        # In reality, you'd store this in a database or file
+        return False
+    
+    def _mark_milestone_celebrated(self, pot_id, milestone):
+        """Mark milestone as celebrated (simplified)."""
+        # In reality, you'd persist this information
+        pass
+    
+    def _create_milestone_feed_item(self, account_id, pot_name, balance, goal, milestone):
+        """Create a feed item for the savings milestone."""
+        
+        if milestone == 100:
+            # Goal achieved!
+            emoji = "🎉"
+            title = "Goal Achieved!"
+            body = f"Congratulations! You've reached your £{goal:.2f} goal for '{pot_name}'"
+            color = "#4CAF50"  # Green
+            
+        elif milestone >= 75:
+            emoji = "🔥"
+            title = "Almost There!"
+            body = f"You're {milestone}% of the way to your '{pot_name}' goal (£{balance:.2f}/£{goal:.2f})"
+            color = "#FF9800"  # Orange
+            
+        elif milestone >= 50:
+            emoji = "💪"
+            title = "Halfway Point!"
+            body = f"You've saved £{balance:.2f} towards your '{pot_name}' goal of £{goal:.2f}"
+            color = "#2196F3"  # Blue
+            
+        else:
+            emoji = "🌱"
+            title = "Great Start!"
+            body = f"You've made great progress on your '{pot_name}' goal (£{balance:.2f}/£{goal:.2f})"
+            color = "#4CAF50"  # Green
+        
+        try:
+            feed_item = self.client.feed.create_feed_item(
+                account_id=account_id,
+                type="basic",
+                params={
+                    "title": f"{emoji} {title}",
+                    "body": body,
+                    "background_color": color,
+                    "title_color": "#FFFFFF",
+                    "body_color": "#FFFFFF"
+                }
+            )
+            
+            print(f"✅ Milestone notification created: {milestone}% for {pot_name}")
+            
+        except Exception as e:
+            print(f"❌ Failed to create milestone notification: {e}")
+
+# Usage
+milestones = SavingsMilestones()
+milestones.check_and_notify_milestones()
+```
+
+### Spending Alerts
+
+Create feed items for spending alerts and budgets:
+
+```python
+class SpendingAlerts:
+    def __init__(self):
+        self.client = MonzoClient()
+        
+        # Weekly spending limits by category
+        self.weekly_limits = {
+            'groceries': 80,
+            'eating_out': 50,
+            'transport': 30,
+            'entertainment': 40
+        }
+    
+    def check_weekly_spending(self):
+        """Check weekly spending and create alerts if needed."""
+        
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get this week's transactions
+        from datetime import datetime, timedelta
+        
+        # Start of current week (Monday)
+        today = datetime.now()
+        start_of_week = today - timedelta(days=today.weekday())
+        
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=start_of_week,
+            limit=100
+        )
+        
+        # Calculate spending by category
+        from collections import defaultdict
+        category_spending = defaultdict(float)
+        
+        for txn in transactions:
+            if txn.amount < 0 and txn.category:  # Spending transactions only
+                amount = abs(txn.amount) / 100
+                category_spending[txn.category] += amount
+        
+        # Check against limits and create alerts
+        for category, limit in self.weekly_limits.items():
+            spent = category_spending[category]
+            percentage = (spent / limit) * 100
+            
+            if percentage >= 100:
+                self._create_over_budget_alert(current_account.id, category, spent, limit)
+            elif percentage >= 80:
+                self._create_budget_warning_alert(current_account.id, category, spent, limit)
+    
+    def _create_over_budget_alert(self, account_id, category, spent, limit):
+        """Create alert for over-budget spending."""
+        
+        overspend = spent - limit
+        
+        feed_item = self.client.feed.create_feed_item(
+            account_id=account_id,
+            type="basic",
+            params={
+                "title": "🚨 Budget Exceeded",
+                "body": f"You've spent £{spent:.2f} on {category} this week (£{overspend:.2f} over your £{limit:.2f} limit)",
+                "background_color": "#F44336",  # Red
+                "title_color": "#FFFFFF",
+                "body_color": "#FFFFFF"
+            }
+        )
+        
+        print(f"🚨 Over-budget alert created for {category}")
+    
+    def _create_budget_warning_alert(self, account_id, category, spent, limit):
+        """Create warning for approaching budget limit."""
+        
+        remaining = limit - spent
+        percentage = (spent / limit) * 100
+        
+        feed_item = self.client.feed.create_feed_item(
+            account_id=account_id,
+            type="basic",
+            params={
+                "title": "⚠️ Approaching Budget Limit",
+                "body": f"You've used {percentage:.0f}% of your weekly {category} budget (£{remaining:.2f} remaining)",
+                "background_color": "#FF9800",  # Orange
+                "title_color": "#FFFFFF",
+                "body_color": "#FFFFFF"
+            }
+        )
+        
+        print(f"⚠️ Budget warning created for {category}")
+
+# Usage
+alerts = SpendingAlerts()
+alerts.check_weekly_spending()
+```
+
+### Achievement Notifications
+
+Create feed items for financial achievements:
+
+```python
+class FinancialAchievements:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def check_achievements(self):
+        """Check for various financial achievements."""
+        
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Check different achievement types
+        self._check_spending_achievements(current_account.id)
+        self._check_balance_achievements(current_account.id)
+        self._check_transaction_achievements(current_account.id)
+    
+    def _check_spending_achievements(self, account_id):
+        """Check spending-related achievements."""
+        
+        # Get last month's transactions
+        from datetime import datetime, timedelta
+        
+        last_month = datetime.now() - timedelta(days=30)
+        transactions = self.client.transactions.list(
+            account_id=account_id,
+            since=last_month,
+            limit=200
+        )
+        
+        spending_transactions = [t for t in transactions if t.amount < 0]
+        
+        # Achievement: No dining out for a week
+        dining_transactions = [
+            t for t in spending_transactions[-50:]  # Last 50 transactions
+            if t.category == 'eating_out'
+        ]
+        
+        if dining_transactions:
+            latest_dining = max(dining_transactions, key=lambda x: x.created)
+            days_since = (datetime.now() - datetime.fromisoformat(
+                latest_dining.created.replace('Z', '+00:00')
+            )).days
+            
+            if days_since >= 7:
+                self._create_achievement_feed_item(
+                    account_id,
+                    "🏆 Home Chef Achievement",
+                    f"You haven't eaten out in {days_since} days! You're saving money and eating healthier.",
+                    "#4CAF50"
+                )
+        
+        # Achievement: Lowest spending month
+        monthly_spending = sum(abs(t.amount) for t in spending_transactions) / 100
+        
+        # Compare with previous months (simplified - would need historical data)
+        if monthly_spending < 800:  # Assuming this is unusually low
+            self._create_achievement_feed_item(
+                account_id,
+                "💰 Frugal Month Achievement", 
+                f"You only spent £{monthly_spending:.2f} this month - your lowest yet!",
+                "#2196F3"
+            )
+    
+    def _check_balance_achievements(self, account_id):
+        """Check balance-related achievements."""
+        
+        balance = self.client.accounts.get_balance(account_id=account_id)
+        current_balance = balance.balance / 100
+        
+        # Achievement: Highest balance milestone
+        milestones = [100, 500, 1000, 2500, 5000, 10000]
+        
+        for milestone in milestones:
+            if current_balance >= milestone:
+                # In reality, you'd track which milestones have been achieved
+                self._create_achievement_feed_item(
+                    account_id,
+                    f"🎯 Balance Milestone",
+                    f"Your balance has reached £{milestone}! Great job building your wealth.",
+                    "#9C27B0"
+                )
+                break
+    
+    def _check_transaction_achievements(self, account_id):
+        """Check transaction-related achievements."""
+        
+        # Get recent transactions
+        transactions = self.client.transactions.list(
+            account_id=account_id,
+            limit=100
+        )
+        
+        # Achievement: Transaction streak (e.g., 7 days of transactions under £10)
+        recent_spending = [
+            abs(t.amount) / 100 for t in transactions[:7]  # Last 7 transactions
+            if t.amount < 0
+        ]
+        
+        if recent_spending and all(amount <= 10 for amount in recent_spending):
+            avg_spending = sum(recent_spending) / len(recent_spending)
+            
+            self._create_achievement_feed_item(
+                account_id,
+                "🎖️ Small Spender Badge",
+                f"Your last {len(recent_spending)} purchases were all under £10 (avg: £{avg_spending:.2f})",
+                "#FF5722"
+            )
+    
+    def _create_achievement_feed_item(self, account_id, title, body, color):
+        """Create an achievement feed item."""
+        
+        try:
+            feed_item = self.client.feed.create_feed_item(
+                account_id=account_id,
+                type="basic",
+                params={
+                    "title": title,
+                    "body": body,
+                    "background_color": color,
+                    "title_color": "#FFFFFF",
+                    "body_color": "#FFFFFF"
+                }
+            )
+            
+            print(f"🏆 Achievement created: {title}")
+            
+        except Exception as e:
+            print(f"❌ Failed to create achievement: {e}")
+
+# Usage
+achievements = FinancialAchievements()
+achievements.check_achievements()
+```
+
+### Weekly Summary Feed Items
+
+Create weekly financial summary feed items:
+
+```python
+class WeeklySummary:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def create_weekly_summary(self):
+        """Create a weekly financial summary feed item."""
+        
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get this week's data
+        from datetime import datetime, timedelta
+        
+        today = datetime.now()
+        start_of_week = today - timedelta(days=today.weekday())
+        
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=start_of_week,
+            limit=100
+        )
+        
+        # Calculate weekly metrics
+        spending_transactions = [t for t in transactions if t.amount < 0]
+        income_transactions = [t for t in transactions if t.amount > 0]
+        
+        total_spent = sum(abs(t.amount) for t in spending_transactions) / 100
+        total_income = sum(t.amount for t in income_transactions) / 100
+        transaction_count = len(spending_transactions)
+        
+        # Get current balance
+        balance = self.client.accounts.get_balance(account_id=current_account.id)
+        current_balance = balance.balance / 100
+        
+        # Most frequent category
+        from collections import Counter
+        categories = [t.category for t in spending_transactions if t.category]
+        top_category = Counter(categories).most_common(1)
+        top_category_name = top_category[0][0] if top_category else "N/A"
+        
+        # Create summary text
+        summary_text = self._generate_summary_text(
+            total_spent, total_income, transaction_count, 
+            current_balance, top_category_name
+        )
+        
+        # Determine color based on spending vs income
+        if total_income > total_spent:
+            color = "#4CAF50"  # Green - positive week
+            emoji = "📈"
+        elif total_spent > total_income * 1.5:
+            color = "#F44336"  # Red - high spending week  
+            emoji = "📉"
+        else:
+            color = "#2196F3"  # Blue - normal week
+            emoji = "📊"
+        
+        # Create feed item
+        try:
+            feed_item = self.client.feed.create_feed_item(
+                account_id=current_account.id,
+                type="basic",
+                params={
+                    "title": f"{emoji} Weekly Summary",
+                    "body": summary_text,
+                    "background_color": color,
+                    "title_color": "#FFFFFF",
+                    "body_color": "#FFFFFF"
+                }
+            )
+            
+            print("📊 Weekly summary feed item created")
+            
+        except Exception as e:
+            print(f"❌ Failed to create weekly summary: {e}")
+    
+    def _generate_summary_text(self, spent, income, transactions, balance, top_category):
+        """Generate summary text for the feed item."""
+        
+        net_change = income - spent
+        
+        summary_parts = [
+            f"This week: £{spent:.2f} spent across {transactions} transactions",
+        ]
+        
+        if income > 0:
+            summary_parts.append(f"Income: £{income:.2f}")
+        
+        if net_change >= 0:
+            summary_parts.append(f"Net: +£{net_change:.2f} 💚")
+        else:
+            summary_parts.append(f"Net: -£{abs(net_change):.2f} 💸")
+        
+        summary_parts.append(f"Balance: £{balance:.2f}")
+        
+        if top_category != "N/A":
+            summary_parts.append(f"Top category: {top_category.title()}")
+        
+        return " • ".join(summary_parts)
+
+# Usage (would typically run weekly via cron job)
+summary = WeeklySummary()
+summary.create_weekly_summary()
+```
+
+## Scheduled Feed Items
+
+Set up automated feed items using cron jobs or task schedulers:
+
+```python
+#!/usr/bin/env python3
+"""
+Scheduled script to create regular feed items.
+Run via cron: 0 9 * * 1 /path/to/weekly_feed_items.py
+"""
+
+import sys
+from pathlib import Path
+
+# Add your project path
+sys.path.append(str(Path(__file__).parent.parent))
+
+from monzoh import MonzoClient
+
+def main():
+    """Main function for scheduled feed item creation."""
+    
+    try:
+        # Create various feed items
+        milestones = SavingsMilestones()
+        milestones.check_and_notify_milestones()
+        
+        alerts = SpendingAlerts() 
+        alerts.check_weekly_spending()
+        
+        achievements = FinancialAchievements()
+        achievements.check_achievements()
+        
+        summary = WeeklySummary()
+        summary.create_weekly_summary()
+        
+        print("✅ All scheduled feed items processed")
+        
+    except Exception as e:
+        print(f"❌ Error in scheduled feed items: {e}")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()
+```
+
+## Best Practices
+
+1. **Relevant content**: Only create feed items that provide value to users
+2. **Frequency limits**: Don't overwhelm users with too many feed items
+3. **Visual consistency**: Use consistent colors and formatting
+4. **Actionable items**: Include relevant actions or links where appropriate
+5. **Error handling**: Always wrap feed item creation in try/catch blocks
+6. **User preferences**: Consider allowing users to opt out of certain feed types
+
+The Feed API enables rich, contextual notifications that enhance the Monzo app experience by providing personalized insights, achievements, and alerts directly in the transaction feed.

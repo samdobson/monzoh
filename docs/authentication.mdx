@@ -1,0 +1,386 @@
+---
+title: 'Authentication'
+description: 'Learn how to authenticate with the Monzo API using OAuth2'
+---
+
+## Overview
+
+Monzoh uses OAuth2 for authentication with the Monzo API. This guide walks you through setting up OAuth2 credentials and completing the authentication flow.
+
+## Prerequisites
+
+- A Monzo account (personal or business)
+- A registered OAuth2 application in the Monzo Developer Portal
+
+## Setting Up OAuth2
+
+### 1. Create a Developer Application
+
+1. Visit the [Monzo Developer Portal](https://developers.monzo.com/)
+2. Sign in with your Monzo account
+3. Click "Create New Application"
+4. Fill in your application details:
+   - **Name**: Your application name
+   - **Description**: Brief description of your app
+   - **Redirect URI**: `http://localhost:8080/callback` (for local development)
+   - **Logo**: Optional application logo
+
+<Warning>
+For production applications, use a proper HTTPS redirect URI pointing to your application's callback endpoint.
+</Warning>
+
+### 2. Configure Environment Variables
+
+Create a `.env` file in your project root with your OAuth2 credentials:
+
+```bash
+# Required OAuth2 credentials
+MONZO_CLIENT_ID=your_client_id_here
+MONZO_CLIENT_SECRET=your_client_secret_here
+MONZO_REDIRECT_URI=http://localhost:8080/callback
+
+# Optional: Custom base URL (defaults to https://api.monzo.com)
+MONZO_BASE_URL=https://api.monzo.com
+```
+
+Alternatively, you can set these as environment variables:
+
+```bash
+export MONZO_CLIENT_ID="your_client_id_here"
+export MONZO_CLIENT_SECRET="your_client_secret_here"
+export MONZO_REDIRECT_URI="http://localhost:8080/callback"
+```
+
+## Authentication Flow
+
+### Command Line Authentication
+
+The simplest way to authenticate is using the built-in CLI tool:
+
+```bash
+monzoh-auth
+```
+
+This command will:
+1. Start a local web server on port 8080
+2. Open your default browser to the Monzo authorization page
+3. Handle the OAuth2 callback automatically
+4. Save your access and refresh tokens securely
+
+<Info>
+Tokens are saved in your system's cache directory:
+- macOS: `~/Library/Caches/monzoh/tokens.json`
+- Windows: `%LOCALAPPDATA%/monzoh/tokens.json`
+- Linux: `~/.cache/monzoh/tokens.json`
+</Info>
+
+### Programmatic Authentication
+
+For more control, you can handle the OAuth2 flow programmatically:
+
+```python
+from monzoh import MonzoOAuth
+
+# Initialize OAuth handler
+oauth = MonzoOAuth()
+
+# Get authorization URL
+auth_url = oauth.get_authorization_url()
+print(f"Visit this URL to authorize: {auth_url}")
+
+# After user authorizes, exchange the code for tokens
+# (You'll receive this code via your redirect URI)
+authorization_code = "received_from_callback"
+tokens = oauth.exchange_code_for_tokens(authorization_code)
+
+print(f"Access token: {tokens.access_token}")
+print(f"Refresh token: {tokens.refresh_token}")
+```
+
+### Custom Redirect URI
+
+If you're building a web application, you can use a custom redirect URI:
+
+```python
+from monzoh import MonzoOAuth
+
+oauth = MonzoOAuth(
+    client_id="your_client_id",
+    client_secret="your_client_secret",
+    redirect_uri="https://your-app.com/auth/callback"
+)
+
+# Generate authorization URL
+auth_url = oauth.get_authorization_url(
+    state="random_state_string"  # Optional state parameter for CSRF protection
+)
+
+# Redirect user to auth_url...
+# Handle callback at your redirect URI...
+```
+
+## Token Management
+
+### Automatic Token Refresh
+
+Monzoh automatically refreshes expired access tokens using the stored refresh token:
+
+```python
+from monzoh import MonzoClient
+
+# Client will automatically refresh tokens when needed
+client = MonzoClient()
+
+# This call will work even if the access token has expired
+accounts = client.accounts.list()
+```
+
+### Manual Token Management
+
+You can also manage tokens manually:
+
+```python
+from monzoh import MonzoOAuth, OAuthToken
+
+# Load existing tokens
+oauth = MonzoOAuth()
+tokens = oauth.load_tokens()
+
+if tokens and oauth.is_token_expired(tokens):
+    # Refresh expired token
+    new_tokens = oauth.refresh_token(tokens.refresh_token)
+    oauth.save_tokens(new_tokens)
+    print("Token refreshed successfully")
+
+# Use tokens with client
+client = MonzoClient(access_token=tokens.access_token)
+```
+
+### Token Storage Locations
+
+Tokens are stored in different locations based on your operating system:
+
+<Tabs>
+  <Tab title="macOS">
+    ```
+    ~/Library/Caches/monzoh/tokens.json
+    ```
+  </Tab>
+  <Tab title="Windows">
+    ```
+    %LOCALAPPDATA%/monzoh/tokens.json
+    ```
+  </Tab>
+  <Tab title="Linux">
+    ```
+    ~/.cache/monzoh/tokens.json
+    # or
+    $XDG_CACHE_HOME/monzoh/tokens.json
+    ```
+  </Tab>
+</Tabs>
+
+## Client Initialization
+
+### Default Initialization
+
+The simplest way to create a client is using stored tokens:
+
+```python
+from monzoh import MonzoClient
+
+# Uses tokens from default storage location
+client = MonzoClient()
+```
+
+### Custom Access Token
+
+You can provide an access token directly:
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient(access_token="your_access_token_here")
+```
+
+### Custom HTTP Client
+
+For advanced use cases, you can provide a custom HTTP client:
+
+```python
+import httpx
+from monzoh import MonzoClient
+
+# Custom HTTP client with timeout and retries
+http_client = httpx.Client(
+    timeout=60.0,
+    limits=httpx.Limits(max_connections=10)
+)
+
+client = MonzoClient(
+    access_token="your_token",
+    http_client=http_client
+)
+```
+
+## Testing Authentication
+
+### Check Authentication Status
+
+```python
+from monzoh import MonzoClient, MonzoAuthenticationError
+
+client = MonzoClient()
+
+try:
+    whoami = client.whoami()
+    print(f"✅ Authenticated as user: {whoami.user_id}")
+    print(f"Client ID: {whoami.client_id}")
+    print(f"Authenticated: {whoami.authenticated}")
+except MonzoAuthenticationError as e:
+    print(f"❌ Authentication failed: {e}")
+    print("Run 'monzoh-auth' to authenticate")
+```
+
+### Validate Token Permissions
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Check what you can access
+try:
+    accounts = client.accounts.list()
+    print(f"✅ Can access {len(accounts)} accounts")
+    
+    if accounts:
+        balance = client.accounts.get_balance(account_id=accounts[0].id)
+        print(f"✅ Can read account balance")
+        
+        transactions = client.transactions.list(account_id=accounts[0].id, limit=1)
+        print(f"✅ Can read transactions")
+        
+except Exception as e:
+    print(f"❌ Permission error: {e}")
+```
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Environment Variables">
+    Always store credentials in environment variables or secure configuration files, never in source code.
+    
+    ```python
+    # ✅ Good
+    client_id = os.getenv("MONZO_CLIENT_ID")
+    
+    # ❌ Bad
+    client_id = "oauth2_client_1234567890abcdef"
+    ```
+  </Accordion>
+
+  <Accordion title="Token Storage">
+    Monzoh stores tokens in your system's secure cache directory. For production applications, consider using a secure token store.
+    
+    ```python
+    # Custom secure token storage
+    from monzoh import MonzoOAuth
+    
+    class SecureTokenStore:
+        def save_tokens(self, tokens):
+            # Save to secure store (database, vault, etc.)
+            pass
+            
+        def load_tokens(self):
+            # Load from secure store
+            pass
+    ```
+  </Accordion>
+
+  <Accordion title="HTTPS Redirect URIs">
+    Always use HTTPS redirect URIs in production to prevent token interception.
+    
+    ```python
+    # ✅ Production
+    redirect_uri = "https://your-app.com/auth/callback"
+    
+    # ⚠️ Development only
+    redirect_uri = "http://localhost:8080/callback"
+    ```
+  </Accordion>
+
+  <Accordion title="State Parameter">
+    Use the state parameter to prevent CSRF attacks in web applications.
+    
+    ```python
+    import secrets
+    
+    state = secrets.token_urlsafe(32)
+    auth_url = oauth.get_authorization_url(state=state)
+    
+    # Verify state in callback
+    if callback_state != stored_state:
+        raise SecurityError("Invalid state parameter")
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Authentication Failed">
+    **Error**: `MonzoAuthenticationError: Invalid access token`
+    
+    **Solutions**:
+    - Run `monzoh-auth` to re-authenticate
+    - Check that your OAuth2 credentials are correct
+    - Verify that your access token hasn't been revoked
+  </Accordion>
+
+  <Accordion title="Invalid Redirect URI">
+    **Error**: `invalid_request: redirect_uri mismatch`
+    
+    **Solutions**:
+    - Ensure the redirect URI matches exactly with your OAuth2 app settings
+    - Check for trailing slashes or protocol mismatches
+    - Update your app settings in the Monzo Developer Portal
+  </Accordion>
+
+  <Accordion title="Port Already in Use">
+    **Error**: `Address already in use: 8080`
+    
+    **Solutions**:
+    - Use a different port: `monzoh-auth --port 8081`
+    - Kill any processes using port 8080
+    - Update your OAuth2 app's redirect URI to match the new port
+  </Accordion>
+
+  <Accordion title="Token File Not Found">
+    **Error**: `FileNotFoundError: tokens.json not found`
+    
+    **Solutions**:
+    - Run `monzoh-auth` to create initial tokens
+    - Check file permissions on the cache directory
+    - Manually specify token location if needed
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+Now that you're authenticated, you can start making API calls:
+
+<CardGroup cols={2}>
+  <Card title="Accounts" icon="building-columns" href="/api-reference/accounts">
+    List accounts and get balance information
+  </Card>
+  <Card title="Transactions" icon="receipt" href="/api-reference/transactions">
+    Retrieve and manage transaction data
+  </Card>
+  <Card title="Error Handling" icon="triangle-exclamation" href="/guides/error-handling">
+    Handle authentication and API errors
+  </Card>
+  <Card title="Mock Mode" icon="flask" href="/guides/mock-mode">
+    Test without real API calls
+  </Card>
+</CardGroup>

@@ -1,0 +1,668 @@
+---
+title: 'Attachments API'
+description: 'Upload and manage transaction attachments'
+---
+
+## Overview
+
+The `AttachmentsAPI` provides methods to upload files and attach them to transactions. This is useful for adding receipts, invoices, and other supporting documents. All attachment operations are accessed through the `client.attachments` property.
+
+## Methods
+
+### upload()
+
+Upload a file and attach it to a transaction.
+
+```python
+def upload(
+    self,
+    transaction_id: str,
+    file_name: str,
+    file_type: str,
+    file_data: bytes
+) -> Attachment:
+    """Upload a file attachment for a transaction."""
+```
+
+**Parameters**:
+- `transaction_id`: The unique transaction identifier
+- `file_name`: Name of the file (e.g., "receipt.jpg")
+- `file_type`: MIME type (e.g., "image/jpeg", "application/pdf")
+- `file_data`: The file content as bytes
+
+**Returns**: `Attachment` - The uploaded attachment object
+
+**Example**:
+```python
+from monzoh import MonzoClient
+from pathlib import Path
+import mimetypes
+
+client = MonzoClient()
+
+# Get a transaction to attach to
+accounts = client.accounts.list()
+transactions = client.transactions.list(
+    account_id=accounts[0].id,
+    limit=1
+)
+transaction_id = transactions[0].id
+
+# Upload an image attachment
+image_path = Path("receipt.jpg")
+file_data = image_path.read_bytes()
+
+# Determine MIME type
+mime_type, _ = mimetypes.guess_type(str(image_path))
+
+attachment = client.attachments.upload(
+    transaction_id=transaction_id,
+    file_name=image_path.name,
+    file_type=mime_type,
+    file_data=file_data
+)
+
+print(f"✅ Uploaded attachment: {attachment.id}")
+print(f"📎 File: {attachment.file_name}")
+print(f"🔗 URL: {attachment.file_url}")
+```
+
+### deregister()
+
+Remove an attachment from a transaction.
+
+```python
+def deregister(self, attachment_id: str) -> dict:
+    """Remove an attachment."""
+```
+
+**Parameters**:
+- `attachment_id`: The unique attachment identifier
+
+**Returns**: `dict` - Removal confirmation
+
+**Example**:
+```python
+# Remove an attachment
+result = client.attachments.deregister(attachment_id="attach_123")
+print("✅ Attachment removed")
+```
+
+## File Upload Examples
+
+### Receipt Management System
+
+Create a comprehensive receipt management system:
+
+```python
+from monzoh import MonzoClient, MonzoError
+from pathlib import Path
+import mimetypes
+from datetime import datetime, timedelta
+import json
+
+class ReceiptManager:
+    def __init__(self):
+        self.client = MonzoClient()
+        self.supported_types = {
+            'image/jpeg', 'image/jpg', 'image/png', 'image/gif',
+            'application/pdf', 'text/plain'
+        }
+    
+    def upload_receipt(self, transaction_id, file_path, description=None):
+        """Upload a receipt for a specific transaction."""
+        
+        file_path = Path(file_path)
+        
+        if not file_path.exists():
+            print(f"❌ File not found: {file_path}")
+            return None
+        
+        # Check file type
+        mime_type, _ = mimetypes.guess_type(str(file_path))
+        if mime_type not in self.supported_types:
+            print(f"❌ Unsupported file type: {mime_type}")
+            print(f"Supported types: {', '.join(self.supported_types)}")
+            return None
+        
+        # Check file size (Monzo typically limits to 10MB)
+        file_size = file_path.stat().st_size
+        if file_size > 10 * 1024 * 1024:  # 10MB
+            print(f"❌ File too large: {file_size / 1024 / 1024:.1f}MB (max 10MB)")
+            return None
+        
+        try:
+            # Read file data
+            file_data = file_path.read_bytes()
+            
+            # Upload attachment
+            attachment = self.client.attachments.upload(
+                transaction_id=transaction_id,
+                file_name=file_path.name,
+                file_type=mime_type,
+                file_data=file_data
+            )
+            
+            print(f"✅ Receipt uploaded successfully")
+            print(f"   File: {file_path.name}")
+            print(f"   Size: {file_size / 1024:.1f}KB")
+            print(f"   Type: {mime_type}")
+            print(f"   Attachment ID: {attachment.id}")
+            
+            return attachment
+            
+        except MonzoError as e:
+            print(f"❌ Upload failed: {e}")
+            return None
+    
+    def bulk_upload_receipts(self, receipts_dir):
+        """Upload multiple receipts from a directory."""
+        
+        receipts_dir = Path(receipts_dir)
+        
+        if not receipts_dir.exists():
+            print(f"❌ Directory not found: {receipts_dir}")
+            return
+        
+        # Find all image and PDF files
+        receipt_files = []
+        for pattern in ['*.jpg', '*.jpeg', '*.png', '*.pdf']:
+            receipt_files.extend(receipts_dir.glob(pattern))
+        
+        if not receipt_files:
+            print("No receipt files found")
+            return
+        
+        print(f"Found {len(receipt_files)} receipt files")
+        
+        # Get recent transactions to match against
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        recent_transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            limit=50
+        )
+        
+        # Try to match receipts with transactions
+        unmatched_files = []
+        
+        for file_path in receipt_files:
+            print(f"\n📄 Processing: {file_path.name}")
+            
+            # Try to match by filename date or amount
+            matched_transaction = self._match_receipt_to_transaction(
+                file_path, recent_transactions
+            )
+            
+            if matched_transaction:
+                print(f"   📋 Matched to: {matched_transaction.description}")
+                attachment = self.upload_receipt(
+                    matched_transaction.id, 
+                    file_path
+                )
+                if attachment:
+                    print(f"   ✅ Uploaded successfully")
+                else:
+                    unmatched_files.append(file_path)
+            else:
+                print(f"   ❓ No matching transaction found")
+                unmatched_files.append(file_path)
+        
+        if unmatched_files:
+            print(f"\n📋 {len(unmatched_files)} files could not be matched:")
+            for file_path in unmatched_files:
+                print(f"   • {file_path.name}")
+    
+    def _match_receipt_to_transaction(self, file_path, transactions):
+        """Try to match a receipt file to a transaction."""
+        
+        file_name = file_path.stem.lower()
+        
+        # Simple matching strategies
+        for transaction in transactions:
+            # Skip positive transactions (income)
+            if transaction.amount >= 0:
+                continue
+            
+            # Match by merchant name in filename
+            if transaction.merchant and transaction.merchant.name:
+                merchant_name = transaction.merchant.name.lower()
+                if any(word in file_name for word in merchant_name.split()):
+                    return transaction
+            
+            # Match by description
+            description_words = transaction.description.lower().split()
+            if any(word in file_name for word in description_words if len(word) > 3):
+                return transaction
+        
+        return None
+    
+    def list_transactions_without_receipts(self, days=7):
+        """Find recent transactions that don't have attachments."""
+        
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        since = datetime.now() - timedelta(days=days)
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=since,
+            limit=100
+        )
+        
+        # Filter for spending transactions without attachments
+        candidates = []
+        
+        for transaction in transactions:
+            if transaction.amount < 0 and not transaction.attachments:
+                candidates.append(transaction)
+        
+        return candidates
+    
+    def generate_receipt_report(self):
+        """Generate a report of receipt coverage."""
+        
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get last 30 days of transactions
+        since = datetime.now() - timedelta(days=30)
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=since,
+            limit=200
+        )
+        
+        spending_transactions = [t for t in transactions if t.amount < 0]
+        transactions_with_receipts = [t for t in spending_transactions if t.attachments]
+        
+        total_spending = len(spending_transactions)
+        with_receipts = len(transactions_with_receipts)
+        coverage = (with_receipts / total_spending * 100) if total_spending > 0 else 0
+        
+        print(f"📊 Receipt Coverage Report (30 days)")
+        print("=" * 40)
+        print(f"Total spending transactions: {total_spending}")
+        print(f"Transactions with receipts: {with_receipts}")
+        print(f"Coverage: {coverage:.1f}%")
+        
+        # Category breakdown
+        from collections import defaultdict
+        category_stats = defaultdict(lambda: {'total': 0, 'with_receipts': 0})
+        
+        for transaction in spending_transactions:
+            category = transaction.category or 'Other'
+            category_stats[category]['total'] += 1
+            
+            if transaction.attachments:
+                category_stats[category]['with_receipts'] += 1
+        
+        print(f"\n📋 Coverage by Category:")
+        for category, stats in sorted(category_stats.items()):
+            total = stats['total']
+            with_receipts = stats['with_receipts']
+            coverage = (with_receipts / total * 100) if total > 0 else 0
+            print(f"   {category}: {with_receipts}/{total} ({coverage:.1f}%)")
+
+# Usage examples
+def main():
+    manager = ReceiptManager()
+    
+    # Upload a single receipt
+    transactions = manager.client.transactions.list(
+        account_id=manager.client.accounts.list()[0].id,
+        limit=1
+    )
+    
+    if transactions:
+        # manager.upload_receipt(
+        #     transaction_id=transactions[0].id,
+        #     file_path="receipt.jpg"
+        # )
+        pass
+    
+    # Bulk upload from directory
+    # manager.bulk_upload_receipts("./receipts")
+    
+    # Find transactions needing receipts
+    print("🔍 Transactions without receipts:")
+    missing_receipts = manager.list_transactions_without_receipts(days=7)
+    
+    for transaction in missing_receipts[:5]:  # Show first 5
+        amount = abs(transaction.amount) / 100
+        print(f"   💸 {transaction.description}: £{amount:.2f}")
+    
+    # Generate coverage report
+    print(f"\n")
+    manager.generate_receipt_report()
+
+if __name__ == "__main__":
+    main()
+```
+
+### Document Classification
+
+Automatically classify and organize uploaded documents:
+
+```python
+import pytesseract
+from PIL import Image
+import io
+import re
+from pathlib import Path
+
+class DocumentClassifier:
+    def __init__(self):
+        self.client = MonzoClient()
+        
+        # Document classification patterns
+        self.patterns = {
+            'receipt': [
+                r'receipt', r'total', r'subtotal', r'tax', r'vat',
+                r'paid', r'change', r'thank you'
+            ],
+            'invoice': [
+                r'invoice', r'bill', r'due date', r'amount due',
+                r'payment terms', r'remit to'
+            ],
+            'statement': [
+                r'statement', r'account summary', r'balance',
+                r'previous balance', r'new balance'
+            ],
+            'contract': [
+                r'agreement', r'terms and conditions', r'contract',
+                r'party', r'whereas', r'effective date'
+            ]
+        }
+    
+    def upload_and_classify(self, transaction_id, file_path):
+        """Upload file and automatically classify it."""
+        
+        file_path = Path(file_path)
+        
+        # First, upload the attachment
+        attachment = self._upload_file(transaction_id, file_path)
+        if not attachment:
+            return None
+        
+        # Classify the document
+        classification = self._classify_document(file_path)
+        
+        print(f"📄 Document Classification:")
+        print(f"   File: {file_path.name}")
+        print(f"   Type: {classification['type']}")
+        print(f"   Confidence: {classification['confidence']:.1f}%")
+        
+        # Extract key information
+        extracted_info = self._extract_info(file_path, classification['type'])
+        
+        if extracted_info:
+            print(f"   Extracted Info:")
+            for key, value in extracted_info.items():
+                print(f"     {key}: {value}")
+        
+        return {
+            'attachment': attachment,
+            'classification': classification,
+            'extracted_info': extracted_info
+        }
+    
+    def _upload_file(self, transaction_id, file_path):
+        """Upload file to Monzo."""
+        try:
+            mime_type, _ = mimetypes.guess_type(str(file_path))
+            file_data = file_path.read_bytes()
+            
+            attachment = self.client.attachments.upload(
+                transaction_id=transaction_id,
+                file_name=file_path.name,
+                file_type=mime_type,
+                file_data=file_data
+            )
+            
+            return attachment
+            
+        except Exception as e:
+            print(f"❌ Upload failed: {e}")
+            return None
+    
+    def _classify_document(self, file_path):
+        """Classify document type based on content."""
+        
+        try:
+            # Extract text from image/PDF
+            text = self._extract_text(file_path)
+            if not text:
+                return {'type': 'unknown', 'confidence': 0}
+            
+            text_lower = text.lower()
+            
+            # Score each document type
+            scores = {}
+            for doc_type, patterns in self.patterns.items():
+                score = 0
+                for pattern in patterns:
+                    matches = len(re.findall(pattern, text_lower))
+                    score += matches
+                
+                # Normalize score by pattern count
+                scores[doc_type] = score / len(patterns) if patterns else 0
+            
+            # Find best match
+            best_type = max(scores, key=scores.get)
+            best_score = scores[best_type]
+            
+            # Convert to percentage confidence
+            confidence = min(best_score * 20, 100)  # Scale to 0-100%
+            
+            return {
+                'type': best_type if confidence > 10 else 'unknown',
+                'confidence': confidence
+            }
+            
+        except Exception as e:
+            print(f"Classification error: {e}")
+            return {'type': 'unknown', 'confidence': 0}
+    
+    def _extract_text(self, file_path):
+        """Extract text from image or PDF."""
+        
+        try:
+            if file_path.suffix.lower() in ['.jpg', '.jpeg', '.png']:
+                # Use OCR for images
+                image = Image.open(file_path)
+                text = pytesseract.image_to_string(image)
+                return text
+                
+            elif file_path.suffix.lower() == '.pdf':
+                # For PDF files, you'd need a PDF library like PyPDF2
+                # This is a simplified example
+                return ""
+            
+            elif file_path.suffix.lower() == '.txt':
+                return file_path.read_text(encoding='utf-8')
+            
+            return ""
+            
+        except Exception as e:
+            print(f"Text extraction error: {e}")
+            return ""
+    
+    def _extract_info(self, file_path, doc_type):
+        """Extract specific information based on document type."""
+        
+        text = self._extract_text(file_path)
+        if not text:
+            return {}
+        
+        info = {}
+        
+        if doc_type == 'receipt':
+            info.update(self._extract_receipt_info(text))
+        elif doc_type == 'invoice':
+            info.update(self._extract_invoice_info(text))
+        
+        return info
+    
+    def _extract_receipt_info(self, text):
+        """Extract information from receipts."""
+        
+        info = {}
+        
+        # Extract total amount
+        total_patterns = [
+            r'total[:\s]+£?(\d+\.?\d*)',
+            r'amount[:\s]+£?(\d+\.?\d*)',
+        ]
+        
+        for pattern in total_patterns:
+            match = re.search(pattern, text, re.IGNORECASE)
+            if match:
+                info['total_amount'] = f"£{match.group(1)}"
+                break
+        
+        # Extract date
+        date_patterns = [
+            r'(\d{1,2}/\d{1,2}/\d{2,4})',
+            r'(\d{1,2}-\d{1,2}-\d{2,4})',
+        ]
+        
+        for pattern in date_patterns:
+            match = re.search(pattern, text)
+            if match:
+                info['date'] = match.group(1)
+                break
+        
+        # Extract VAT/Tax
+        vat_pattern = r'vat[:\s]+£?(\d+\.?\d*)'
+        vat_match = re.search(vat_pattern, text, re.IGNORECASE)
+        if vat_match:
+            info['vat'] = f"£{vat_match.group(1)}"
+        
+        return info
+    
+    def _extract_invoice_info(self, text):
+        """Extract information from invoices."""
+        
+        info = {}
+        
+        # Extract invoice number
+        invoice_pattern = r'invoice[#\s]+(\w+)'
+        match = re.search(invoice_pattern, text, re.IGNORECASE)
+        if match:
+            info['invoice_number'] = match.group(1)
+        
+        # Extract due date
+        due_date_pattern = r'due date[:\s]+(\d{1,2}/\d{1,2}/\d{2,4})'
+        match = re.search(due_date_pattern, text, re.IGNORECASE)
+        if match:
+            info['due_date'] = match.group(1)
+        
+        return info
+
+# Usage
+def main():
+    classifier = DocumentClassifier()
+    
+    # Get a recent transaction
+    accounts = classifier.client.accounts.list()
+    transactions = classifier.client.transactions.list(
+        account_id=accounts[0].id,
+        limit=1
+    )
+    
+    if transactions:
+        # Classify and upload document
+        result = classifier.upload_and_classify(
+            transaction_id=transactions[0].id,
+            file_path="sample_receipt.jpg"
+        )
+        
+        if result:
+            print("✅ Document processed successfully")
+
+if __name__ == "__main__":
+    main()
+```
+
+### Attachment Analytics
+
+Analyze attachment usage patterns:
+
+```python
+def analyze_attachment_usage():
+    """Analyze attachment usage across transactions."""
+    
+    client = MonzoClient()
+    accounts = client.accounts.list()
+    current_account = accounts[0]
+    
+    # Get transactions with attachments
+    since = datetime.now() - timedelta(days=90)  # Last 3 months
+    transactions = client.transactions.list(
+        account_id=current_account.id,
+        since=since,
+        limit=300
+    )
+    
+    # Analyze attachment patterns
+    total_transactions = len([t for t in transactions if t.amount < 0])
+    transactions_with_attachments = [t for t in transactions if t.amount < 0 and t.attachments]
+    
+    print(f"📊 Attachment Usage Analysis (90 days)")
+    print("=" * 45)
+    print(f"Total spending transactions: {total_transactions}")
+    print(f"Transactions with attachments: {len(transactions_with_attachments)}")
+    
+    if total_transactions > 0:
+        coverage = (len(transactions_with_attachments) / total_transactions) * 100
+        print(f"Attachment coverage: {coverage:.1f}%")
+    
+    # Category analysis
+    from collections import defaultdict
+    category_stats = defaultdict(lambda: {'total': 0, 'with_attachments': 0})
+    
+    for transaction in transactions:
+        if transaction.amount < 0:  # Spending only
+            category = transaction.category or 'Other'
+            category_stats[category]['total'] += 1
+            
+            if transaction.attachments:
+                category_stats[category]['with_attachments'] += 1
+    
+    print(f"\n📋 Attachment Coverage by Category:")
+    for category in sorted(category_stats.keys()):
+        stats = category_stats[category]
+        total = stats['total']
+        with_attachments = stats['with_attachments']
+        
+        if total > 0:
+            coverage = (with_attachments / total) * 100
+            print(f"   {category}: {with_attachments}/{total} ({coverage:.1f}%)")
+    
+    # Amount analysis
+    amounts_with_attachments = [
+        abs(t.amount) / 100 for t in transactions_with_attachments
+    ]
+    
+    if amounts_with_attachments:
+        print(f"\n💰 Transaction Amounts with Attachments:")
+        print(f"   Average: £{sum(amounts_with_attachments) / len(amounts_with_attachments):.2f}")
+        print(f"   Minimum: £{min(amounts_with_attachments):.2f}")
+        print(f"   Maximum: £{max(amounts_with_attachments):.2f}")
+
+if __name__ == "__main__":
+    analyze_attachment_usage()
+```
+
+## Best Practices
+
+1. **File size limits**: Keep files under 10MB for optimal upload performance
+2. **Supported formats**: Use common formats (JPEG, PNG, PDF) for best compatibility
+3. **Meaningful names**: Use descriptive file names that help identify the content
+4. **Error handling**: Always wrap upload operations in try/catch blocks
+5. **Privacy**: Avoid uploading sensitive personal information unnecessarily
+6. **Organization**: Develop a consistent naming convention for uploaded files
+
+The Attachments API enables comprehensive document management for transactions, supporting receipt organization, expense reporting, and financial record keeping.

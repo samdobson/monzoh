@@ -1,0 +1,86 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "Monzoh",
+  "colors": {
+    "primary": "#8B5CF6",
+    "light": "#A78BFA",
+    "dark": "#7C3AED"
+  },
+  "topbarLinks": [
+    {
+      "name": "Support",
+      "url": "mailto:1309834+samdobson@users.noreply.github.com"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "GitHub",
+    "url": "https://github.com/samdobson/monzoh"
+  },
+  "tabs": [
+    {
+      "name": "API Reference",
+      "url": "api-reference"
+    }
+  ],
+  "navigation": {
+    "anchors": [
+      {
+        "name": "Documentation",
+        "icon": "book-open-cover",
+        "url": "https://github.com/samdobson/monzoh"
+      },
+      {
+        "name": "Community",
+        "icon": "slack",
+        "url": "https://github.com/samdobson/monzoh/discussions"
+      },
+      {
+        "name": "Releases",
+        "icon": "newspaper",
+        "url": "https://github.com/samdobson/monzoh/releases"
+      }
+    ],
+    "groups": [
+      {
+        "group": "Get Started",
+        "icon": "play",
+        "pages": [
+          "docs/introduction",
+          "docs/quickstart",
+          "docs/authentication",
+          "docs/examples"
+        ]
+      },
+      {
+        "group": "Guides",
+        "icon": "book",
+        "pages": [
+          "docs/guides/error-handling",
+          "docs/guides/mock-mode",
+          "docs/guides/async-usage"
+        ]
+      },
+      {
+        "group": "API Reference",
+        "icon": "code",
+        "pages": [
+          "docs/api-reference/introduction",
+          "docs/api-reference/client",
+          "docs/api-reference/accounts",
+          "docs/api-reference/transactions",
+          "docs/api-reference/pots",
+          "docs/api-reference/attachments",
+          "docs/api-reference/receipts",
+          "docs/api-reference/webhooks",
+          "docs/api-reference/feed",
+          "docs/api-reference/models",
+          "docs/api-reference/exceptions"
+        ]
+      }
+    ]
+  },
+  "footerSocials": {
+    "github": "https://github.com/samdobson/monzoh"
+  }
+}

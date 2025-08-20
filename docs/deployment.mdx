@@ -1,0 +1,400 @@
+---
+title: 'Deployment'
+description: 'Deploy your Monzoh documentation using Mintlify'
+---
+
+## Overview
+
+This guide covers deploying your Monzoh documentation site using Mintlify's hosting platform. Mintlify provides fast, reliable hosting for documentation sites with automatic builds from Git repositories.
+
+## Prerequisites
+
+- A GitHub, GitLab, or Bitbucket repository containing your documentation
+- A Mintlify account (free tier available)
+- Your documentation files in the correct format
+
+## Quick Deployment
+
+### 1. Prepare Your Repository
+
+Ensure your repository has the following structure:
+
+```
+your-repo/
+├── docs.json           # Main configuration file
+├── introduction.mdx    # Homepage content
+├── quickstart.mdx     # Getting started guide
+├── authentication.mdx  # Auth guide
+├── guides/            # Guide files
+│   ├── error-handling.mdx
+│   ├── mock-mode.mdx
+│   └── async-usage.mdx
+├── api-reference/     # API documentation
+│   ├── introduction.mdx
+│   ├── client.mdx
+│   ├── accounts.mdx
+│   ├── models.mdx
+│   └── exceptions.mdx
+└── examples.mdx       # Code examples
+```
+
+### 2. Connect to Mintlify
+
+1. Visit [Mintlify Dashboard](https://dashboard.mintlify.com)
+2. Sign up or log in to your account
+3. Click "New Documentation"
+4. Connect your Git repository
+5. Select your repository and branch (usually `main`)
+6. Choose the root directory (if docs are in a subdirectory)
+
+### 3. Configure Build Settings
+
+Mintlify will automatically detect your `docs.json` configuration file. Review the settings:
+
+- **Site Name**: Monzoh
+- **Domain**: Choose a subdomain (e.g., `monzoh.mintlify.dev`)
+- **Branch**: `main` (or your preferred branch)
+- **Build Command**: Automatic (Mintlify handles this)
+
+### 4. Deploy
+
+Click "Deploy" and Mintlify will:
+1. Clone your repository
+2. Build your documentation site
+3. Deploy to the chosen domain
+4. Set up automatic deployments for future commits
+
+Your documentation will be available at your chosen domain within minutes.
+
+## Custom Domain Setup
+
+### 1. Domain Configuration
+
+To use a custom domain (e.g., `docs.yourcompany.com`):
+
+1. Go to your Mintlify dashboard
+2. Navigate to "Settings" > "Domain"
+3. Enter your custom domain
+4. Note the CNAME target provided by Mintlify
+
+### 2. DNS Configuration
+
+Update your DNS settings:
+
+```
+Type: CNAME
+Name: docs (or your preferred subdomain)
+Value: [mintlify-provided-cname]
+TTL: 300 (or your preferred value)
+```
+
+### 3. SSL Certificate
+
+Mintlify automatically provisions SSL certificates for custom domains. This may take a few minutes to complete.
+
+## Advanced Configuration
+
+### Environment-Based Builds
+
+You can configure different builds for different environments:
+
+```json
+{
+  "name": "Monzoh",
+  "versions": ["v1.0", "v0.1"],
+  "navigation": [
+    {
+      "group": "Getting Started",
+      "pages": ["introduction", "quickstart"],
+      "version": "v1.0"
+    }
+  ]
+}
+```
+
+### Build Hooks
+
+Set up webhooks for automatic deployments:
+
+```json
+{
+  "name": "Monzoh",
+  "integrations": {
+    "analytics": {
+      "ga4": "G-XXXXXXXXXX"
+    },
+    "intercom": "your_intercom_app_id"
+  }
+}
+```
+
+### Analytics Integration
+
+Add Google Analytics or other analytics tools:
+
+```json
+{
+  "name": "Monzoh", 
+  "analytics": {
+    "gtag": {
+      "tagId": "G-XXXXXXXXXX"
+    }
+  }
+}
+```
+
+## CI/CD Integration
+
+### GitHub Actions
+
+Create `.github/workflows/docs.yml` for automated deployments:
+
+```yaml
+name: Deploy Documentation
+
+on:
+  push:
+    branches: [main]
+    paths: ['docs/**', '*.mdx', 'docs.json']
+  
+  pull_request:
+    branches: [main]
+    paths: ['docs/**', '*.mdx', 'docs.json']
+
+jobs:
+  deploy-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          
+      - name: Install Mintlify CLI
+        run: npm install -g mintlify
+        
+      - name: Check for broken links
+        run: mintlify broken-links
+        
+      - name: Deploy to Mintlify
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "Deployment triggered automatically by Mintlify"
+          # Mintlify automatically deploys on push to main branch
+```
+
+### GitLab CI
+
+Create `.gitlab-ci.yml` for GitLab deployments:
+
+```yaml
+stages:
+  - validate
+  - deploy
+
+validate-docs:
+  stage: validate
+  image: node:18
+  script:
+    - npm install -g mintlify
+    - mintlify broken-links
+  only:
+    changes:
+      - "**/*.mdx"
+      - "docs.json"
+
+deploy-docs:
+  stage: deploy
+  script:
+    - echo "Deployment handled by Mintlify webhook"
+  only:
+    - main
+  when: manual
+```
+
+## Performance Optimization
+
+### Image Optimization
+
+Optimize images for faster loading:
+
+1. Use WebP format when possible
+2. Compress images before adding to repository
+3. Use appropriate dimensions (typically max 1200px wide)
+4. Store images in `/images/` directory
+
+### Content Optimization
+
+1. **Keep pages focused**: Break long pages into smaller, focused sections
+2. **Use code groups**: Group related code examples together
+3. **Optimize navigation**: Keep navigation hierarchy shallow (max 3 levels)
+4. **Regular content audits**: Remove outdated information
+
+### Caching Strategy
+
+Mintlify automatically handles caching, but you can optimize:
+
+1. Use stable URLs for images and assets
+2. Avoid frequent changes to core navigation
+3. Use versioning for major documentation updates
+
+## Monitoring and Analytics
+
+### Built-in Analytics
+
+Mintlify provides built-in analytics for:
+- Page views and unique visitors
+- Popular pages and search terms
+- User flow and engagement metrics
+- Geographic distribution of users
+
+### Custom Analytics
+
+Integrate additional analytics tools:
+
+```json
+{
+  "analytics": {
+    "gtag": {
+      "tagId": "G-XXXXXXXXXX"
+    },
+    "mixpanel": {
+      "projectToken": "your_mixpanel_token"
+    }
+  }
+}
+```
+
+### Search Analytics
+
+Monitor search performance:
+- Track search queries and results
+- Identify content gaps from failed searches
+- Optimize content based on popular searches
+
+## SEO Optimization
+
+### Meta Tags
+
+Ensure each page has proper meta tags:
+
+```markdown
+---
+title: 'Monzoh Python Library'
+description: 'Complete Python library for the Monzo banking API with type safety and full endpoint coverage'
+---
+```
+
+### Structured Data
+
+Mintlify automatically generates structured data for better search engine understanding.
+
+### Sitemap
+
+Mintlify automatically generates and submits sitemaps to search engines.
+
+## Troubleshooting
+
+### Common Issues
+
+**Build Failures**:
+```bash
+# Check for syntax errors
+mintlify broken-links
+
+# Validate docs.json format
+cat docs.json | python -m json.tool
+```
+
+**Missing Pages**:
+- Verify page paths in `docs.json` navigation
+- Check file names match exactly (case-sensitive)
+- Ensure all referenced files exist
+
+**Slow Loading**:
+- Optimize large images
+- Reduce page size by splitting content
+- Check for external resource loading issues
+
+**Search Not Working**:
+- Ensure content is properly indexed
+- Check that pages have proper headings structure
+- Verify meta descriptions are present
+
+### Debug Mode
+
+Enable debug logging in your build:
+
+```json
+{
+  "name": "Monzoh",
+  "debug": true,
+  "api": {
+    "baseUrl": "https://api.mintlify.com",
+    "maintainerEmail": "support@yourcompany.com"
+  }
+}
+```
+
+### Support
+
+For deployment issues:
+1. Check [Mintlify Status](https://status.mintlify.com)
+2. Review [Mintlify Documentation](https://mintlify.com/docs)
+3. Contact Mintlify support through their dashboard
+4. Check community forums and GitHub issues
+
+## Best Practices
+
+### 1. Version Control
+
+- Keep all documentation in version control
+- Use meaningful commit messages for doc changes
+- Tag releases for documentation versions
+- Use pull requests for documentation reviews
+
+### 2. Content Management
+
+- Establish a documentation update workflow
+- Regular review cycles for accuracy
+- Style guide for consistent writing
+- Community contribution guidelines
+
+### 3. Performance Monitoring
+
+- Monitor page load times
+- Track user engagement metrics
+- Regular broken link checks
+- Analytics review and optimization
+
+### 4. Security
+
+- Avoid committing sensitive information
+- Use environment variables for tokens
+- Regular security audits of dependencies
+- Secure webhook endpoints
+
+## Maintenance
+
+### Regular Tasks
+
+- **Weekly**: Check for broken links
+- **Monthly**: Review analytics and user feedback
+- **Quarterly**: Content audit and updates
+- **Annually**: Major version updates and restructuring
+
+### Updates and Migration
+
+When updating your documentation:
+
+1. Test changes locally first
+2. Use staging environments for major updates
+3. Communicate changes to users
+4. Monitor for issues after deployment
+5. Have rollback procedures ready
+
+Your Monzoh documentation is now ready for deployment with professional hosting, analytics, and maintenance workflows!

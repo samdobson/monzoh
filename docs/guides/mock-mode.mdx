@@ -1,0 +1,394 @@
+---
+title: 'Mock Mode'
+description: 'Test your applications without making real API calls using Monzoh mock mode'
+---
+
+## Overview
+
+Monzoh includes a built-in mock mode that allows you to test your application without making real API calls to the Monzo API. This is particularly useful for:
+
+- **Development**: Test your application logic without affecting real accounts
+- **Testing**: Write unit tests without requiring API credentials
+- **Demos**: Showcase your application with realistic data
+- **Rate limit avoidance**: Develop without consuming your API quota
+
+## Enabling Mock Mode
+
+Mock mode is activated by using `"test"` as your access token:
+
+```python
+from monzoh import MonzoClient
+
+# Enable mock mode
+client = MonzoClient(access_token="test")
+
+# All API calls will now return mock data
+accounts = client.accounts.list()
+print(f"Mock accounts: {len(accounts)}")
+```
+
+<Info>
+When using mock mode, no real HTTP requests are made to the Monzo API. All responses are generated from predefined mock data.
+</Info>
+
+## Mock Data Coverage
+
+Mock mode provides realistic test data for all major API endpoints:
+
+### Accounts
+```python
+client = MonzoClient(access_token="test")
+
+# Returns 2 mock accounts (current and savings)
+accounts = client.accounts.list()
+
+for account in accounts:
+    print(f"Account: {account.description}")
+    print(f"Type: {account.type}")
+    print(f"ID: {account.id}")
+```
+
+**Mock accounts include:**
+- Current account with realistic balance and spend data
+- Savings account with different balance information
+- Proper account IDs and metadata
+
+### Transactions
+```python
+# Returns mock transaction history
+transactions = client.transactions.list(
+    account_id="acc_mock_current",
+    limit=10
+)
+
+for transaction in transactions:
+    print(f"{transaction.description}: £{transaction.amount / 100:.2f}")
+    print(f"Merchant: {transaction.merchant.name if transaction.merchant else 'N/A'}")
+```
+
+**Mock transactions include:**
+- Various transaction types (purchases, transfers, direct debits)
+- Realistic merchant data with logos and categories
+- Different amounts and descriptions
+- Proper timestamps and metadata
+
+### Balance Information
+```python
+# Returns mock balance data
+balance = client.accounts.get_balance(account_id="acc_mock_current")
+
+print(f"Balance: £{balance.balance / 100:.2f}")
+print(f"Total balance: £{balance.total_balance / 100:.2f}")
+print(f"Spend today: £{balance.spend_today / 100:.2f}")
+```
+
+### Pots (Savings)
+```python
+# Returns mock savings pots
+pots = client.pots.list()
+
+for pot in pots:
+    print(f"Pot: {pot.name}")
+    print(f"Balance: £{pot.balance / 100:.2f}")
+    print(f"Goal: £{pot.goal / 100:.2f}" if pot.goal else "No goal set")
+```
+
+### Other Endpoints
+
+Mock data is also available for:
+- **Webhooks**: Mock webhook registration and management
+- **Attachments**: Simulated file upload responses  
+- **Receipts**: Mock receipt creation and management
+- **Feed items**: Sample custom feed item creation
+
+## Using Mock Mode in Tests
+
+Mock mode is perfect for unit testing:
+
+```python
+import pytest
+from monzoh import MonzoClient
+
+class TestAccountService:
+    @pytest.fixture
+    def mock_client(self):
+        """Fixture providing a mock Monzo client."""
+        return MonzoClient(access_token="test")
+    
+    def test_get_account_balance(self, mock_client):
+        """Test getting account balance with mock data."""
+        # Get mock accounts
+        accounts = mock_client.accounts.list()
+        assert len(accounts) > 0
+        
+        # Get balance for first account
+        balance = mock_client.accounts.get_balance(account_id=accounts[0].id)
+        
+        # Verify balance structure
+        assert balance.balance is not None
+        assert balance.currency == "GBP"
+        assert balance.spend_today is not None
+    
+    def test_list_transactions(self, mock_client):
+        """Test listing transactions with mock data."""
+        accounts = mock_client.accounts.list()
+        
+        transactions = mock_client.transactions.list(
+            account_id=accounts[0].id,
+            limit=5
+        )
+        
+        assert len(transactions) <= 5
+        for transaction in transactions:
+            assert transaction.id is not None
+            assert transaction.amount is not None
+            assert transaction.description is not None
+    
+    def test_pot_operations(self, mock_client):
+        """Test pot operations with mock data."""
+        pots = mock_client.pots.list()
+        assert len(pots) > 0
+        
+        # Test pot deposit (returns success in mock mode)
+        result = mock_client.pots.deposit(
+            pot_id=pots[0].id,
+            account_id="acc_mock_current",
+            amount=1000  # £10.00
+        )
+        assert result is not None
+```
+
+## Development Workflow
+
+Use mock mode during development to build your application logic:
+
+```python
+import os
+from monzoh import MonzoClient
+
+def create_client():
+    """Create Monzo client - mock for development, real for production."""
+    if os.getenv("ENVIRONMENT") == "development":
+        print("Using mock mode for development")
+        return MonzoClient(access_token="test")
+    else:
+        print("Using real API")
+        return MonzoClient()
+
+# Your application logic works the same regardless of mode
+client = create_client()
+
+# Build your features using the same API
+def get_spending_summary(account_id):
+    """Get spending summary - works in both mock and real mode."""
+    balance = client.accounts.get_balance(account_id=account_id)
+    transactions = client.transactions.list(
+        account_id=account_id,
+        limit=20
+    )
+    
+    return {
+        "current_balance": balance.balance / 100,
+        "spend_today": balance.spend_today / 100,
+        "recent_transactions": len(transactions),
+        "largest_transaction": max(
+            (abs(t.amount) for t in transactions), 
+            default=0
+        ) / 100
+    }
+
+# Test with mock data
+accounts = client.accounts.list()
+if accounts:
+    summary = get_spending_summary(accounts[0].id)
+    print(f"Spending summary: {summary}")
+```
+
+## Mock vs Real API Comparison
+
+| Feature | Mock Mode | Real API |
+|---------|-----------|----------|
+| **API Calls** | No HTTP requests | Real HTTP requests |
+| **Authentication** | Not required | OAuth2 required |
+| **Rate Limits** | None | Standard Monzo limits |
+| **Data** | Predefined mock data | Your real account data |
+| **Side Effects** | None | Real account operations |
+| **Testing** | Perfect for unit tests | Integration tests only |
+
+## Limitations of Mock Mode
+
+While mock mode is powerful, there are some limitations to be aware of:
+
+### 1. Static Data
+Mock data is predefined and doesn't change based on operations:
+
+```python
+client = MonzoClient(access_token="test")
+
+# Balance won't actually change in mock mode
+initial_balance = client.accounts.get_balance("acc_mock_current")
+client.pots.deposit("pot_mock_holiday", "acc_mock_current", 1000)
+final_balance = client.accounts.get_balance("acc_mock_current")
+
+# initial_balance == final_balance (mock data is static)
+```
+
+### 2. Limited Error Scenarios
+Mock mode doesn't simulate all possible error conditions:
+
+```python
+# Mock mode won't simulate rate limits or network errors
+# For comprehensive error testing, use mocking libraries like unittest.mock
+
+from unittest.mock import patch, MagicMock
+from monzoh import MonzoClient, MonzoRateLimitError
+
+def test_rate_limit_handling():
+    client = MonzoClient(access_token="test")
+    
+    with patch.object(client, '_request') as mock_request:
+        mock_request.side_effect = MonzoRateLimitError("Rate limit exceeded")
+        
+        # Now you can test error handling
+        with pytest.raises(MonzoRateLimitError):
+            client.accounts.list()
+```
+
+### 3. Business Logic Validation
+Mock mode doesn't enforce real-world business rules:
+
+```python
+# In mock mode, this might succeed even if it shouldn't
+client = MonzoClient(access_token="test")
+
+# Attempting to withdraw more than available balance
+# Mock mode won't validate this constraint
+client.pots.withdraw("pot_id", "account_id", amount=999999999)
+```
+
+## Advanced Mock Testing
+
+For more sophisticated testing scenarios, combine mock mode with testing libraries:
+
+```python
+import pytest
+from unittest.mock import patch
+from monzoh import MonzoClient, MonzoAuthenticationError
+
+class TestMonzoIntegration:
+    def test_mock_mode_basic_operations(self):
+        """Test basic operations in mock mode."""
+        client = MonzoClient(access_token="test")
+        
+        # Test that all basic operations work
+        accounts = client.accounts.list()
+        assert len(accounts) > 0
+        
+        whoami = client.whoami()
+        assert whoami.authenticated is True
+        
+        transactions = client.transactions.list(accounts[0].id)
+        assert isinstance(transactions, list)
+    
+    @patch('monzoh.client.BaseSyncClient._request')
+    def test_authentication_failure_simulation(self, mock_request):
+        """Test authentication failure with mocked responses."""
+        mock_request.side_effect = MonzoAuthenticationError("Invalid token")
+        
+        client = MonzoClient(access_token="invalid_token")
+        
+        with pytest.raises(MonzoAuthenticationError):
+            client.accounts.list()
+    
+    def test_mixed_mode_development(self):
+        """Test switching between mock and real modes."""
+        # Mock client for development
+        mock_client = MonzoClient(access_token="test")
+        mock_accounts = mock_client.accounts.list()
+        assert len(mock_accounts) > 0
+        
+        # Your application logic should work with both
+        def process_accounts(client):
+            accounts = client.accounts.list()
+            return [{"id": acc.id, "type": acc.type} for acc in accounts]
+        
+        mock_result = process_accounts(mock_client)
+        assert len(mock_result) > 0
+        assert all("id" in acc and "type" in acc for acc in mock_result)
+```
+
+## Best Practices
+
+### 1. Environment-Based Mode Selection
+```python
+import os
+from monzoh import MonzoClient
+
+def get_monzo_client():
+    """Get appropriate Monzo client based on environment."""
+    if os.getenv("MONZO_MOCK_MODE", "false").lower() == "true":
+        return MonzoClient(access_token="test")
+    else:
+        return MonzoClient()
+
+# Set MONZO_MOCK_MODE=true in development
+client = get_monzo_client()
+```
+
+### 2. Feature Flags for Mock Mode
+```python
+from monzoh import MonzoClient
+
+class MonzoService:
+    def __init__(self, use_mock=False):
+        self.use_mock = use_mock
+        self.client = MonzoClient(
+            access_token="test" if use_mock else None
+        )
+    
+    def get_accounts(self):
+        accounts = self.client.accounts.list()
+        
+        if self.use_mock:
+            print("📝 Using mock data for development")
+        else:
+            print("🔐 Using real Monzo API")
+        
+        return accounts
+
+# Development
+dev_service = MonzoService(use_mock=True)
+
+# Production  
+prod_service = MonzoService(use_mock=False)
+```
+
+### 3. Mock Data Validation
+```python
+def validate_mock_data_structure():
+    """Ensure mock data has the same structure as real API responses."""
+    client = MonzoClient(access_token="test")
+    
+    # Validate accounts structure
+    accounts = client.accounts.list()
+    assert len(accounts) > 0
+    
+    for account in accounts:
+        assert hasattr(account, 'id')
+        assert hasattr(account, 'description')
+        assert hasattr(account, 'type')
+    
+    # Validate balance structure
+    balance = client.accounts.get_balance(accounts[0].id)
+    assert hasattr(balance, 'balance')
+    assert hasattr(balance, 'currency')
+    assert balance.currency == "GBP"
+    
+    print("✅ Mock data structure validation passed")
+
+# Run validation during development
+if __name__ == "__main__":
+    validate_mock_data_structure()
+```
+
+Mock mode is an essential tool for Monzoh development, enabling you to build and test applications efficiently without consuming API quotas or affecting real account data. Use it extensively during development and testing, then switch to the real API for production deployment.

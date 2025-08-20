@@ -1,0 +1,948 @@
+---
+title: 'Examples'
+description: 'Practical examples and code snippets for common Monzoh use cases'
+---
+
+## Overview
+
+This page provides practical examples and code snippets for common use cases with the Monzoh library. Each example includes complete, runnable code with explanations.
+
+## Basic Examples
+
+### Account Overview Dashboard
+
+Create a comprehensive overview of all your Monzo accounts:
+
+```python
+from monzoh import MonzoClient, MonzoError
+from datetime import datetime
+
+def create_dashboard():
+    """Create a comprehensive account dashboard."""
+    try:
+        client = MonzoClient()
+        
+        # Verify authentication
+        whoami = client.whoami()
+        print(f"🔐 Authenticated as: {whoami.user_id}")
+        print(f"📅 Dashboard generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print("\n" + "="*60)
+        
+        # Get all accounts
+        accounts = client.accounts.list()
+        print(f"📱 Found {len(accounts)} accounts")
+        
+        total_balance = 0
+        total_spent_today = 0
+        
+        for i, account in enumerate(accounts, 1):
+            if account.closed:
+                continue
+                
+            print(f"\n{i}. {account.description}")
+            print("-" * len(f"{i}. {account.description}"))
+            
+            # Get balance
+            balance = client.accounts.get_balance(account_id=account.id)
+            balance_gbp = balance.balance / 100
+            spent_today_gbp = balance.spend_today / 100
+            
+            total_balance += balance_gbp
+            total_spent_today += spent_today_gbp
+            
+            # Status indicator
+            if balance_gbp < 10:
+                status = "⚠️ Low Balance"
+            elif balance_gbp > 1000:
+                status = "💚 Healthy"
+            else:
+                status = "💛 Normal"
+            
+            print(f"   Balance: £{balance_gbp:.2f} {status}")
+            print(f"   Spent Today: £{spent_today_gbp:.2f}")
+            print(f"   Total Balance: £{balance.total_balance / 100:.2f}")
+            print(f"   Account Type: {account.type}")
+            
+            # Get recent transactions
+            transactions = client.transactions.list(
+                account_id=account.id, 
+                limit=3
+            )
+            
+            if transactions:
+                print("   Recent Transactions:")
+                for txn in transactions:
+                    amount = txn.amount / 100
+                    emoji = "💸" if amount < 0 else "💰"
+                    print(f"     {emoji} {txn.description}: £{amount:.2f}")
+        
+        # Summary
+        print(f"\n{'SUMMARY'}")
+        print("="*60)
+        print(f"💰 Total Balance: £{total_balance:.2f}")
+        print(f"💸 Total Spent Today: £{total_spent_today:.2f}")
+        print(f"📊 Net Position: £{total_balance - total_spent_today:.2f}")
+        
+        # Get pots summary
+        pots = client.pots.list()
+        if pots:
+            total_savings = sum(pot.balance for pot in pots) / 100
+            print(f"🐷 Savings in Pots: £{total_savings:.2f}")
+            print(f"💎 Total Assets: £{total_balance + total_savings:.2f}")
+        
+    except MonzoError as e:
+        print(f"❌ Error: {e}")
+
+if __name__ == "__main__":
+    create_dashboard()
+```
+
+### Transaction Analysis
+
+Analyze spending patterns and categorize transactions:
+
+```python
+from monzoh import MonzoClient
+from collections import defaultdict, Counter
+from datetime import datetime, timedelta
+
+def analyze_spending(days=30):
+    """Analyze spending patterns over the last N days."""
+    client = MonzoClient()
+    
+    # Get accounts
+    accounts = client.accounts.list()
+    current_account = next(
+        (acc for acc in accounts if acc.type == "uk_retail"), 
+        accounts[0]
+    )
+    
+    print(f"📊 Spending Analysis for {current_account.description}")
+    print(f"📅 Last {days} days")
+    print("="*50)
+    
+    # Get transactions
+    since = datetime.now() - timedelta(days=days)
+    transactions = client.transactions.list(
+        account_id=current_account.id,
+        since=since.isoformat(),
+        limit=200
+    )
+    
+    # Analyze spending (negative amounts)
+    spending_transactions = [t for t in transactions if t.amount < 0]
+    
+    if not spending_transactions:
+        print("No spending transactions found.")
+        return
+    
+    # Category analysis
+    categories = Counter()
+    total_spent = 0
+    merchant_spending = defaultdict(int)
+    daily_spending = defaultdict(int)
+    
+    for txn in spending_transactions:
+        amount = abs(txn.amount) / 100  # Convert to positive pounds
+        total_spent += amount
+        
+        # Category
+        if txn.category:
+            categories[txn.category] += amount
+        else:
+            categories['Uncategorized'] += amount
+        
+        # Merchant
+        if txn.merchant and txn.merchant.name:
+            merchant_spending[txn.merchant.name] += amount
+        
+        # Daily spending
+        txn_date = datetime.fromisoformat(txn.created.replace('Z', '+00:00')).date()
+        daily_spending[txn_date] += amount
+    
+    print(f"💸 Total Spent: £{total_spent:.2f}")
+    print(f"🔢 Number of Transactions: {len(spending_transactions)}")
+    print(f"📊 Average per Transaction: £{total_spent / len(spending_transactions):.2f}")
+    print(f"📅 Average per Day: £{total_spent / days:.2f}")
+    
+    # Top categories
+    print(f"\n🏷️ Top Spending Categories:")
+    for category, amount in categories.most_common(5):
+        percentage = (amount / total_spent) * 100
+        print(f"   {category}: £{amount:.2f} ({percentage:.1f}%)")
+    
+    # Top merchants
+    if merchant_spending:
+        print(f"\n🏪 Top Merchants:")
+        for merchant, amount in sorted(
+            merchant_spending.items(), 
+            key=lambda x: x[1], 
+            reverse=True
+        )[:5]:
+            percentage = (amount / total_spent) * 100
+            print(f"   {merchant}: £{amount:.2f} ({percentage:.1f}%)")
+    
+    # Spending trends
+    if len(daily_spending) > 7:
+        recent_week = sum(
+            amount for date, amount in daily_spending.items()
+            if date >= (datetime.now().date() - timedelta(days=7))
+        )
+        previous_week = sum(
+            amount for date, amount in daily_spending.items()
+            if (datetime.now().date() - timedelta(days=14)) <= date < (datetime.now().date() - timedelta(days=7))
+        )
+        
+        if previous_week > 0:
+            change = ((recent_week - previous_week) / previous_week) * 100
+            trend = "📈" if change > 0 else "📉"
+            print(f"\n{trend} Week-over-week change: {change:+.1f}%")
+            print(f"   This week: £{recent_week:.2f}")
+            print(f"   Last week: £{previous_week:.2f}")
+
+if __name__ == "__main__":
+    analyze_spending(30)
+```
+
+### Savings Automation
+
+Automate savings transfers and pot management:
+
+```python
+from monzoh import MonzoClient, MonzoError
+from decimal import Decimal
+
+class SavingsAutomator:
+    def __init__(self):
+        self.client = MonzoClient()
+        self.accounts = self.client.accounts.list()
+        self.current_account = next(
+            (acc for acc in self.accounts if acc.type == "uk_retail"),
+            self.accounts[0]
+        )
+    
+    def round_up_savings(self, limit_pounds=50):
+        """Implement round-up savings by analyzing recent transactions."""
+        print("🔄 Analyzing transactions for round-up savings...")
+        
+        # Get recent transactions
+        transactions = self.client.transactions.list(
+            account_id=self.current_account.id,
+            limit=50
+        )
+        
+        # Calculate round-ups for spending transactions
+        total_roundup = 0
+        roundup_transactions = []
+        
+        for txn in transactions:
+            if txn.amount < 0:  # Spending transaction
+                amount_pounds = abs(txn.amount) / 100
+                rounded_amount = int(amount_pounds) + 1
+                roundup = rounded_amount - amount_pounds
+                
+                if roundup < 1.0:  # Only if there's actually something to round up
+                    total_roundup += roundup
+                    roundup_transactions.append({
+                        'description': txn.description,
+                        'amount': amount_pounds,
+                        'roundup': roundup
+                    })
+        
+        print(f"💰 Found £{total_roundup:.2f} in potential round-up savings")
+        print(f"📊 From {len(roundup_transactions)} transactions")
+        
+        # Apply limit
+        if total_roundup > limit_pounds:
+            total_roundup = limit_pounds
+            print(f"⚠️ Limited to £{limit_pounds:.2f} maximum")
+        
+        if total_roundup > 0:
+            return self.transfer_to_savings(
+                total_roundup, 
+                f"Round-up savings from {len(roundup_transactions)} transactions"
+            )
+        else:
+            print("No round-up savings available")
+            return False
+    
+    def percentage_savings(self, percentage=10, min_amount=5):
+        """Save a percentage of income transactions."""
+        print(f"📈 Implementing {percentage}% savings rule...")
+        
+        # Get recent income transactions (positive amounts)
+        transactions = self.client.transactions.list(
+            account_id=self.current_account.id,
+            limit=20
+        )
+        
+        income_transactions = [t for t in transactions if t.amount > 0]
+        
+        if not income_transactions:
+            print("No recent income transactions found")
+            return False
+        
+        total_savings = 0
+        for txn in income_transactions:
+            income_amount = txn.amount / 100
+            savings_amount = income_amount * (percentage / 100)
+            
+            if savings_amount >= min_amount:
+                total_savings += savings_amount
+                print(f"💸 {txn.description}: £{income_amount:.2f} → Save £{savings_amount:.2f}")
+        
+        if total_savings > 0:
+            return self.transfer_to_savings(
+                total_savings,
+                f"{percentage}% savings from recent income"
+            )
+        else:
+            print(f"No income transactions above £{min_amount:.2f} minimum found")
+            return False
+    
+    def transfer_to_savings(self, amount_pounds, reason):
+        """Transfer money to the first available savings pot."""
+        pots = self.client.pots.list()
+        savings_pots = [p for p in pots if not p.deleted]
+        
+        if not savings_pots:
+            print("❌ No savings pots available")
+            return False
+        
+        # Use first available pot
+        target_pot = savings_pots[0]
+        amount_pence = int(amount_pounds * 100)
+        
+        try:
+            result = self.client.pots.deposit(
+                pot_id=target_pot.id,
+                account_id=self.current_account.id,
+                amount=amount_pence
+            )
+            
+            print(f"✅ Transferred £{amount_pounds:.2f} to '{target_pot.name}'")
+            print(f"📝 Reason: {reason}")
+            
+            # Show updated balance
+            updated_balance = self.client.accounts.get_balance(
+                account_id=self.current_account.id
+            )
+            print(f"💳 New account balance: £{updated_balance.balance / 100:.2f}")
+            
+            return True
+            
+        except MonzoError as e:
+            print(f"❌ Failed to transfer to savings: {e}")
+            return False
+    
+    def savings_goal_progress(self):
+        """Show progress towards savings goals."""
+        pots = self.client.pots.list()
+        
+        if not pots:
+            print("No savings pots found")
+            return
+        
+        print("🎯 Savings Goals Progress:")
+        print("="*40)
+        
+        total_saved = 0
+        total_goals = 0
+        
+        for pot in pots:
+            if pot.deleted:
+                continue
+                
+            balance = pot.balance / 100
+            total_saved += balance
+            
+            print(f"\n🐷 {pot.name}")
+            print(f"   Balance: £{balance:.2f}")
+            
+            if pot.goal and pot.goal > 0:
+                goal = pot.goal / 100
+                total_goals += goal
+                progress = (balance / goal) * 100
+                
+                # Progress bar
+                bar_length = 20
+                filled = int((progress / 100) * bar_length)
+                bar = "█" * filled + "░" * (bar_length - filled)
+                
+                print(f"   Goal: £{goal:.2f}")
+                print(f"   Progress: {progress:.1f}% [{bar}]")
+                
+                if progress >= 100:
+                    print("   🎉 Goal achieved!")
+                else:
+                    remaining = goal - balance
+                    print(f"   Remaining: £{remaining:.2f}")
+            else:
+                print("   No goal set")
+        
+        print(f"\n📊 Overall Summary:")
+        print(f"   Total Saved: £{total_saved:.2f}")
+        if total_goals > 0:
+            overall_progress = (total_saved / total_goals) * 100
+            print(f"   Total Goals: £{total_goals:.2f}")
+            print(f"   Overall Progress: {overall_progress:.1f}%")
+
+def main():
+    """Main automation routine."""
+    automator = SavingsAutomator()
+    
+    print("🤖 Monzo Savings Automator")
+    print("="*40)
+    
+    # Show current savings status
+    automator.savings_goal_progress()
+    
+    print("\n🔄 Running automation rules...")
+    
+    # Try round-up savings
+    automator.round_up_savings(limit_pounds=25)
+    
+    # Try percentage savings
+    automator.percentage_savings(percentage=5, min_amount=10)
+
+if __name__ == "__main__":
+    main()
+```
+
+## Advanced Examples
+
+### Webhook Event Handler
+
+Set up webhook handling for real-time transaction notifications:
+
+```python
+from fastapi import FastAPI, Request, HTTPException
+from monzoh import MonzoClient
+import hmac
+import hashlib
+import json
+from datetime import datetime
+
+app = FastAPI(title="Monzo Webhook Handler")
+
+# Your webhook secret (from Monzo Developer Portal)
+WEBHOOK_SECRET = "your_webhook_secret_here"
+
+@app.post("/monzo/webhook")
+async def handle_monzo_webhook(request: Request):
+    """Handle incoming Monzo webhook events."""
+    
+    # Get the raw body and signature
+    body = await request.body()
+    signature = request.headers.get("X-Monzo-Signature")
+    
+    if not signature:
+        raise HTTPException(status_code=400, detail="Missing signature")
+    
+    # Verify webhook signature
+    expected_signature = hmac.new(
+        WEBHOOK_SECRET.encode(),
+        body,
+        hashlib.sha1
+    ).hexdigest()
+    
+    if not hmac.compare_digest(signature, expected_signature):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+    
+    # Parse the webhook data
+    try:
+        data = json.loads(body.decode())
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    
+    # Handle different event types
+    event_type = data.get("type")
+    
+    if event_type == "transaction.created":
+        await handle_transaction_created(data["data"])
+    elif event_type == "account_balance.updated":
+        await handle_balance_updated(data["data"])
+    else:
+        print(f"Unhandled event type: {event_type}")
+    
+    return {"status": "ok"}
+
+async def handle_transaction_created(transaction_data):
+    """Handle new transaction events."""
+    amount = transaction_data["amount"] / 100
+    description = transaction_data["description"]
+    merchant = transaction_data.get("merchant", {})
+    merchant_name = merchant.get("name", "Unknown") if merchant else "Unknown"
+    
+    print(f"💳 New transaction: {description}")
+    print(f"   Amount: £{amount:.2f}")
+    print(f"   Merchant: {merchant_name}")
+    print(f"   Time: {datetime.now()}")
+    
+    # Custom logic for transaction events
+    if amount < -50:  # Large spending
+        print("⚠️ Large transaction alert!")
+        # Could send email, SMS, or push notification
+    
+    if "coffee" in description.lower() or (merchant_name and "coffee" in merchant_name.lower()):
+        print("☕ Coffee purchase detected!")
+        # Track coffee spending, etc.
+
+async def handle_balance_updated(balance_data):
+    """Handle balance update events."""
+    balance = balance_data["balance"] / 100
+    
+    print(f"💰 Balance updated: £{balance:.2f}")
+    
+    # Custom logic for balance events
+    if balance < 10:
+        print("⚠️ Low balance alert!")
+        # Could trigger automatic savings withdrawal or send alert
+
+# Register webhook with Monzo
+def register_webhook():
+    """Register this webhook endpoint with Monzo."""
+    client = MonzoClient()
+    
+    # Get the first account
+    accounts = client.accounts.list()
+    account_id = accounts[0].id
+    
+    # Register webhook
+    webhook_url = "https://your-domain.com/monzo/webhook"  # Update with your URL
+    
+    try:
+        webhook = client.webhooks.create(
+            account_id=account_id,
+            url=webhook_url
+        )
+        print(f"✅ Webhook registered: {webhook.id}")
+        return webhook
+    except Exception as e:
+        print(f"❌ Failed to register webhook: {e}")
+        return None
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    # Register webhook on startup
+    register_webhook()
+    
+    # Start the server
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+### Receipt and Attachment Manager
+
+Manage receipts and attachments for transactions:
+
+```python
+from monzoh import MonzoClient, MonzoError
+from pathlib import Path
+import mimetypes
+from datetime import datetime
+
+class ReceiptManager:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def add_receipt_to_transaction(self, transaction_id, receipt_data):
+        """Add detailed receipt information to a transaction."""
+        try:
+            receipt = self.client.receipts.create(
+                transaction_id=transaction_id,
+                **receipt_data
+            )
+            print(f"✅ Receipt added to transaction {transaction_id}")
+            return receipt
+        except MonzoError as e:
+            print(f"❌ Failed to add receipt: {e}")
+            return None
+    
+    def upload_receipt_image(self, transaction_id, image_path):
+        """Upload a receipt image and attach it to a transaction."""
+        image_file = Path(image_path)
+        
+        if not image_file.exists():
+            print(f"❌ File not found: {image_path}")
+            return None
+        
+        # Determine content type
+        content_type, _ = mimetypes.guess_type(str(image_file))
+        if not content_type or not content_type.startswith('image/'):
+            print(f"❌ Invalid image file: {image_path}")
+            return None
+        
+        try:
+            # Upload the attachment
+            with open(image_file, 'rb') as f:
+                attachment = self.client.attachments.upload(
+                    transaction_id=transaction_id,
+                    file_name=image_file.name,
+                    file_type=content_type,
+                    file_data=f.read()
+                )
+            
+            print(f"✅ Receipt image uploaded: {attachment.id}")
+            print(f"   File: {image_file.name}")
+            print(f"   Size: {image_file.stat().st_size} bytes")
+            
+            return attachment
+            
+        except MonzoError as e:
+            print(f"❌ Failed to upload receipt: {e}")
+            return None
+    
+    def create_detailed_receipt(self, transaction_id, receipt_info):
+        """Create a detailed receipt with line items."""
+        
+        # Example receipt structure
+        receipt_data = {
+            "merchant_name": receipt_info.get("merchant_name", ""),
+            "merchant_address": receipt_info.get("address", ""),
+            "merchant_phone": receipt_info.get("phone", ""),
+            "merchant_email": receipt_info.get("email", ""),
+            "transaction_number": receipt_info.get("transaction_number", ""),
+            "total_amount": receipt_info.get("total_amount", 0),
+            "currency": receipt_info.get("currency", "GBP"),
+            "items": receipt_info.get("items", []),
+            "taxes": receipt_info.get("taxes", [])
+        }
+        
+        return self.add_receipt_to_transaction(transaction_id, receipt_data)
+    
+    def process_grocery_receipt(self, transaction_id, items_with_prices):
+        """Process a grocery receipt with multiple items."""
+        
+        # Calculate totals
+        subtotal = sum(item['price'] for item in items_with_prices)
+        tax_rate = 0.20  # 20% VAT
+        tax_amount = subtotal * tax_rate
+        total = subtotal + tax_amount
+        
+        receipt_info = {
+            "merchant_name": "Grocery Store",
+            "total_amount": int(total * 100),  # Convert to pence
+            "currency": "GBP",
+            "items": [
+                {
+                    "description": item["name"],
+                    "unit_price": int(item["price"] * 100),
+                    "quantity": item.get("quantity", 1),
+                    "total_price": int(item["price"] * item.get("quantity", 1) * 100)
+                }
+                for item in items_with_prices
+            ],
+            "taxes": [
+                {
+                    "description": "VAT",
+                    "rate": tax_rate,
+                    "amount": int(tax_amount * 100)
+                }
+            ]
+        }
+        
+        return self.create_detailed_receipt(transaction_id, receipt_info)
+    
+    def find_transactions_without_receipts(self, days=7):
+        """Find recent transactions that don't have receipts."""
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]  # Use first account
+        
+        # Get recent transactions
+        from datetime import timedelta
+        since = datetime.now() - timedelta(days=days)
+        
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=since.isoformat(),
+            limit=50
+        )
+        
+        # Filter for spending transactions without receipts
+        candidates = []
+        
+        for txn in transactions:
+            if txn.amount < 0:  # Spending transaction
+                # Check if it has attachments (simplified check)
+                if not txn.attachments:
+                    candidates.append({
+                        'id': txn.id,
+                        'description': txn.description,
+                        'amount': abs(txn.amount) / 100,
+                        'created': txn.created,
+                        'merchant': txn.merchant.name if txn.merchant else None
+                    })
+        
+        return candidates
+
+# Usage examples
+def main():
+    manager = ReceiptManager()
+    
+    # Find transactions that need receipts
+    print("🔍 Finding transactions without receipts...")
+    transactions = manager.find_transactions_without_receipts(days=7)
+    
+    print(f"Found {len(transactions)} transactions without receipts:")
+    for txn in transactions[:5]:  # Show first 5
+        print(f"  💸 {txn['description']}: £{txn['amount']:.2f}")
+    
+    # Example: Add a grocery receipt
+    if transactions:
+        example_txn = transactions[0]
+        
+        print(f"\n📄 Adding receipt to: {example_txn['description']}")
+        
+        # Example grocery items
+        grocery_items = [
+            {"name": "Apples", "price": 2.50, "quantity": 2},
+            {"name": "Milk", "price": 1.20, "quantity": 1},
+            {"name": "Bread", "price": 0.95, "quantity": 1},
+        ]
+        
+        receipt = manager.process_grocery_receipt(
+            example_txn['id'], 
+            grocery_items
+        )
+        
+        if receipt:
+            print("✅ Grocery receipt added successfully")
+
+if __name__ == "__main__":
+    main()
+```
+
+## Integration Examples
+
+### Budget Tracking System
+
+Complete budget tracking with categories and alerts:
+
+```python
+from monzoh import MonzoClient
+from datetime import datetime, timedelta
+from collections import defaultdict
+import json
+
+class BudgetTracker:
+    def __init__(self, budget_file="budget.json"):
+        self.client = MonzoClient()
+        self.budget_file = budget_file
+        self.load_budget()
+    
+    def load_budget(self):
+        """Load budget configuration from file."""
+        try:
+            with open(self.budget_file, 'r') as f:
+                self.budget = json.load(f)
+        except FileNotFoundError:
+            # Default budget
+            self.budget = {
+                "monthly_limits": {
+                    "groceries": 400,
+                    "eating_out": 200,
+                    "transport": 100,
+                    "shopping": 150,
+                    "entertainment": 100
+                },
+                "total_monthly_limit": 1000,
+                "alert_thresholds": {
+                    "warning": 0.8,  # 80% of budget
+                    "critical": 0.95  # 95% of budget
+                }
+            }
+            self.save_budget()
+    
+    def save_budget(self):
+        """Save budget configuration to file."""
+        with open(self.budget_file, 'w') as f:
+            json.dump(self.budget, f, indent=2)
+    
+    def get_monthly_spending(self):
+        """Get spending for the current month by category."""
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get transactions for current month
+        now = datetime.now()
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=start_of_month.isoformat(),
+            limit=500
+        )
+        
+        # Categorize spending
+        spending = defaultdict(float)
+        total_spending = 0
+        
+        for txn in transactions:
+            if txn.amount < 0:  # Spending transaction
+                amount = abs(txn.amount) / 100
+                category = txn.category or "other"
+                spending[category] += amount
+                total_spending += amount
+        
+        return dict(spending), total_spending
+    
+    def check_budget_status(self):
+        """Check current budget status and generate alerts."""
+        spending, total_spending = self.get_monthly_spending()
+        
+        print("💰 Monthly Budget Status")
+        print("="*50)
+        print(f"📅 Month: {datetime.now().strftime('%B %Y')}")
+        print(f"💸 Total Spent: £{total_spending:.2f}")
+        print(f"🎯 Total Budget: £{self.budget['total_monthly_limit']:.2f}")
+        
+        # Overall budget status
+        overall_usage = total_spending / self.budget['total_monthly_limit']
+        overall_percentage = overall_usage * 100
+        
+        if overall_usage >= self.budget['alert_thresholds']['critical']:
+            status = "🚨 CRITICAL"
+        elif overall_usage >= self.budget['alert_thresholds']['warning']:
+            status = "⚠️ WARNING"
+        else:
+            status = "✅ OK"
+        
+        print(f"📊 Overall Usage: {overall_percentage:.1f}% {status}")
+        
+        remaining = self.budget['total_monthly_limit'] - total_spending
+        print(f"💳 Remaining: £{remaining:.2f}")
+        
+        # Category breakdown
+        print(f"\n📋 Category Breakdown:")
+        print("-" * 50)
+        
+        alerts = []
+        
+        for category, limit in self.budget['monthly_limits'].items():
+            spent = spending.get(category, 0)
+            usage = spent / limit if limit > 0 else 0
+            percentage = usage * 100
+            
+            if usage >= self.budget['alert_thresholds']['critical']:
+                status = "🚨"
+                alerts.append(f"CRITICAL: {category} budget exceeded ({percentage:.1f}%)")
+            elif usage >= self.budget['alert_thresholds']['warning']:
+                status = "⚠️"
+                alerts.append(f"WARNING: {category} approaching limit ({percentage:.1f}%)")
+            else:
+                status = "✅"
+            
+            remaining_cat = limit - spent
+            print(f"  {category.title():<15} £{spent:>7.2f} / £{limit:>7.2f} ({percentage:>5.1f}%) {status}")
+            print(f"                  Remaining: £{remaining_cat:.2f}")
+        
+        # Show alerts
+        if alerts:
+            print(f"\n🔔 Budget Alerts:")
+            for alert in alerts:
+                print(f"   {alert}")
+        
+        return {
+            'total_spent': total_spending,
+            'total_budget': self.budget['total_monthly_limit'],
+            'usage_percentage': overall_percentage,
+            'category_spending': spending,
+            'alerts': alerts
+        }
+    
+    def suggest_savings(self):
+        """Suggest ways to save money based on spending patterns."""
+        spending, total_spending = self.get_monthly_spending()
+        
+        suggestions = []
+        
+        # Find categories over budget
+        for category, limit in self.budget['monthly_limits'].items():
+            spent = spending.get(category, 0)
+            if spent > limit:
+                excess = spent - limit
+                suggestions.append(
+                    f"Reduce {category} spending by £{excess:.2f} to stay within budget"
+                )
+        
+        # General suggestions based on spending patterns
+        if spending.get('eating_out', 0) > 150:
+            suggestions.append("Consider cooking more meals at home to reduce eating out expenses")
+        
+        if spending.get('shopping', 0) > spending.get('groceries', 0):
+            suggestions.append("Your shopping spending exceeds groceries - review non-essential purchases")
+        
+        return suggestions
+    
+    def set_category_limit(self, category, limit):
+        """Set budget limit for a specific category."""
+        self.budget['monthly_limits'][category] = limit
+        self.save_budget()
+        print(f"✅ Set {category} budget to £{limit:.2f}")
+    
+    def weekly_report(self):
+        """Generate a weekly spending report."""
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get last 7 days of transactions
+        since = datetime.now() - timedelta(days=7)
+        
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=since.isoformat(),
+            limit=100
+        )
+        
+        spending_by_day = defaultdict(float)
+        category_spending = defaultdict(float)
+        
+        for txn in transactions:
+            if txn.amount < 0:
+                amount = abs(txn.amount) / 100
+                day = datetime.fromisoformat(txn.created.replace('Z', '+00:00')).date()
+                category = txn.category or "other"
+                
+                spending_by_day[day] += amount
+                category_spending[category] += amount
+        
+        print("📅 Weekly Spending Report")
+        print("="*40)
+        
+        total_week = sum(spending_by_day.values())
+        print(f"💸 Total spent this week: £{total_week:.2f}")
+        print(f"📊 Daily average: £{total_week/7:.2f}")
+        
+        print(f"\nDaily breakdown:")
+        for day in sorted(spending_by_day.keys()):
+            amount = spending_by_day[day]
+            print(f"  {day.strftime('%A %d/%m')}: £{amount:.2f}")
+        
+        if category_spending:
+            print(f"\nTop categories this week:")
+            for category, amount in sorted(category_spending.items(), key=lambda x: x[1], reverse=True)[:3]:
+                print(f"  {category.title()}: £{amount:.2f}")
+
+def main():
+    tracker = BudgetTracker()
+    
+    # Check current budget status
+    status = tracker.check_budget_status()
+    
+    # Get savings suggestions
+    suggestions = tracker.suggest_savings()
+    if suggestions:
+        print(f"\n💡 Savings Suggestions:")
+        for suggestion in suggestions:
+            print(f"   • {suggestion}")
+    
+    # Weekly report
+    print(f"\n" + "="*60)
+    tracker.weekly_report()
+
+if __name__ == "__main__":
+    main()
+```
+
+These examples demonstrate real-world applications of the Monzoh library, from basic account management to advanced financial automation and analysis. Each example is fully functional and can be customized for your specific needs.
