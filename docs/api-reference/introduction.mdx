@@ -1,0 +1,237 @@
+---
+title: 'API Reference'
+description: 'Complete reference for the Monzoh Python library'
+---
+
+## Overview
+
+The Monzoh API reference provides comprehensive documentation for all classes, methods, and models in the Monzoh Python library. This section covers every aspect of the library's API surface.
+
+## Main Client
+
+The `MonzoClient` is the primary entry point for interacting with the Monzo API:
+
+```python
+from monzoh import MonzoClient
+
+# Initialize with automatic token loading
+client = MonzoClient()
+
+# Or provide access token explicitly  
+client = MonzoClient(access_token="your_access_token")
+```
+
+### Client Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `accounts` | `AccountsAPI` | Access to accounts and balance operations |
+| `transactions` | `TransactionsAPI` | Transaction listing and management |  
+| `pots` | `PotsAPI` | Savings pots operations |
+| `attachments` | `AttachmentsAPI` | File attachment management |
+| `receipts` | `ReceiptsAPI` | Receipt creation and management |
+| `webhooks` | `WebhooksAPI` | Webhook registration and management |
+| `feed` | `FeedAPI` | Custom feed item creation |
+
+## API Endpoints
+
+### Accounts & Balance
+- List all accounts
+- Get account balance information
+- Access current account and savings account data
+
+### Transactions  
+- List transactions with filtering options
+- Get individual transaction details
+- Add notes and metadata to transactions
+
+### Pots (Savings)
+- List all savings pots
+- Deposit and withdraw from pots  
+- Create and manage pot goals
+
+### Attachments
+- Upload files to transactions
+- Manage image and document attachments
+- Remove attachments from transactions
+
+### Receipts
+- Add detailed receipt information to transactions
+- Include itemized purchase details
+- Manage receipt data and taxes
+
+### Webhooks
+- Register webhook endpoints
+- Manage webhook subscriptions  
+- Handle webhook events and callbacks
+
+### Feed Items
+- Create custom feed entries
+- Add rich content to account feeds
+- Manage feed item styling and actions
+
+## Authentication
+
+Monzoh handles OAuth2 authentication automatically:
+
+```python
+# Check authentication status
+whoami = client.whoami()
+print(f"Authenticated: {whoami.authenticated}")
+print(f"User ID: {whoami.user_id}")
+```
+
+## Error Handling
+
+Monzoh provides specific exception types for different error conditions:
+
+```python
+from monzoh import (
+    MonzoError,
+    MonzoAuthenticationError, 
+    MonzoRateLimitError,
+    MonzoNotFoundError
+)
+
+try:
+    accounts = client.accounts.list()
+except MonzoAuthenticationError:
+    print("Authentication required")
+except MonzoRateLimitError:  
+    print("Rate limit exceeded")
+except MonzoNotFoundError:
+    print("Resource not found")
+except MonzoError as e:
+    print(f"General API error: {e}")
+```
+
+## Data Models
+
+All API responses are returned as Pydantic models with full type safety:
+
+### Core Models
+- `Account`: Bank account information
+- `Balance`: Account balance and spending data  
+- `Transaction`: Transaction details and metadata
+- `Pot`: Savings pot information
+- `Attachment`: File attachment data
+- `Receipt`: Detailed receipt information
+- `Webhook`: Webhook configuration and status
+
+### Authentication Models  
+- `OAuthToken`: OAuth2 token data
+- `WhoAmI`: Authentication status information
+
+## Context Manager Support
+
+Monzoh supports context managers for resource cleanup:
+
+```python
+with MonzoClient() as client:
+    accounts = client.accounts.list()
+    # Client resources cleaned up automatically
+```
+
+## Mock Mode
+
+Use mock mode for testing without real API calls:
+
+```python
+# Enable mock mode with "test" token
+client = MonzoClient(access_token="test")
+
+# Returns mock data instead of making API calls
+accounts = client.accounts.list()
+```
+
+## HTTP Client Customization
+
+Customize the underlying HTTP client for advanced use cases:
+
+```python
+import httpx
+
+# Custom HTTP client with timeout and retries
+http_client = httpx.Client(
+    timeout=60.0,
+    limits=httpx.Limits(max_connections=10)
+)
+
+client = MonzoClient(
+    access_token="your_token",
+    http_client=http_client  
+)
+```
+
+## Quick Reference
+
+### Common Operations
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Get accounts
+accounts = client.accounts.list()
+
+# Get balance  
+balance = client.accounts.get_balance(account_id=accounts[0].id)
+
+# List transactions
+transactions = client.transactions.list(
+    account_id=accounts[0].id,
+    limit=10
+)
+
+# List pots
+pots = client.pots.list()
+
+# Deposit to pot
+client.pots.deposit(
+    pot_id=pots[0].id,
+    account_id=accounts[0].id,
+    amount=1000  # £10.00 in pence
+)
+```
+
+### Error Handling Pattern
+
+```python
+from monzoh import MonzoClient, MonzoError
+
+def safe_api_call(operation):
+    try:
+        return operation()
+    except MonzoError as e:
+        print(f"API error: {e}")
+        return None
+
+client = MonzoClient()
+accounts = safe_api_call(lambda: client.accounts.list())
+```
+
+## Next Steps
+
+Explore the detailed API documentation for each component:
+
+<CardGroup cols={2}>
+  <Card title="Client" icon="code" href="/api-reference/client">
+    MonzoClient class and initialization options
+  </Card>
+  <Card title="Accounts" icon="building-columns" href="/api-reference/accounts">
+    Account listing and balance operations
+  </Card>
+  <Card title="Transactions" icon="receipt" href="/api-reference/transactions">
+    Transaction listing and management
+  </Card>
+  <Card title="Pots" icon="piggy-bank" href="/api-reference/pots">
+    Savings pot operations and transfers
+  </Card>
+  <Card title="Models" icon="cube" href="/api-reference/models">
+    Data models and type definitions
+  </Card>
+  <Card title="Exceptions" icon="triangle-exclamation" href="/api-reference/exceptions">
+    Error types and handling
+  </Card>
+</CardGroup>

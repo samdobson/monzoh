@@ -1,0 +1,551 @@
+---
+title: 'Webhooks API'
+description: 'Register and manage webhook endpoints for real-time notifications'
+---
+
+## Overview
+
+The `WebhooksAPI` provides methods to register, list, and manage webhook endpoints that receive real-time notifications about account events. All webhook operations are accessed through the `client.webhooks` property.
+
+## Methods
+
+### list()
+
+List all registered webhooks for your account.
+
+```python
+def list(self, account_id: str) -> list[Webhook]:
+    """List webhooks for a specific account."""
+```
+
+**Parameters**:
+- `account_id`: The unique account identifier
+
+**Returns**: `list[Webhook]` - List of webhook objects
+
+**Example**:
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Get accounts
+accounts = client.accounts.list()
+account_id = accounts[0].id
+
+# List webhooks
+webhooks = client.webhooks.list(account_id=account_id)
+
+print(f"Found {len(webhooks)} webhooks")
+for webhook in webhooks:
+    print(f"📡 {webhook.url}")
+    print(f"   ID: {webhook.id}")
+    print(f"   Status: {webhook.status}")
+    print(f"   Created: {webhook.created}")
+```
+
+### create()
+
+Register a new webhook endpoint.
+
+```python
+def create(
+    self,
+    account_id: str,
+    url: str
+) -> Webhook:
+    """Register a new webhook."""
+```
+
+**Parameters**:
+- `account_id`: The account to monitor
+- `url`: The webhook endpoint URL (must be HTTPS)
+
+**Returns**: `Webhook` - The created webhook object
+
+**Example**:
+```python
+# Register a webhook
+webhook = client.webhooks.create(
+    account_id=account_id,
+    url="https://your-app.com/webhooks/monzo"
+)
+
+print(f"✅ Webhook registered: {webhook.id}")
+print(f"📡 URL: {webhook.url}")
+print(f"🔗 Account: {webhook.account_id}")
+```
+
+### delete()
+
+Remove a registered webhook.
+
+```python
+def delete(self, webhook_id: str) -> dict:
+    """Delete a webhook."""
+```
+
+**Parameters**:
+- `webhook_id`: The unique webhook identifier
+
+**Returns**: `dict` - Deletion confirmation
+
+**Example**:
+```python
+# Delete a webhook
+result = client.webhooks.delete(webhook_id="webhook_123")
+print("✅ Webhook deleted")
+```
+
+## Webhook Event Handling
+
+### Setting up a Webhook Server
+
+Here's how to create a webhook server to handle Monzo events:
+
+```python
+from fastapi import FastAPI, Request, HTTPException
+from monzoh import MonzoClient
+import hmac
+import hashlib
+import json
+from datetime import datetime
+import os
+
+app = FastAPI(title="Monzo Webhook Handler")
+
+# Your webhook secret (set this as an environment variable)
+WEBHOOK_SECRET = os.getenv("MONZO_WEBHOOK_SECRET", "your_secret_here")
+
+@app.post("/webhooks/monzo")
+async def handle_monzo_webhook(request: Request):
+    """Handle incoming Monzo webhook events."""
+    
+    # Get raw request body
+    body = await request.body()
+    
+    # Verify webhook signature (if implemented by Monzo)
+    signature = request.headers.get("X-Monzo-Signature")
+    if signature:
+        expected_signature = hmac.new(
+            WEBHOOK_SECRET.encode(),
+            body,
+            hashlib.sha1
+        ).hexdigest()
+        
+        if not hmac.compare_digest(signature, expected_signature):
+            raise HTTPException(status_code=403, detail="Invalid signature")
+    
+    # Parse the JSON payload
+    try:
+        event_data = json.loads(body.decode())
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid JSON")
+    
+    # Handle different event types
+    event_type = event_data.get("type")
+    
+    if event_type == "transaction.created":
+        await handle_transaction_created(event_data["data"])
+    elif event_type == "account_balance.updated":
+        await handle_balance_updated(event_data["data"])
+    else:
+        print(f"Unhandled event type: {event_type}")
+    
+    return {"status": "received"}
+
+async def handle_transaction_created(transaction_data):
+    """Handle new transaction events."""
+    
+    amount = transaction_data["amount"] / 100
+    description = transaction_data["description"]
+    account_id = transaction_data["account_id"]
+    
+    print(f"💳 New Transaction Alert")
+    print(f"   Description: {description}")
+    print(f"   Amount: £{amount:.2f}")
+    print(f"   Account: {account_id}")
+    print(f"   Time: {datetime.now()}")
+    
+    # Custom business logic
+    await process_transaction_event(transaction_data)
+
+async def handle_balance_updated(balance_data):
+    """Handle balance update events."""
+    
+    balance = balance_data["balance"] / 100
+    account_id = balance_data["account_id"]
+    
+    print(f"💰 Balance Update Alert")
+    print(f"   New Balance: £{balance:.2f}")
+    print(f"   Account: {account_id}")
+    
+    # Custom business logic
+    await process_balance_event(balance_data)
+
+async def process_transaction_event(transaction_data):
+    """Process transaction events with custom logic."""
+    
+    amount = transaction_data["amount"] / 100
+    description = transaction_data["description"]
+    category = transaction_data.get("category", "unknown")
+    
+    # Example: Large transaction alert
+    if abs(amount) > 100:
+        await send_large_transaction_alert(description, amount)
+    
+    # Example: Coffee spending tracking
+    if "coffee" in description.lower():
+        await track_coffee_spending(amount)
+    
+    # Example: Automatic categorization
+    if category == "unknown":
+        predicted_category = await predict_category(description)
+        if predicted_category:
+            print(f"💡 Suggested category: {predicted_category}")
+
+async def process_balance_event(balance_data):
+    """Process balance events with custom logic."""
+    
+    balance = balance_data["balance"] / 100
+    
+    # Example: Low balance alert
+    if balance < 50:
+        await send_low_balance_alert(balance)
+    
+    # Example: Savings opportunity
+    if balance > 1000:
+        await suggest_savings_transfer(balance)
+
+# Helper functions for custom logic
+async def send_large_transaction_alert(description, amount):
+    """Send alert for large transactions."""
+    print(f"🚨 LARGE TRANSACTION ALERT")
+    print(f"   {description}: £{amount:.2f}")
+    # Implement: Send email, SMS, push notification, etc.
+
+async def track_coffee_spending(amount):
+    """Track coffee spending."""
+    print(f"☕ Coffee purchase: £{abs(amount):.2f}")
+    # Implement: Update coffee spending database, etc.
+
+async def predict_category(description):
+    """Predict transaction category."""
+    # Simple keyword matching (could use ML)
+    keywords = {
+        "groceries": ["tesco", "sainsbury", "asda", "grocery"],
+        "transport": ["uber", "bus", "train", "petrol"],
+        "eating_out": ["restaurant", "pizza", "mcdonald"]
+    }
+    
+    description_lower = description.lower()
+    for category, words in keywords.items():
+        if any(word in description_lower for word in words):
+            return category
+    
+    return None
+
+async def send_low_balance_alert(balance):
+    """Send low balance alert."""
+    print(f"⚠️ LOW BALANCE ALERT: £{balance:.2f}")
+    # Implement: Send notification, trigger automatic top-up, etc.
+
+async def suggest_savings_transfer(balance):
+    """Suggest savings opportunity."""
+    surplus = balance - 500  # Keep £500 in current account
+    if surplus > 50:  # Only suggest if surplus is significant
+        print(f"💡 SAVINGS OPPORTUNITY: Consider saving £{surplus:.2f}")
+        # Implement: Send suggestion, automatic transfer, etc.
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+```
+
+### Webhook Registration Helper
+
+Create a helper script to register webhooks:
+
+```python
+from monzoh import MonzoClient, MonzoError
+import os
+
+class WebhookManager:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def setup_webhooks(self, webhook_url):
+        """Set up webhooks for all accounts."""
+        
+        try:
+            accounts = self.client.accounts.list()
+            
+            for account in accounts:
+                if account.closed:
+                    continue
+                
+                print(f"Setting up webhook for {account.description}")
+                
+                # Check existing webhooks
+                existing_webhooks = self.client.webhooks.list(
+                    account_id=account.id
+                )
+                
+                # Remove existing webhooks to avoid duplicates
+                for webhook in existing_webhooks:
+                    if webhook.url == webhook_url:
+                        print(f"  Removing existing webhook: {webhook.id}")
+                        self.client.webhooks.delete(webhook_id=webhook.id)
+                
+                # Create new webhook
+                webhook = self.client.webhooks.create(
+                    account_id=account.id,
+                    url=webhook_url
+                )
+                
+                print(f"  ✅ Webhook created: {webhook.id}")
+                
+        except MonzoError as e:
+            print(f"❌ Error setting up webhooks: {e}")
+    
+    def list_all_webhooks(self):
+        """List webhooks for all accounts."""
+        
+        accounts = self.client.accounts.list()
+        
+        print("📡 Registered Webhooks")
+        print("=" * 40)
+        
+        total_webhooks = 0
+        
+        for account in accounts:
+            if account.closed:
+                continue
+                
+            webhooks = self.client.webhooks.list(account_id=account.id)
+            
+            print(f"\n🏦 {account.description}")
+            print(f"   Account ID: {account.id}")
+            
+            if webhooks:
+                for webhook in webhooks:
+                    print(f"   📡 {webhook.url}")
+                    print(f"      ID: {webhook.id}")
+                    print(f"      Status: {webhook.status}")
+                    print(f"      Created: {webhook.created}")
+                    total_webhooks += 1
+            else:
+                print("   No webhooks registered")
+        
+        print(f"\n📊 Total webhooks: {total_webhooks}")
+    
+    def cleanup_webhooks(self):
+        """Remove all registered webhooks."""
+        
+        accounts = self.client.accounts.list()
+        
+        removed_count = 0
+        
+        for account in accounts:
+            if account.closed:
+                continue
+                
+            webhooks = self.client.webhooks.list(account_id=account.id)
+            
+            for webhook in webhooks:
+                try:
+                    self.client.webhooks.delete(webhook_id=webhook.id)
+                    print(f"✅ Removed webhook: {webhook.url}")
+                    removed_count += 1
+                except MonzoError as e:
+                    print(f"❌ Failed to remove webhook {webhook.id}: {e}")
+        
+        print(f"\n📊 Removed {removed_count} webhooks")
+
+def main():
+    manager = WebhookManager()
+    
+    # Your webhook URL (must be HTTPS and publicly accessible)
+    webhook_url = "https://your-app.com/webhooks/monzo"
+    
+    print("🔧 Monzo Webhook Management")
+    print("=" * 30)
+    
+    # List current webhooks
+    manager.list_all_webhooks()
+    
+    # Setup new webhooks
+    print(f"\n🔗 Setting up webhook: {webhook_url}")
+    manager.setup_webhooks(webhook_url)
+    
+    # List updated webhooks
+    print(f"\n📋 Updated webhook list:")
+    manager.list_all_webhooks()
+
+if __name__ == "__main__":
+    main()
+```
+
+### Testing Webhooks
+
+Test your webhook endpoint before registering:
+
+```python
+import requests
+import json
+from datetime import datetime
+
+def test_webhook_endpoint(webhook_url):
+    """Test webhook endpoint with sample data."""
+    
+    # Sample transaction.created event
+    sample_transaction_event = {
+        "type": "transaction.created",
+        "data": {
+            "id": "tx_test123",
+            "account_id": "acc_test123",
+            "amount": -450,  # £4.50 spending
+            "currency": "GBP",
+            "description": "Test Coffee Shop",
+            "category": "eating_out",
+            "created": datetime.now().isoformat() + "Z",
+            "merchant": {
+                "name": "Test Coffee Shop",
+                "category": "coffee"
+            }
+        }
+    }
+    
+    # Sample balance.updated event
+    sample_balance_event = {
+        "type": "account_balance.updated", 
+        "data": {
+            "account_id": "acc_test123",
+            "balance": 12450,  # £124.50
+            "currency": "GBP"
+        }
+    }
+    
+    # Test both events
+    events = [
+        ("Transaction Created", sample_transaction_event),
+        ("Balance Updated", sample_balance_event)
+    ]
+    
+    for event_name, event_data in events:
+        print(f"🧪 Testing {event_name} event")
+        
+        try:
+            response = requests.post(
+                webhook_url,
+                json=event_data,
+                headers={"Content-Type": "application/json"},
+                timeout=10
+            )
+            
+            if response.status_code == 200:
+                print(f"   ✅ Success: {response.status_code}")
+            else:
+                print(f"   ❌ Failed: {response.status_code}")
+                print(f"   Response: {response.text}")
+                
+        except requests.exceptions.RequestException as e:
+            print(f"   ❌ Connection error: {e}")
+        
+        print()
+
+# Test your webhook
+if __name__ == "__main__":
+    test_webhook_endpoint("http://localhost:8000/webhooks/monzo")
+```
+
+## Webhook Security
+
+### Signature Verification
+
+Always verify webhook signatures to ensure requests are from Monzo:
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
+    """Verify webhook signature."""
+    
+    if not signature:
+        return False
+    
+    expected_signature = hmac.new(
+        secret.encode('utf-8'),
+        body,
+        hashlib.sha1
+    ).hexdigest()
+    
+    return hmac.compare_digest(signature, expected_signature)
+
+# Usage in your webhook handler
+@app.post("/webhooks/monzo")
+async def handle_webhook(request: Request):
+    body = await request.body()
+    signature = request.headers.get("X-Monzo-Signature", "")
+    
+    if not verify_webhook_signature(body, signature, WEBHOOK_SECRET):
+        raise HTTPException(status_code=403, detail="Invalid signature")
+    
+    # Process webhook...
+```
+
+### Rate Limiting
+
+Implement rate limiting to prevent abuse:
+
+```python
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+class RateLimiter:
+    def __init__(self, max_requests=100, window_minutes=10):
+        self.max_requests = max_requests
+        self.window = timedelta(minutes=window_minutes)
+        self.requests = defaultdict(list)
+    
+    def is_allowed(self, client_ip):
+        now = datetime.now()
+        
+        # Clean old requests
+        self.requests[client_ip] = [
+            req_time for req_time in self.requests[client_ip]
+            if now - req_time < self.window
+        ]
+        
+        # Check if under limit
+        if len(self.requests[client_ip]) >= self.max_requests:
+            return False
+        
+        # Record this request
+        self.requests[client_ip].append(now)
+        return True
+
+rate_limiter = RateLimiter()
+
+@app.post("/webhooks/monzo")
+async def handle_webhook(request: Request):
+    client_ip = request.client.host
+    
+    if not rate_limiter.is_allowed(client_ip):
+        raise HTTPException(status_code=429, detail="Rate limit exceeded")
+    
+    # Process webhook...
+```
+
+## Best Practices
+
+1. **Use HTTPS**: Webhook URLs must use HTTPS in production
+2. **Verify signatures**: Always verify webhook signatures for security
+3. **Handle idempotency**: Process duplicate events gracefully
+4. **Respond quickly**: Return 200 status code within 10 seconds
+5. **Log events**: Maintain logs for debugging and monitoring
+6. **Implement retries**: Handle temporary failures with retry logic
+7. **Rate limiting**: Protect your endpoint from excessive requests
+
+The Webhooks API enables real-time monitoring and automated responses to account events, making it possible to build responsive financial applications and automated workflows.

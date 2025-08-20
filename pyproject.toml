@@ -1,0 +1,103 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "monzoh"
+version = "1.0.0"
+description = "A Python library for the Monzo Developer API"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Sam Dobson", email = "1309834+samdobson@users.noreply.github.com"},
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "httpx>=0.25.0",
+    "pydantic>=2.0.0",
+    "rich>=13.0.0",
+    "python-dotenv>=1.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.0.0",
+]
+
+[project.scripts]
+monzoh-auth = "monzoh.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/samdobson/monzoh"
+Repository = "https://github.com/samdobson/monzoh.git"
+Issues = "https://github.com/samdobson/monzoh/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/monzoh"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+lint.select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=monzoh --cov-report=term-missing"
+testpaths = [
+    "tests",
+]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+
+[tool.coverage.run]
+source = ["src/monzoh"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "if settings.DEBUG",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if 0:",
+    "if __name__ == .__main__.:",
+    "class .*\\(Protocol\\):",
+    "@(abc\\\\.)?abstractmethod",
+]
+

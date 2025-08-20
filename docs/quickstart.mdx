@@ -1,0 +1,206 @@
+---
+title: 'Quickstart'
+description: 'Start building with Monzoh in under 5 minutes'
+---
+
+## Installation
+
+First, install Monzoh using your preferred package manager:
+
+<CodeGroup>
+
+```bash pip
+pip install monzoh
+```
+
+```bash uv
+uv add monzoh
+```
+
+```bash poetry
+poetry add monzoh
+```
+
+</CodeGroup>
+
+## Authentication Setup
+
+Before using Monzoh, you'll need to set up OAuth2 authentication with Monzo.
+
+### 1. Create a Monzo Developer Account
+
+1. Visit the [Monzo Developer Portal](https://developers.monzo.com/)
+2. Sign up or log in with your Monzo account
+3. Create a new OAuth2 application
+
+### 2. Configure Your Credentials
+
+Create a `.env` file in your project root:
+
+```bash
+MONZO_CLIENT_ID=your_client_id_here
+MONZO_CLIENT_SECRET=your_client_secret_here
+MONZO_REDIRECT_URI=http://localhost:8080/callback
+```
+
+### 3. Initial Authentication
+
+Run the authentication command to complete the OAuth2 flow:
+
+```bash
+monzoh-auth
+```
+
+This will:
+1. Open your browser to the Monzo authorization page
+2. Start a local server to handle the OAuth2 callback
+3. Save your access tokens securely
+
+<Note>
+Access tokens are automatically saved to your system's cache directory and will be reused for future requests.
+</Note>
+
+## Your First API Call
+
+Now you're ready to make your first API call:
+
+```python
+from monzoh import MonzoClient
+
+# Initialize the client
+client = MonzoClient()
+
+# Check authentication
+whoami = client.whoami()
+print(f"Authenticated as: {whoami.user_id}")
+
+# List your accounts
+accounts = client.accounts.list()
+print(f"Found {len(accounts)} accounts:")
+
+for account in accounts:
+    print(f"  {account.description}: {account.id}")
+```
+
+## Basic Operations
+
+### Get Account Balance
+
+```python
+# Get the first account
+account = accounts[0]
+
+# Get current balance
+balance = client.accounts.get_balance(account_id=account.id)
+print(f"Balance: £{balance.balance / 100:.2f}")
+print(f"Spend today: £{balance.spend_today / 100:.2f}")
+```
+
+### List Recent Transactions
+
+```python
+# Get recent transactions
+transactions = client.transactions.list(
+    account_id=account.id,
+    limit=10
+)
+
+print("Recent transactions:")
+for transaction in transactions:
+    amount = transaction.amount / 100
+    print(f"  {transaction.description}: £{amount:.2f}")
+```
+
+### Manage Pots
+
+```python
+# List savings pots
+pots = client.pots.list()
+print(f"Found {len(pots)} pots:")
+
+for pot in pots:
+    balance = pot.balance / 100
+    print(f"  {pot.name}: £{balance:.2f}")
+
+# Deposit money into a pot
+if pots:
+    pot = pots[0]
+    client.pots.deposit(
+        pot_id=pot.id,
+        account_id=account.id,
+        amount=1000  # £10.00 in pence
+    )
+    print(f"Deposited £10.00 into {pot.name}")
+```
+
+## Error Handling
+
+Monzoh provides specific exception types for different error conditions:
+
+```python
+from monzoh import (
+    MonzoClient,
+    MonzoAuthenticationError,
+    MonzoRateLimitError,
+    MonzoNotFoundError
+)
+
+client = MonzoClient()
+
+try:
+    accounts = client.accounts.list()
+except MonzoAuthenticationError:
+    print("Authentication failed - please run 'monzoh-auth'")
+except MonzoRateLimitError:
+    print("Rate limit exceeded - please wait before retrying")
+except MonzoNotFoundError:
+    print("Resource not found")
+```
+
+## Mock Mode for Testing
+
+You can use mock mode for testing without making real API calls:
+
+```python
+# Use "test" as the access token to enable mock mode
+client = MonzoClient(access_token="test")
+
+# This will return mock data instead of making API calls
+accounts = client.accounts.list()
+print(f"Mock accounts: {len(accounts)}")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card
+    title="Authentication Guide"
+    icon="key"
+    href="/authentication"
+  >
+    Learn about OAuth2 setup and token management
+  </Card>
+  <Card
+    title="API Reference"
+    icon="code"
+    href="/api-reference/introduction"
+  >
+    Explore all available endpoints and methods
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="triangle-exclamation"
+    href="/guides/error-handling"
+  >
+    Handle API errors gracefully in your application
+  </Card>
+  <Card
+    title="Mock Mode"
+    icon="flask"
+    href="/guides/mock-mode"
+  >
+    Test your application without real API calls
+  </Card>
+</CardGroup>
+
+You're now ready to build amazing applications with the Monzo API! Check out the [API Reference](/api-reference/introduction) for detailed documentation on all available methods.

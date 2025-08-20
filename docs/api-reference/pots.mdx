@@ -1,0 +1,591 @@
+---
+title: 'Pots API'
+description: 'Manage savings pots and transfers'
+---
+
+## Overview
+
+The `PotsAPI` provides methods to manage Monzo savings pots, including listing pots, depositing money, and withdrawing funds. All pot operations are accessed through the `client.pots` property.
+
+## Methods
+
+### list()
+
+List all savings pots for the authenticated user.
+
+```python
+def list(self) -> list[Pot]:
+    """List all pots owned by the current user."""
+```
+
+**Returns**: `list[Pot]` - List of pot objects
+
+**Example**:
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Get all pots
+pots = client.pots.list()
+print(f"Found {len(pots)} pots")
+
+for pot in pots:
+    if pot.deleted:
+        continue  # Skip deleted pots
+        
+    balance = pot.balance / 100
+    print(f"🐷 {pot.name}: £{balance:.2f}")
+    
+    if pot.goal_amount:
+        goal = pot.goal_amount / 100
+        progress = (balance / goal) * 100
+        print(f"   🎯 Goal: £{goal:.2f} ({progress:.1f}% complete)")
+    
+    if pot.round_up:
+        print("   🔄 Round-up enabled")
+```
+
+### deposit()
+
+Deposit money into a savings pot.
+
+```python
+def deposit(
+    self,
+    pot_id: str,
+    account_id: str,
+    amount: int
+) -> dict:
+    """Deposit money into a pot."""
+```
+
+**Parameters**:
+- `pot_id`: The unique pot identifier
+- `account_id`: The source account identifier
+- `amount`: Amount to deposit in pence
+
+**Returns**: `dict` - Deposit confirmation details
+
+**Example**:
+```python
+# Get accounts and pots
+accounts = client.accounts.list()
+pots = client.pots.list()
+
+current_account = accounts[0]
+savings_pot = next(pot for pot in pots if not pot.deleted)
+
+# Deposit £25.00 into the pot
+result = client.pots.deposit(
+    pot_id=savings_pot.id,
+    account_id=current_account.id,
+    amount=2500  # £25.00 in pence
+)
+
+print(f"✅ Deposited £25.00 into {savings_pot.name}")
+```
+
+### withdraw()
+
+Withdraw money from a savings pot.
+
+```python
+def withdraw(
+    self,
+    pot_id: str,
+    account_id: str,
+    amount: int
+) -> dict:
+    """Withdraw money from a pot."""
+```
+
+**Parameters**:
+- `pot_id`: The unique pot identifier  
+- `account_id`: The destination account identifier
+- `amount`: Amount to withdraw in pence
+
+**Returns**: `dict` - Withdrawal confirmation details
+
+**Example**:
+```python
+# Withdraw £10.00 from the pot
+result = client.pots.withdraw(
+    pot_id=savings_pot.id,
+    account_id=current_account.id,
+    amount=1000  # £10.00 in pence
+)
+
+print(f"✅ Withdrew £10.00 from {savings_pot.name}")
+```
+
+## Pot Management Examples
+
+### Automated Savings
+
+Implement automated savings rules:
+
+```python
+from decimal import Decimal
+from datetime import datetime, timedelta
+
+class AutoSavings:
+    def __init__(self):
+        self.client = MonzoClient()
+        self.accounts = self.client.accounts.list()
+        self.current_account = self.accounts[0]
+        self.pots = self.client.pots.list()
+        self.active_pots = [p for p in self.pots if not p.deleted]
+    
+    def round_up_savings(self, max_amount_pounds=50):
+        """Implement round-up savings on recent transactions."""
+        
+        # Get recent transactions
+        transactions = self.client.transactions.list(
+            account_id=self.current_account.id,
+            limit=20
+        )
+        
+        total_roundup = Decimal('0')
+        roundup_transactions = []
+        
+        for txn in transactions:
+            if txn.amount < 0:  # Spending transaction
+                amount = abs(txn.amount) / 100
+                rounded = int(amount) + 1
+                roundup = Decimal(str(rounded)) - Decimal(str(amount))
+                
+                if roundup > 0:
+                    total_roundup += roundup
+                    roundup_transactions.append({
+                        'description': txn.description,
+                        'amount': amount,
+                        'roundup': float(roundup)
+                    })
+        
+        # Apply maximum limit
+        if total_roundup > max_amount_pounds:
+            total_roundup = Decimal(str(max_amount_pounds))
+        
+        print(f"💰 Round-up savings opportunity: £{total_roundup:.2f}")
+        print(f"📊 From {len(roundup_transactions)} transactions")
+        
+        if total_roundup > 0 and self.active_pots:
+            # Use first available pot
+            savings_pot = self.active_pots[0]
+            amount_pence = int(total_roundup * 100)
+            
+            try:
+                result = self.client.pots.deposit(
+                    pot_id=savings_pot.id,
+                    account_id=self.current_account.id,
+                    amount=amount_pence
+                )
+                
+                print(f"✅ Deposited £{total_roundup:.2f} into {savings_pot.name}")
+                return True
+                
+            except Exception as e:
+                print(f"❌ Failed to deposit: {e}")
+                return False
+        
+        return False
+    
+    def goal_based_saving(self, target_weekly_amount=20):
+        """Save a target amount weekly towards goals."""
+        
+        goal_pots = [p for p in self.active_pots if p.goal_amount and p.goal_amount > 0]
+        
+        if not goal_pots:
+            print("No pots with goals found")
+            return
+        
+        print(f"🎯 Goal-based savings (£{target_weekly_amount}/week)")
+        print("="*50)
+        
+        for pot in goal_pots:
+            balance = pot.balance / 100
+            goal = pot.goal_amount / 100
+            remaining = goal - balance
+            
+            print(f"\n🐷 {pot.name}")
+            print(f"   Current: £{balance:.2f}")
+            print(f"   Goal: £{goal:.2f}")
+            print(f"   Remaining: £{remaining:.2f}")
+            
+            if remaining > 0:
+                # Calculate weekly contribution needed
+                # Assume 12 weeks to goal for simplicity
+                weeks_remaining = 12
+                weekly_needed = remaining / weeks_remaining
+                
+                # Use the smaller of target amount or amount needed
+                weekly_contribution = min(target_weekly_amount, weekly_needed)
+                
+                if weekly_contribution >= 1:  # Minimum £1
+                    amount_pence = int(weekly_contribution * 100)
+                    
+                    try:
+                        result = self.client.pots.deposit(
+                            pot_id=pot.id,
+                            account_id=self.current_account.id,
+                            amount=amount_pence
+                        )
+                        
+                        new_balance = balance + weekly_contribution
+                        progress = (new_balance / goal) * 100
+                        
+                        print(f"   ✅ Deposited £{weekly_contribution:.2f}")
+                        print(f"   📊 Progress: {progress:.1f}%")
+                        
+                        if progress >= 100:
+                            print("   🎉 Goal achieved!")
+                            
+                    except Exception as e:
+                        print(f"   ❌ Deposit failed: {e}")
+                else:
+                    print("   ℹ️ Goal nearly complete, no deposit needed")
+            else:
+                print("   🎉 Goal already achieved!")
+    
+    def emergency_fund_check(self, target_months=6):
+        """Check emergency fund status and suggest contributions."""
+        
+        # Calculate monthly expenses from recent transactions
+        since = datetime.now() - timedelta(days=30)
+        transactions = self.client.transactions.list(
+            account_id=self.current_account.id,
+            since=since,
+            limit=200
+        )
+        
+        monthly_expenses = sum(
+            abs(txn.amount) for txn in transactions 
+            if txn.amount < 0 and txn.category not in ['transfers', 'savings']
+        ) / 100
+        
+        target_emergency_fund = monthly_expenses * target_months
+        
+        # Find emergency fund pot (by name)
+        emergency_pot = next(
+            (p for p in self.active_pots if 'emergency' in p.name.lower()),
+            None
+        )
+        
+        print(f"🚨 Emergency Fund Analysis")
+        print("="*30)
+        print(f"Monthly expenses: £{monthly_expenses:.2f}")
+        print(f"Target fund ({target_months} months): £{target_emergency_fund:.2f}")
+        
+        if emergency_pot:
+            current_fund = emergency_pot.balance / 100
+            shortfall = target_emergency_fund - current_fund
+            
+            print(f"Current fund: £{current_fund:.2f}")
+            print(f"Shortfall: £{shortfall:.2f}")
+            
+            if shortfall > 0:
+                # Suggest monthly contribution
+                monthly_contribution = shortfall / 12  # Spread over 12 months
+                print(f"💡 Suggested monthly contribution: £{monthly_contribution:.2f}")
+                
+                return {
+                    'pot': emergency_pot,
+                    'shortfall': shortfall,
+                    'suggested_monthly': monthly_contribution
+                }
+        else:
+            print("❌ No emergency fund pot found")
+            print("💡 Consider creating an emergency fund pot")
+            
+        return None
+
+# Usage
+auto_saver = AutoSavings()
+
+# Run automated savings
+auto_saver.round_up_savings(max_amount_pounds=25)
+auto_saver.goal_based_saving(target_weekly_amount=20)
+emergency_status = auto_saver.emergency_fund_check(target_months=6)
+```
+
+### Pot Performance Tracking
+
+Track savings progress over time:
+
+```python
+import json
+from datetime import datetime, timedelta
+
+class PotTracker:
+    def __init__(self, history_file="pot_history.json"):
+        self.client = MonzoClient()
+        self.history_file = history_file
+        self.load_history()
+    
+    def load_history(self):
+        """Load historical pot data."""
+        try:
+            with open(self.history_file, 'r') as f:
+                self.history = json.load(f)
+        except FileNotFoundError:
+            self.history = {}
+    
+    def save_history(self):
+        """Save historical pot data."""
+        with open(self.history_file, 'w') as f:
+            json.dump(self.history, f, indent=2)
+    
+    def record_snapshot(self):
+        """Record current pot balances."""
+        pots = self.client.pots.list()
+        timestamp = datetime.now().isoformat()
+        
+        snapshot = {}
+        for pot in pots:
+            if not pot.deleted:
+                snapshot[pot.id] = {
+                    'name': pot.name,
+                    'balance': pot.balance,
+                    'goal': pot.goal_amount
+                }
+        
+        self.history[timestamp] = snapshot
+        self.save_history()
+        
+        print(f"📸 Recorded snapshot of {len(snapshot)} pots")
+    
+    def analyze_growth(self, days=30):
+        """Analyze pot growth over the last N days."""
+        
+        if len(self.history) < 2:
+            print("Need at least 2 snapshots to analyze growth")
+            return
+        
+        # Get timestamps within the date range
+        cutoff_date = datetime.now() - timedelta(days=days)
+        recent_timestamps = [
+            ts for ts in self.history.keys()
+            if datetime.fromisoformat(ts) >= cutoff_date
+        ]
+        
+        if len(recent_timestamps) < 2:
+            print(f"Need at least 2 snapshots in the last {days} days")
+            return
+        
+        # Compare earliest and latest in range
+        earliest_ts = min(recent_timestamps)
+        latest_ts = max(recent_timestamps)
+        
+        earliest_data = self.history[earliest_ts]
+        latest_data = self.history[latest_ts]
+        
+        print(f"💹 Pot Growth Analysis ({days} days)")
+        print("="*40)
+        print(f"From: {earliest_ts[:10]}")
+        print(f"To: {latest_ts[:10]}")
+        print()
+        
+        total_growth = 0
+        
+        for pot_id in latest_data:
+            if pot_id in earliest_data:
+                pot_name = latest_data[pot_id]['name']
+                
+                old_balance = earliest_data[pot_id]['balance'] / 100
+                new_balance = latest_data[pot_id]['balance'] / 100
+                growth = new_balance - old_balance
+                
+                total_growth += growth
+                
+                if growth != 0:
+                    print(f"🐷 {pot_name}")
+                    print(f"   From: £{old_balance:.2f}")
+                    print(f"   To: £{new_balance:.2f}")
+                    print(f"   Growth: £{growth:+.2f}")
+                    
+                    if latest_data[pot_id]['goal']:
+                        goal = latest_data[pot_id]['goal'] / 100
+                        progress = (new_balance / goal) * 100
+                        print(f"   Goal progress: {progress:.1f}%")
+                    print()
+        
+        print(f"📊 Total portfolio growth: £{total_growth:+.2f}")
+        
+        if total_growth > 0:
+            daily_average = total_growth / days
+            print(f"📅 Daily average: £{daily_average:.2f}")
+    
+    def savings_rate_analysis(self):
+        """Analyze savings rate based on income vs pot deposits."""
+        
+        # Get account transactions to estimate income
+        accounts = self.client.accounts.list()
+        current_account = accounts[0]
+        
+        # Get last month's transactions
+        since = datetime.now() - timedelta(days=30)
+        transactions = self.client.transactions.list(
+            account_id=current_account.id,
+            since=since,
+            limit=200
+        )
+        
+        # Estimate income (positive transactions, excluding transfers)
+        income_transactions = [
+            txn for txn in transactions
+            if txn.amount > 0 and txn.category not in ['transfers', 'internal_transfer']
+        ]
+        
+        total_income = sum(txn.amount for txn in income_transactions) / 100
+        
+        # Calculate pot deposits (negative current account transactions to pots)
+        pot_deposits = [
+            txn for txn in transactions
+            if txn.amount < 0 and 'pot' in txn.description.lower()
+        ]
+        
+        total_saved = sum(abs(txn.amount) for txn in pot_deposits) / 100
+        
+        if total_income > 0:
+            savings_rate = (total_saved / total_income) * 100
+            
+            print(f"💰 Savings Rate Analysis (30 days)")
+            print("="*35)
+            print(f"Estimated income: £{total_income:.2f}")
+            print(f"Amount saved to pots: £{total_saved:.2f}")
+            print(f"Savings rate: {savings_rate:.1f}%")
+            
+            # Provide feedback
+            if savings_rate >= 20:
+                print("🌟 Excellent savings rate!")
+            elif savings_rate >= 10:
+                print("👍 Good savings rate")
+            elif savings_rate >= 5:
+                print("📈 Room for improvement")
+            else:
+                print("💡 Consider increasing your savings rate")
+        else:
+            print("Unable to calculate savings rate - no income detected")
+
+# Usage
+tracker = PotTracker()
+
+# Record regular snapshots (run daily/weekly)
+tracker.record_snapshot()
+
+# Analyze growth trends
+tracker.analyze_growth(days=30)
+tracker.savings_rate_analysis()
+```
+
+### Smart Pot Allocations
+
+Automatically allocate money across different pots based on priorities:
+
+```python
+class SmartPotAllocator:
+    def __init__(self):
+        self.client = MonzoClient()
+        self.accounts = self.client.accounts.list()
+        self.current_account = self.accounts[0]
+        self.pots = [p for p in self.client.pots.list() if not p.deleted]
+    
+    def allocate_surplus(self, target_current_balance=500):
+        """Allocate surplus money above target current account balance."""
+        
+        balance = self.client.accounts.get_balance(
+            account_id=self.current_account.id
+        )
+        
+        current_balance = balance.balance / 100
+        surplus = current_balance - target_current_balance
+        
+        print(f"💳 Current account balance: £{current_balance:.2f}")
+        print(f"🎯 Target balance: £{target_current_balance:.2f}")
+        print(f"💰 Surplus available: £{surplus:.2f}")
+        
+        if surplus <= 0:
+            print("No surplus to allocate")
+            return
+        
+        # Define allocation priorities and percentages
+        allocation_rules = [
+            {'name_contains': 'emergency', 'priority': 1, 'max_percentage': 0.5},
+            {'name_contains': 'holiday', 'priority': 2, 'max_percentage': 0.3},
+            {'name_contains': 'house', 'priority': 3, 'max_percentage': 0.4},
+            {'name_contains': 'car', 'priority': 4, 'max_percentage': 0.2},
+        ]
+        
+        # Find matching pots and sort by priority
+        eligible_pots = []
+        
+        for rule in allocation_rules:
+            matching_pots = [
+                p for p in self.pots
+                if rule['name_contains'].lower() in p.name.lower()
+            ]
+            
+            for pot in matching_pots:
+                eligible_pots.append({
+                    'pot': pot,
+                    'priority': rule['priority'],
+                    'max_percentage': rule['max_percentage']
+                })
+        
+        # Sort by priority
+        eligible_pots.sort(key=lambda x: x['priority'])
+        
+        print(f"\n📋 Allocation Plan:")
+        print("-" * 30)
+        
+        remaining_surplus = surplus
+        
+        for allocation in eligible_pots:
+            pot = allocation['pot']
+            max_percentage = allocation['max_percentage']
+            
+            # Calculate allocation amount
+            max_allocation = surplus * max_percentage
+            allocation_amount = min(remaining_surplus, max_allocation)
+            
+            if allocation_amount >= 1:  # Minimum £1
+                print(f"🐷 {pot.name}: £{allocation_amount:.2f}")
+                
+                # Perform the transfer
+                try:
+                    amount_pence = int(allocation_amount * 100)
+                    result = self.client.pots.deposit(
+                        pot_id=pot.id,
+                        account_id=self.current_account.id,
+                        amount=amount_pence
+                    )
+                    
+                    remaining_surplus -= allocation_amount
+                    print(f"   ✅ Transferred successfully")
+                    
+                except Exception as e:
+                    print(f"   ❌ Transfer failed: {e}")
+            
+            if remaining_surplus <= 1:
+                break
+        
+        print(f"\n📊 Remaining surplus: £{remaining_surplus:.2f}")
+        
+        if remaining_surplus > 1:
+            print("💡 Consider creating additional savings pots for remaining surplus")
+
+# Usage
+allocator = SmartPotAllocator()
+allocator.allocate_surplus(target_current_balance=500)
+```
+
+## Best Practices
+
+1. **Check pot status**: Always verify a pot is not deleted before performing operations
+2. **Handle minimum amounts**: Monzo may have minimum transfer amounts (typically £1)
+3. **Error handling**: Wrap pot operations in try/catch blocks for robust error handling
+4. **Balance validation**: Check account balance before attempting large withdrawals
+5. **Goal tracking**: Use pot goals to implement automatic savings strategies
+
+The Pots API enables powerful savings automation and financial goal tracking capabilities within your Monzo account management applications.

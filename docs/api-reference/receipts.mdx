@@ -1,0 +1,587 @@
+---
+title: 'Receipts API'
+description: 'Add detailed receipt information to transactions'
+---
+
+## Overview
+
+The `ReceiptsAPI` provides methods to add detailed receipt information to transactions, including itemized purchases, tax details, and merchant information. This enables rich transaction data for expense tracking and reporting.
+
+## Methods
+
+### create()
+
+Add detailed receipt information to a transaction.
+
+```python
+def create(
+    self,
+    transaction_id: str,
+    total: int,
+    currency: str = "GBP",
+    merchant_name: str = "",
+    merchant_address: Optional[str] = None,
+    merchant_phone: Optional[str] = None,
+    merchant_email: Optional[str] = None,
+    items: Optional[list] = None,
+    taxes: Optional[list] = None,
+    **kwargs
+) -> Receipt:
+    """Create a detailed receipt for a transaction."""
+```
+
+**Parameters**:
+- `transaction_id`: The unique transaction identifier
+- `total`: Total receipt amount in pence
+- `currency`: Currency code (default "GBP")
+- `merchant_name`: Name of the merchant
+- `merchant_address`: Merchant address (optional)
+- `merchant_phone`: Merchant phone number (optional)  
+- `merchant_email`: Merchant email (optional)
+- `items`: List of receipt items (optional)
+- `taxes`: List of tax details (optional)
+
+**Returns**: `Receipt` - The created receipt object
+
+## Receipt Creation Examples
+
+### Basic Receipt
+
+Create a simple receipt with basic information:
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+
+# Get a transaction to add receipt to
+accounts = client.accounts.list()
+transactions = client.transactions.list(
+    account_id=accounts[0].id,
+    limit=1
+)
+transaction_id = transactions[0].id
+
+# Create basic receipt
+receipt = client.receipts.create(
+    transaction_id=transaction_id,
+    total=1250,  # £12.50 in pence
+    currency="GBP",
+    merchant_name="Corner Coffee Shop",
+    merchant_address="123 High Street, London SW1A 1AA",
+    merchant_phone="+44 20 7946 0958"
+)
+
+print(f"✅ Receipt created: {receipt.id}")
+print(f"📄 Merchant: {receipt.merchant_name}")
+print(f"💰 Total: £{receipt.total / 100:.2f}")
+```
+
+### Detailed Receipt with Items
+
+Create a comprehensive receipt with itemized purchases:
+
+```python
+# Detailed receipt with line items
+receipt_items = [
+    {
+        "description": "Large Cappuccino",
+        "unit_price": 350,  # £3.50 in pence
+        "quantity": 1,
+        "total_price": 350,
+        "currency": "GBP",
+        "category": "beverages"
+    },
+    {
+        "description": "Blueberry Muffin",
+        "unit_price": 280,  # £2.80 in pence
+        "quantity": 1, 
+        "total_price": 280,
+        "currency": "GBP",
+        "category": "food"
+    },
+    {
+        "description": "Extra Shot",
+        "unit_price": 50,   # £0.50 in pence
+        "quantity": 2,
+        "total_price": 100,
+        "currency": "GBP",
+        "category": "extras"
+    }
+]
+
+# Tax information
+tax_details = [
+    {
+        "description": "VAT",
+        "amount": 146,  # £1.46 in pence (20% VAT)
+        "currency": "GBP",
+        "tax_number": "GB123456789"
+    }
+]
+
+# Create detailed receipt
+receipt = client.receipts.create(
+    transaction_id=transaction_id,
+    total=876,  # £8.76 total (£7.30 + £1.46 VAT)
+    currency="GBP",
+    merchant_name="Corner Coffee Shop",
+    merchant_address="123 High Street, London SW1A 1AA",
+    merchant_phone="+44 20 7946 0958",
+    merchant_email="orders@cornercoffee.com",
+    items=receipt_items,
+    taxes=tax_details
+)
+
+print(f"✅ Detailed receipt created")
+print(f"📋 Items: {len(receipt_items)}")
+print(f"💷 Subtotal: £{sum(item['total_price'] for item in receipt_items) / 100:.2f}")
+print(f"🏛️ VAT: £{tax_details[0]['amount'] / 100:.2f}")
+print(f"💰 Total: £{receipt.total / 100:.2f}")
+```
+
+## Advanced Receipt Management
+
+### Grocery Receipt Parser
+
+Parse grocery receipts and create detailed receipt records:
+
+```python
+from datetime import datetime
+from typing import List, Dict, Any
+import re
+
+class GroceryReceiptManager:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def create_grocery_receipt(
+        self, 
+        transaction_id: str, 
+        store_name: str,
+        items_text: str,
+        store_info: Dict[str, str] = None
+    ):
+        """Create a grocery receipt from text input."""
+        
+        # Parse items from text
+        items = self._parse_grocery_items(items_text)
+        
+        # Calculate totals
+        subtotal = sum(item['total_price'] for item in items)
+        vat_rate = 0.20  # 20% VAT on applicable items
+        vat_amount = int(subtotal * vat_rate)
+        total = subtotal + vat_amount
+        
+        # Default store info
+        default_store_info = store_info or {}
+        
+        # Tax details
+        taxes = [{
+            "description": "VAT",
+            "amount": vat_amount,
+            "currency": "GBP"
+        }] if vat_amount > 0 else []
+        
+        # Create receipt
+        receipt = self.client.receipts.create(
+            transaction_id=transaction_id,
+            total=total,
+            currency="GBP",
+            merchant_name=store_name,
+            merchant_address=default_store_info.get('address'),
+            merchant_phone=default_store_info.get('phone'),
+            items=items,
+            taxes=taxes
+        )
+        
+        return receipt
+    
+    def _parse_grocery_items(self, items_text: str) -> List[Dict[str, Any]]:
+        """Parse grocery items from text input."""
+        
+        items = []
+        lines = items_text.strip().split('\n')
+        
+        for line in lines:
+            line = line.strip()
+            if not line:
+                continue
+            
+            # Try to parse: "Item Name x2 @ £1.50 = £3.00"
+            pattern = r'(.+?)\s*x?(\d+)?\s*@?\s*£(\d+\.?\d*)\s*=?\s*£?(\d+\.?\d*)?'
+            match = re.match(pattern, line)
+            
+            if match:
+                description = match.group(1).strip()
+                quantity = int(match.group(2)) if match.group(2) else 1
+                unit_price = float(match.group(3))
+                total_price = float(match.group(4)) if match.group(4) else unit_price * quantity
+                
+                items.append({
+                    "description": description,
+                    "unit_price": int(unit_price * 100),  # Convert to pence
+                    "quantity": quantity,
+                    "total_price": int(total_price * 100),  # Convert to pence
+                    "currency": "GBP",
+                    "category": self._categorize_item(description)
+                })
+            else:
+                # Fallback: simple "Item Name £2.50"
+                simple_pattern = r'(.+?)\s+£(\d+\.?\d*)'
+                simple_match = re.match(simple_pattern, line)
+                
+                if simple_match:
+                    description = simple_match.group(1).strip()
+                    price = float(simple_match.group(2))
+                    
+                    items.append({
+                        "description": description,
+                        "unit_price": int(price * 100),
+                        "quantity": 1,
+                        "total_price": int(price * 100),
+                        "currency": "GBP",
+                        "category": self._categorize_item(description)
+                    })
+        
+        return items
+    
+    def _categorize_item(self, description: str) -> str:
+        """Categorize grocery items."""
+        
+        description_lower = description.lower()
+        
+        categories = {
+            'dairy': ['milk', 'cheese', 'butter', 'yogurt', 'cream'],
+            'meat': ['chicken', 'beef', 'pork', 'fish', 'salmon', 'turkey'],
+            'vegetables': ['carrot', 'potato', 'onion', 'tomato', 'lettuce', 'pepper'],
+            'fruits': ['apple', 'banana', 'orange', 'grape', 'berry'],
+            'bakery': ['bread', 'rolls', 'cake', 'pastry', 'croissant'],
+            'beverages': ['juice', 'water', 'coffee', 'tea', 'soda'],
+            'frozen': ['frozen', 'ice cream'],
+            'household': ['detergent', 'soap', 'shampoo', 'toilet paper']
+        }
+        
+        for category, keywords in categories.items():
+            if any(keyword in description_lower for keyword in keywords):
+                return category
+        
+        return 'other'
+
+# Usage example
+def create_sample_grocery_receipt():
+    manager = GroceryReceiptManager()
+    
+    # Get a recent transaction
+    accounts = manager.client.accounts.list()
+    transactions = manager.client.transactions.list(
+        account_id=accounts[0].id,
+        limit=5
+    )
+    
+    # Find a transaction that looks like grocery shopping
+    grocery_transaction = None
+    for txn in transactions:
+        if txn.amount < 0 and any(word in txn.description.lower() 
+                                 for word in ['tesco', 'sainsbury', 'asda', 'grocery']):
+            grocery_transaction = txn
+            break
+    
+    if not grocery_transaction:
+        print("No grocery transaction found")
+        return
+    
+    # Sample grocery items
+    items_text = """
+    Organic Bananas x3 @ £0.90 = £2.70
+    Semi-Skimmed Milk 2L £1.25
+    Sourdough Bread £2.50
+    Free Range Eggs x12 £3.20
+    Cheddar Cheese 200g £2.80
+    Fresh Salmon Fillet 400g £6.50
+    Baby Spinach 100g £1.50
+    Cherry Tomatoes 250g £2.25
+    """
+    
+    store_info = {
+        'address': '456 Shopping Street, London E1 6AN',
+        'phone': '+44 20 7946 0123'
+    }
+    
+    print(f"📄 Creating receipt for transaction: {grocery_transaction.description}")
+    print(f"💰 Transaction amount: £{abs(grocery_transaction.amount) / 100:.2f}")
+    
+    receipt = manager.create_grocery_receipt(
+        transaction_id=grocery_transaction.id,
+        store_name="Tesco Express",
+        items_text=items_text,
+        store_info=store_info
+    )
+    
+    if receipt:
+        print(f"✅ Grocery receipt created successfully")
+        print(f"📋 Receipt ID: {receipt.id}")
+        print(f"🛒 Items: {len(receipt.items) if receipt.items else 0}")
+
+if __name__ == "__main__":
+    create_sample_grocery_receipt()
+```
+
+### Restaurant Receipt Builder
+
+Create detailed restaurant receipts with tip calculations:
+
+```python
+class RestaurantReceiptBuilder:
+    def __init__(self):
+        self.client = MonzoClient()
+    
+    def create_restaurant_receipt(
+        self,
+        transaction_id: str,
+        restaurant_name: str,
+        menu_items: List[Dict],
+        service_charge: float = 0.125,  # 12.5% service charge
+        restaurant_info: Dict[str, str] = None
+    ):
+        """Create a detailed restaurant receipt."""
+        
+        # Calculate subtotal
+        food_subtotal = sum(item['price'] * item['quantity'] for item in menu_items)
+        
+        # Convert menu items to receipt format
+        receipt_items = []
+        for item in menu_items:
+            unit_price = int(item['price'] * 100)  # Convert to pence
+            quantity = item['quantity']
+            total_price = int(item['price'] * quantity * 100)
+            
+            receipt_items.append({
+                "description": item['name'],
+                "unit_price": unit_price,
+                "quantity": quantity,
+                "total_price": total_price,
+                "currency": "GBP",
+                "category": item.get('category', 'food')
+            })
+        
+        # Add service charge if applicable
+        if service_charge > 0:
+            service_amount = food_subtotal * service_charge
+            receipt_items.append({
+                "description": f"Service Charge ({service_charge*100:.1f}%)",
+                "unit_price": int(service_amount * 100),
+                "quantity": 1,
+                "total_price": int(service_amount * 100),
+                "currency": "GBP",
+                "category": "service"
+            })
+        
+        # Calculate total
+        subtotal = food_subtotal + (food_subtotal * service_charge if service_charge else 0)
+        vat_amount = subtotal * 0.20  # 20% VAT
+        total = subtotal + vat_amount
+        
+        # Tax information
+        taxes = [{
+            "description": "VAT",
+            "amount": int(vat_amount * 100),
+            "currency": "GBP"
+        }]
+        
+        # Restaurant info
+        info = restaurant_info or {}
+        
+        # Create receipt
+        receipt = self.client.receipts.create(
+            transaction_id=transaction_id,
+            total=int(total * 100),
+            currency="GBP",
+            merchant_name=restaurant_name,
+            merchant_address=info.get('address'),
+            merchant_phone=info.get('phone'),
+            merchant_email=info.get('email'),
+            items=receipt_items,
+            taxes=taxes
+        )
+        
+        return receipt
+    
+    def create_receipt_from_bill_photo(self, transaction_id: str, bill_text: str):
+        """Create receipt from OCR'd bill text."""
+        
+        # This would integrate with OCR service to extract text from bill photos
+        # Then parse the text to extract items, prices, etc.
+        
+        lines = bill_text.split('\n')
+        items = []
+        restaurant_name = "Unknown Restaurant"
+        
+        for line in lines:
+            line = line.strip()
+            
+            # Try to extract restaurant name from first line
+            if not items and len(line) > 5 and not any(c.isdigit() for c in line):
+                restaurant_name = line
+                continue
+            
+            # Parse menu items: "Margherita Pizza £12.50"
+            item_pattern = r'(.+?)\s+£(\d+\.?\d*)'
+            match = re.match(item_pattern, line)
+            
+            if match:
+                item_name = match.group(1).strip()
+                price = float(match.group(2))
+                
+                # Skip service charges, VAT, etc.
+                if any(word in item_name.lower() 
+                      for word in ['service', 'vat', 'tax', 'total', 'subtotal']):
+                    continue
+                
+                items.append({
+                    'name': item_name,
+                    'price': price,
+                    'quantity': 1,
+                    'category': 'food'
+                })
+        
+        if items:
+            return self.create_restaurant_receipt(
+                transaction_id=transaction_id,
+                restaurant_name=restaurant_name,
+                menu_items=items
+            )
+        
+        return None
+
+# Usage
+def create_sample_restaurant_receipt():
+    builder = RestaurantReceiptBuilder()
+    
+    # Sample restaurant order
+    menu_items = [
+        {'name': 'Caesar Salad (Starter)', 'price': 8.50, 'quantity': 1, 'category': 'starter'},
+        {'name': 'Grilled Salmon', 'price': 18.95, 'quantity': 1, 'category': 'main'},
+        {'name': 'Ribeye Steak', 'price': 24.50, 'quantity': 1, 'category': 'main'},
+        {'name': 'Chocolate Brownie', 'price': 7.25, 'quantity': 1, 'category': 'dessert'},
+        {'name': 'Glass of House Red', 'price': 6.50, 'quantity': 2, 'category': 'beverage'},
+    ]
+    
+    restaurant_info = {
+        'address': '789 Fine Dining Street, London W1K 3AB',
+        'phone': '+44 20 7946 0456',
+        'email': 'reservations@finedining.co.uk'
+    }
+    
+    # Get a recent transaction
+    client = MonzoClient()
+    accounts = client.accounts.list()
+    transactions = client.transactions.list(
+        account_id=accounts[0].id,
+        limit=5
+    )
+    
+    # Find a restaurant-like transaction
+    restaurant_transaction = None
+    for txn in transactions:
+        if txn.amount < 0:
+            restaurant_transaction = txn
+            break
+    
+    if restaurant_transaction:
+        receipt = builder.create_restaurant_receipt(
+            transaction_id=restaurant_transaction.id,
+            restaurant_name="The Fine Dining Co.",
+            menu_items=menu_items,
+            service_charge=0.125,  # 12.5%
+            restaurant_info=restaurant_info
+        )
+        
+        print(f"🍽️ Restaurant receipt created")
+        print(f"📄 Receipt ID: {receipt.id}")
+        
+        # Calculate and display breakdown
+        food_total = sum(item['price'] * item['quantity'] for item in menu_items)
+        service = food_total * 0.125
+        subtotal = food_total + service
+        vat = subtotal * 0.20
+        total = subtotal + vat
+        
+        print(f"💰 Breakdown:")
+        print(f"   Food & Drink: £{food_total:.2f}")
+        print(f"   Service (12.5%): £{service:.2f}")
+        print(f"   Subtotal: £{subtotal:.2f}")
+        print(f"   VAT (20%): £{vat:.2f}")
+        print(f"   Total: £{total:.2f}")
+
+if __name__ == "__main__":
+    create_sample_restaurant_receipt()
+```
+
+### Receipt Analytics
+
+Analyze receipt data for insights:
+
+```python
+def analyze_receipt_data():
+    """Analyze receipt data across transactions."""
+    
+    client = MonzoClient()
+    accounts = client.accounts.list()
+    current_account = accounts[0]
+    
+    # Get transactions with receipts
+    since = datetime.now() - timedelta(days=60)
+    transactions = client.transactions.list(
+        account_id=current_account.id,
+        since=since,
+        limit=200
+    )
+    
+    # This is a simplified example - in reality you'd need to fetch
+    # receipt data separately using transaction IDs
+    transactions_with_receipts = [
+        t for t in transactions 
+        if t.amount < 0 and hasattr(t, 'receipt') and t.receipt
+    ]
+    
+    print(f"📊 Receipt Analytics (60 days)")
+    print("=" * 35)
+    print(f"Total transactions analyzed: {len(transactions)}")
+    print(f"Transactions with receipts: {len(transactions_with_receipts)}")
+    
+    # Category spending from receipts
+    from collections import defaultdict
+    category_spending = defaultdict(float)
+    
+    # This would require fetching actual receipt data
+    # For demo purposes, we'll use transaction categories
+    for txn in transactions:
+        if txn.amount < 0 and txn.category:
+            category_spending[txn.category] += abs(txn.amount) / 100
+    
+    print(f"\n💰 Spending by Category:")
+    for category, amount in sorted(category_spending.items(), 
+                                  key=lambda x: x[1], reverse=True):
+        print(f"   {category.title()}: £{amount:.2f}")
+    
+    # Average transaction size
+    spending_amounts = [abs(t.amount) / 100 for t in transactions if t.amount < 0]
+    if spending_amounts:
+        avg_spending = sum(spending_amounts) / len(spending_amounts)
+        print(f"\n📈 Average transaction: £{avg_spending:.2f}")
+
+if __name__ == "__main__":
+    analyze_receipt_data()
+```
+
+## Best Practices
+
+1. **Accurate totals**: Ensure receipt totals match transaction amounts
+2. **Detailed items**: Include as much item detail as possible for better expense tracking
+3. **Tax information**: Always include VAT/tax details where applicable
+4. **Merchant info**: Provide complete merchant information for record keeping
+5. **Currency consistency**: Use consistent currency codes throughout
+6. **Validation**: Validate calculated totals against actual transaction amounts
+
+The Receipts API enables comprehensive expense tracking and reporting by adding rich, structured data to transaction records. This is particularly valuable for business expense reporting, tax preparation, and detailed financial analysis.

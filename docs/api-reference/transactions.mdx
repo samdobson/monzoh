@@ -1,0 +1,491 @@
+---
+title: 'Transactions API'
+description: 'List, retrieve, and manage transaction data'
+---
+
+## Overview
+
+The `TransactionsAPI` provides methods to list and retrieve transaction information. All transaction operations are accessed through the `client.transactions` property.
+
+## Methods
+
+### list()
+
+List transactions for a specific account with optional filtering.
+
+```python
+def list(
+    self,
+    account_id: str,
+    expand: Optional[list[str]] = None,
+    limit: Optional[int] = None,
+    since: Optional[Union[datetime, str]] = None,
+    before: Optional[datetime] = None,
+) -> list[Transaction]:
+    """List transactions for an account."""
+```
+
+**Parameters**:
+- `account_id`: The unique account identifier
+- `expand` (optional): List of fields to expand (e.g., `["merchant"]`)
+- `limit` (optional): Maximum number of transactions to return (default 100, max 500)
+- `since` (optional): Return transactions after this date/time or transaction ID
+- `before` (optional): Return transactions before this date/time
+
+**Returns**: `list[Transaction]` - List of transaction objects
+
+**Examples**:
+
+<Tabs>
+  <Tab title="Basic Usage">
+    ```python
+    from monzoh import MonzoClient
+
+    client = MonzoClient()
+    
+    # Get accounts
+    accounts = client.accounts.list()
+    account_id = accounts[0].id
+    
+    # Get recent transactions
+    transactions = client.transactions.list(
+        account_id=account_id,
+        limit=20
+    )
+    
+    print(f"Found {len(transactions)} transactions")
+    
+    for txn in transactions:
+        amount = txn.amount / 100
+        emoji = "💸" if amount < 0 else "💰"
+        print(f"{emoji} {txn.description}: £{amount:.2f}")
+    ```
+  </Tab>
+  
+  <Tab title="Date Filtering">
+    ```python
+    from datetime import datetime, timedelta
+    
+    # Get transactions from the last 7 days
+    since_date = datetime.now() - timedelta(days=7)
+    
+    recent_transactions = client.transactions.list(
+        account_id=account_id,
+        since=since_date,
+        limit=50
+    )
+    
+    print(f"Transactions in last 7 days: {len(recent_transactions)}")
+    ```
+  </Tab>
+  
+  <Tab title="Expanded Data">
+    ```python
+    # Get transactions with merchant details expanded
+    transactions = client.transactions.list(
+        account_id=account_id,
+        expand=["merchant"],
+        limit=10
+    )
+    
+    for txn in transactions:
+        print(f"Transaction: {txn.description}")
+        
+        if txn.merchant:
+            print(f"  Merchant: {txn.merchant.name}")
+            print(f"  Category: {txn.merchant.category}")
+            print(f"  Logo: {txn.merchant.logo}")
+    ```
+  </Tab>
+</Tabs>
+
+### get()
+
+Retrieve a specific transaction by ID.
+
+```python
+def get(
+    self,
+    transaction_id: str,
+    expand: Optional[list[str]] = None
+) -> Transaction:
+    """Get a specific transaction by ID."""
+```
+
+**Parameters**:
+- `transaction_id`: The unique transaction identifier
+- `expand` (optional): List of fields to expand
+
+**Returns**: `Transaction` - The transaction object
+
+**Example**:
+```python
+# Get a specific transaction
+transaction = client.transactions.get(
+    transaction_id="tx_00009hjzAHHyUp1hAzuJUB",
+    expand=["merchant"]
+)
+
+print(f"Transaction: {transaction.description}")
+print(f"Amount: £{transaction.amount / 100:.2f}")
+print(f"Date: {transaction.created}")
+
+if transaction.merchant:
+    print(f"Merchant: {transaction.merchant.name}")
+```
+
+## Transaction Analysis Examples
+
+### Spending Analysis
+
+Analyze spending patterns by category:
+
+```python
+from collections import defaultdict
+from datetime import datetime, timedelta
+
+def analyze_spending_by_category(account_id, days=30):
+    """Analyze spending by category over the last N days."""
+    
+    client = MonzoClient()
+    
+    # Get transactions from the last N days
+    since = datetime.now() - timedelta(days=days)
+    transactions = client.transactions.list(
+        account_id=account_id,
+        since=since,
+        limit=200
+    )
+    
+    # Group spending by category
+    spending_by_category = defaultdict(list)
+    total_spending = 0
+    
+    for txn in transactions:
+        if txn.amount < 0:  # Spending transactions
+            amount = abs(txn.amount) / 100
+            category = txn.category or "Other"
+            
+            spending_by_category[category].append({
+                'description': txn.description,
+                'amount': amount,
+                'date': txn.created,
+                'merchant': txn.merchant.name if txn.merchant else None
+            })
+            
+            total_spending += amount
+    
+    # Print analysis
+    print(f"Spending Analysis (Last {days} days)")
+    print("=" * 40)
+    print(f"Total Spent: £{total_spending:.2f}")
+    print()
+    
+    for category, transactions in sorted(
+        spending_by_category.items(), 
+        key=lambda x: sum(t['amount'] for t in x[1]), 
+        reverse=True
+    ):
+        category_total = sum(t['amount'] for t in transactions)
+        percentage = (category_total / total_spending) * 100
+        
+        print(f"{category}: £{category_total:.2f} ({percentage:.1f}%)")
+        print(f"  Transactions: {len(transactions)}")
+        print(f"  Average: £{category_total / len(transactions):.2f}")
+        
+        # Show top transactions in this category
+        top_transactions = sorted(
+            transactions, 
+            key=lambda x: x['amount'], 
+            reverse=True
+        )[:3]
+        
+        for txn in top_transactions:
+            print(f"    • {txn['description']}: £{txn['amount']:.2f}")
+        print()
+
+# Usage
+accounts = client.accounts.list()
+analyze_spending_by_category(accounts[0].id, days=30)
+```
+
+### Monthly Spending Trends
+
+Track spending trends over time:
+
+```python
+from datetime import datetime, timedelta
+import calendar
+
+def monthly_spending_trends(account_id, months=6):
+    """Analyze spending trends over the last N months."""
+    
+    client = MonzoClient()
+    
+    # Get transactions from the last N months
+    since = datetime.now() - timedelta(days=months * 30)
+    transactions = client.transactions.list(
+        account_id=account_id,
+        since=since,
+        limit=1000
+    )
+    
+    # Group by month
+    monthly_spending = defaultdict(float)
+    
+    for txn in transactions:
+        if txn.amount < 0:  # Spending only
+            date = datetime.fromisoformat(txn.created.replace('Z', '+00:00'))
+            month_key = date.strftime('%Y-%m')
+            monthly_spending[month_key] += abs(txn.amount) / 100
+    
+    # Print trends
+    print("Monthly Spending Trends")
+    print("=" * 30)
+    
+    sorted_months = sorted(monthly_spending.keys())
+    
+    for i, month in enumerate(sorted_months):
+        spending = monthly_spending[month]
+        year, month_num = month.split('-')
+        month_name = calendar.month_name[int(month_num)]
+        
+        print(f"{month_name} {year}: £{spending:.2f}")
+        
+        # Show trend arrow
+        if i > 0:
+            prev_spending = monthly_spending[sorted_months[i-1]]
+            change = ((spending - prev_spending) / prev_spending) * 100
+            
+            if change > 5:
+                trend = "📈 ↗️"
+            elif change < -5:
+                trend = "📉 ↘️"
+            else:
+                trend = "➡️"
+            
+            print(f"    {trend} {change:+.1f}% from previous month")
+
+# Usage
+monthly_spending_trends(accounts[0].id, months=6)
+```
+
+### Transaction Search and Filtering
+
+Search transactions by various criteria:
+
+```python
+def search_transactions(account_id, **criteria):
+    """Search transactions by various criteria."""
+    
+    client = MonzoClient()
+    
+    # Get recent transactions
+    transactions = client.transactions.list(
+        account_id=account_id,
+        limit=500
+    )
+    
+    filtered_transactions = []
+    
+    for txn in transactions:
+        # Apply filters
+        match = True
+        
+        # Description filter
+        if 'description' in criteria:
+            if criteria['description'].lower() not in txn.description.lower():
+                match = False
+        
+        # Amount range filter
+        if 'min_amount' in criteria:
+            if abs(txn.amount) / 100 < criteria['min_amount']:
+                match = False
+        
+        if 'max_amount' in criteria:
+            if abs(txn.amount) / 100 > criteria['max_amount']:
+                match = False
+        
+        # Category filter
+        if 'category' in criteria:
+            if txn.category != criteria['category']:
+                match = False
+        
+        # Merchant filter
+        if 'merchant' in criteria and txn.merchant:
+            if criteria['merchant'].lower() not in txn.merchant.name.lower():
+                match = False
+        
+        # Date range filter
+        if 'after_date' in criteria:
+            txn_date = datetime.fromisoformat(txn.created.replace('Z', '+00:00'))
+            if txn_date < criteria['after_date']:
+                match = False
+        
+        if match:
+            filtered_transactions.append(txn)
+    
+    return filtered_transactions
+
+# Usage examples
+client = MonzoClient()
+accounts = client.accounts.list()
+account_id = accounts[0].id
+
+# Find all coffee purchases
+coffee_transactions = search_transactions(
+    account_id,
+    description='coffee'
+)
+
+# Find large transactions over £100
+large_transactions = search_transactions(
+    account_id,
+    min_amount=100
+)
+
+# Find grocery spending
+grocery_transactions = search_transactions(
+    account_id,
+    category='groceries'
+)
+
+# Find transactions at specific merchant
+tesco_transactions = search_transactions(
+    account_id,
+    merchant='tesco'
+)
+
+print(f"Coffee purchases: {len(coffee_transactions)}")
+print(f"Large transactions: {len(large_transactions)}")
+print(f"Grocery transactions: {len(grocery_transactions)}")
+```
+
+### Duplicate Transaction Detection
+
+Find potential duplicate transactions:
+
+```python
+def find_duplicate_transactions(account_id):
+    """Find potential duplicate transactions."""
+    
+    client = MonzoClient()
+    
+    # Get recent transactions
+    transactions = client.transactions.list(
+        account_id=account_id,
+        limit=200
+    )
+    
+    # Group by amount and description
+    grouped = defaultdict(list)
+    
+    for txn in transactions:
+        key = (txn.amount, txn.description.lower().strip())
+        grouped[key].append(txn)
+    
+    # Find potential duplicates
+    duplicates = []
+    
+    for (amount, description), txn_group in grouped.items():
+        if len(txn_group) > 1:
+            # Check if transactions are close in time (within 24 hours)
+            dates = [
+                datetime.fromisoformat(txn.created.replace('Z', '+00:00')) 
+                for txn in txn_group
+            ]
+            dates.sort()
+            
+            for i in range(1, len(dates)):
+                time_diff = dates[i] - dates[i-1]
+                if time_diff.total_seconds() < 86400:  # 24 hours
+                    duplicates.append({
+                        'amount': amount / 100,
+                        'description': description,
+                        'transactions': txn_group,
+                        'time_difference': time_diff
+                    })
+    
+    return duplicates
+
+# Usage
+duplicates = find_duplicate_transactions(accounts[0].id)
+
+print(f"Found {len(duplicates)} potential duplicates:")
+for dup in duplicates:
+    print(f"\n💰 £{dup['amount']:.2f} - {dup['description']}")
+    print(f"   Time difference: {dup['time_difference']}")
+    for txn in dup['transactions']:
+        print(f"   • {txn.id} at {txn.created}")
+```
+
+## Data Export
+
+Export transaction data to various formats:
+
+```python
+import csv
+import json
+from datetime import datetime
+
+def export_transactions_csv(account_id, filename="transactions.csv"):
+    """Export transactions to CSV file."""
+    
+    client = MonzoClient()
+    transactions = client.transactions.list(account_id=account_id, limit=500)
+    
+    with open(filename, 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = [
+            'id', 'date', 'description', 'amount_gbp', 'category',
+            'merchant_name', 'merchant_category', 'notes'
+        ]
+        
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        
+        for txn in transactions:
+            writer.writerow({
+                'id': txn.id,
+                'date': txn.created,
+                'description': txn.description,
+                'amount_gbp': txn.amount / 100,
+                'category': txn.category or '',
+                'merchant_name': txn.merchant.name if txn.merchant else '',
+                'merchant_category': txn.merchant.category if txn.merchant else '',
+                'notes': txn.notes or ''
+            })
+    
+    print(f"Exported {len(transactions)} transactions to {filename}")
+
+def export_transactions_json(account_id, filename="transactions.json"):
+    """Export transactions to JSON file."""
+    
+    client = MonzoClient()
+    transactions = client.transactions.list(account_id=account_id, limit=500)
+    
+    # Convert to serializable format
+    export_data = []
+    for txn in transactions:
+        txn_data = txn.model_dump()
+        export_data.append(txn_data)
+    
+    with open(filename, 'w', encoding='utf-8') as jsonfile:
+        json.dump(export_data, jsonfile, indent=2, default=str)
+    
+    print(f"Exported {len(transactions)} transactions to {filename}")
+
+# Usage
+accounts = client.accounts.list()
+export_transactions_csv(accounts[0].id)
+export_transactions_json(accounts[0].id)
+```
+
+## Best Practices
+
+1. **Use pagination**: For large date ranges, use the `limit` parameter and implement pagination
+2. **Filter at the API level**: Use `since` and `before` parameters rather than filtering client-side
+3. **Expand selectively**: Only expand fields you actually need to reduce response size
+4. **Cache results**: Cache transaction data to avoid repeated API calls
+5. **Handle rate limits**: Implement retry logic for rate limit errors
+
+The Transactions API provides powerful capabilities for analyzing spending patterns, detecting anomalies, and building financial insights into your Monzo account activity.
