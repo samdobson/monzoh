@@ -1,6 +1,8 @@
-[![PyPI version](https://badge.fury.io/py/monzoh.svg)](https://badge.fury.io/py/monzoh)
+[![Package version](https://img.shields.io/pypi/v/monzoh)][pypi monzoh]
 [![Python versions](https://img.shields.io/pypi/pyversions/monzoh.svg)](https://pypi.org/project/monzoh/)
+[![License](https://img.shields.io/pypi/l/monzoh)][license]
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![py.typed](https://img.shields.io/badge/py-typed-FFD43B)][py.typed]
 
 ![Hero](hero.png)
 

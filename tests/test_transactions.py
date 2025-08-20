@@ -17,9 +17,7 @@ class TestTransactionsAPI:
         sample_transaction: Any,
     ) -> None:
         """Test listing transactions."""
-        mock_response = mock_response(
-            json_data={"transactions": [sample_transaction]}
-        )
+        mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
         transactions = monzo_client.transactions.list("acc_123")
@@ -42,9 +40,7 @@ class TestTransactionsAPI:
         sample_transaction: Any,
     ) -> None:
         """Test listing transactions with expand."""
-        mock_response = mock_response(
-            json_data={"transactions": [sample_transaction]}
-        )
+        mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
         transactions = monzo_client.transactions.list(
@@ -65,9 +61,7 @@ class TestTransactionsAPI:
         sample_transaction: Any,
     ) -> None:
         """Test listing transactions with pagination."""
-        mock_response = mock_response(
-            json_data={"transactions": [sample_transaction]}
-        )
+        mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
         since_time = datetime(2023, 1, 1, 12, 0, 0)
@@ -90,9 +84,7 @@ class TestTransactionsAPI:
         sample_transaction: Any,
     ) -> None:
         """Test retrieving a single transaction."""
-        mock_response = mock_response(
-            json_data={"transaction": sample_transaction}
-        )
+        mock_response = mock_response(json_data={"transaction": sample_transaction})
         monzo_client._base_client._get.return_value = mock_response
 
         transaction = monzo_client.transactions.retrieve("tx_123")
@@ -115,9 +107,7 @@ class TestTransactionsAPI:
         updated_transaction = sample_transaction.copy()
         updated_transaction["metadata"] = {"foo": "bar"}
 
-        mock_response = mock_response(
-            json_data={"transaction": updated_transaction}
-        )
+        mock_response = mock_response(json_data={"transaction": updated_transaction})
         monzo_client._base_client._patch.return_value = mock_response
 
         transaction = monzo_client.transactions.annotate(
