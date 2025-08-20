@@ -1,6 +1,6 @@
 """Main Monzo API client."""
 
-from typing import Any, Optional
+from typing import Any
 
 import httpx
 
@@ -17,7 +17,7 @@ from .transactions import TransactionsAPI
 from .webhooks import WebhooksAPI
 
 
-def _load_cached_token() -> Optional[str]:
+def _load_cached_token() -> str | None:
     """Load access token from cache."""
     try:
         from .cli import load_token_from_cache
@@ -29,7 +29,7 @@ def _load_cached_token() -> Optional[str]:
         return None
     except ImportError:
         return None
-    except Exception:
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return None
 
 
@@ -38,8 +38,8 @@ class MonzoClient:
 
     def __init__(
         self,
-        access_token: Optional[str] = None,
-        http_client: Optional[httpx.Client] = None,
+        access_token: str | None = None,
+        http_client: httpx.Client | None = None,
         timeout: float = 30.0,
         async_mode: bool = False,
     ) -> None:
@@ -103,7 +103,7 @@ class MonzoClient:
         client_id: str,
         client_secret: str,
         redirect_uri: str,
-        http_client: Optional[httpx.Client] = None,
+        http_client: httpx.Client | None = None,
     ) -> MonzoOAuth:
         """Create OAuth client for authentication.
 

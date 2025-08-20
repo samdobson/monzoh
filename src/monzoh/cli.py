@@ -9,7 +9,7 @@ from datetime import datetime, timedelta
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from pathlib import Path
 from threading import Event, Thread
-from typing import Any, Optional
+from typing import Any
 
 from dotenv import load_dotenv
 from rich.console import Console
@@ -85,13 +85,13 @@ class OAuthCallbackServer(HTTPServer):
 
     def __init__(self, server_address: tuple) -> None:
         super().__init__(server_address, OAuthCallbackHandler)
-        self.auth_code: Optional[str] = None
-        self.state: Optional[str] = None
-        self.error: Optional[str] = None
+        self.auth_code: str | None = None
+        self.state: str | None = None
+        self.error: str | None = None
         self.callback_received = Event()
 
 
-def load_env_credentials() -> dict[str, Optional[str]]:
+def load_env_credentials() -> dict[str, str | None]:
     """Load credentials from environment variables and .env file."""
     # Load .env file if it exists
     env_path = Path(".env")
@@ -108,7 +108,7 @@ def load_env_credentials() -> dict[str, Optional[str]]:
 
 
 def get_credentials_interactively(
-    console: Console, existing_creds: dict[str, Optional[str]]
+    console: Console, existing_creds: dict[str, str | None]
 ) -> dict[str, str]:
     """Get missing credentials from user input."""
     creds = {}
@@ -270,7 +270,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
         console.print(f"⚠️  [yellow]Warning: Could not cache token: {e}[/yellow]")
 
 
-def load_token_from_cache() -> Optional[dict[str, Any]]:
+def load_token_from_cache() -> dict[str, Any] | None:
     """Load token from cache file."""
     try:
         cache_path = get_token_cache_path()
@@ -288,7 +288,7 @@ def load_token_from_cache() -> Optional[dict[str, Any]]:
 
         return cache_data
 
-    except Exception:
+    except (OSError, ValueError, TypeError, KeyError, FileNotFoundError):
         return None
 
 
@@ -298,13 +298,13 @@ def clear_token_cache() -> None:
         cache_path = get_token_cache_path()
         if cache_path.exists():
             cache_path.unlink()
-    except Exception:
+    except (OSError, ValueError, TypeError, KeyError, FileNotFoundError):
         pass
 
 
 def try_refresh_token(
     cached_token: dict[str, Any], oauth: MonzoOAuth, console: Console
-) -> Optional[str]:
+) -> str | None:
     """Try to refresh an expired token."""
     if not cached_token.get("refresh_token"):
         return None
@@ -325,7 +325,7 @@ def try_refresh_token(
         return None
 
 
-def authenticate() -> Optional[str]:
+def authenticate() -> str | None:
     """Main authentication flow."""
     console = Console()
 
@@ -358,7 +358,7 @@ def authenticate() -> Optional[str]:
                     )
                     access_token: str = cached_token["access_token"]
                     return access_token
-            except Exception:
+            except (OSError, ValueError, TypeError, KeyError, FileNotFoundError):
                 console.print("❌ [red]Cached token is invalid[/red]")
 
                 # Try to refresh the token
