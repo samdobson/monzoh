@@ -1,6 +1,5 @@
 """Accounts API endpoints."""
 
-from typing import Optional
 
 from .client import BaseSyncClient
 from .models import Account, AccountsResponse, Balance
@@ -17,7 +16,7 @@ class AccountsAPI:
         """
         self.client = client
 
-    def list(self, account_type: Optional[str] = None) -> list[Account]:
+    def list(self, account_type: str | None = None) -> list[Account]:
         """List accounts owned by the current user.
 
         Args:

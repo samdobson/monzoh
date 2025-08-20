@@ -1,6 +1,6 @@
 """Custom exceptions for the Monzo API client."""
 
-from typing import Any, Optional
+from typing import Any
 
 
 class MonzoError(Exception):
@@ -9,8 +9,8 @@ class MonzoError(Exception):
     def __init__(
         self,
         message: str,
-        status_code: Optional[int] = None,
-        response_data: Optional[dict[str, Any]] = None,
+        status_code: int | None = None,
+        response_data: dict[str, Any] | None = None,
     ) -> None:
         self.original_message = message
         self.status_code = status_code
@@ -160,7 +160,7 @@ class MonzoValidationError(MonzoError):
 
 
 def create_error_from_response(
-    status_code: int, message: str, response_data: Optional[dict[str, Any]] = None
+    status_code: int, message: str, response_data: dict[str, Any] | None = None
 ) -> MonzoError:
     """Create appropriate exception based on HTTP status code."""
     error_map = {

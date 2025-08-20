@@ -1,6 +1,7 @@
 """Test configuration and fixtures."""
 
-from typing import Any, Optional
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import Mock
 
 import httpx
@@ -10,22 +11,28 @@ from monzoh import MonzoClient, MonzoOAuth
 
 
 @pytest.fixture
-def mock_response() -> callable:
+def mock_response() -> Callable[[int, dict[str, Any] | None], Mock]:
     """Create a mock httpx response factory."""
-    def create_response(status_code: int = 200, json_data: Optional[dict[str, Any]] = None) -> Mock:
+
+    def create_response(
+        status_code: int = 200, json_data: dict[str, Any] | None = None
+    ) -> Mock:
         response = Mock(spec=httpx.Response)
         response.status_code = status_code
         response.json.return_value = json_data or {}
         response.text = str(json_data) if json_data else ""
         return response
+
     return create_response
 
 
 @pytest.fixture
-def mock_http_client(mock_response: callable) -> Mock:
+def mock_http_client(
+    mock_response: Callable[[int, dict[str, Any] | None], Mock]
+) -> Mock:
     """Create a mock HTTP client."""
     client = Mock(spec=httpx.Client)
-    default_response = mock_response()
+    default_response = mock_response(200, {})
     client.request.return_value = default_response
     client.get.return_value = default_response
     client.post.return_value = default_response
@@ -37,15 +44,20 @@ def mock_http_client(mock_response: callable) -> Mock:
 
 
 @pytest.fixture
-def monzo_client(mock_http_client: Mock, mock_response: callable) -> MonzoClient:
+def monzo_client(
+    mock_http_client: Mock, mock_response: Callable[[int, dict[str, Any] | None], Mock]
+) -> MonzoClient:
     """Create a Monzo client with mocked HTTP client."""
     client = MonzoClient(access_token="test_token", http_client=mock_http_client)
-    default_response = mock_response()
-    client._base_client._get = Mock(return_value=default_response)
-    client._base_client._post = Mock(return_value=default_response)
-    client._base_client._put = Mock(return_value=default_response)
-    client._base_client._patch = Mock(return_value=default_response)
-    client._base_client._delete = Mock(return_value=default_response)
+    default_response = mock_response(200, {})
+
+    # Mock base client's HTTP methods using setattr to avoid mypy method-assign errors
+    setattr(client._base_client, "_get", Mock(return_value=default_response))
+    setattr(client._base_client, "_post", Mock(return_value=default_response))
+    setattr(client._base_client, "_put", Mock(return_value=default_response))
+    setattr(client._base_client, "_patch", Mock(return_value=default_response))
+    setattr(client._base_client, "_delete", Mock(return_value=default_response))
+
     return client
 
 
