@@ -9,18 +9,18 @@ from monzoh.models import OAuthToken
 class TestMonzoOAuth:
     """Test MonzoOAuth."""
 
-    def test_init(self, mock_sync_http_client: Any) -> None:
+    def test_init(self, mock_http_client: Any) -> None:
         """Test OAuth client initialization."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
         assert oauth.client_id == "test_client_id"
         assert oauth.client_secret == "test_client_secret"
         assert oauth.redirect_uri == "https://example.com/callback"
-        assert oauth._http_client is mock_sync_http_client
+        assert oauth._http_client is mock_http_client
         assert oauth._own_client is False
 
     def test_init_without_http_client(self) -> None:
@@ -36,15 +36,15 @@ class TestMonzoOAuth:
         assert oauth._http_client is None
         assert oauth._own_client is True
 
-    def test_http_client_property(self, mock_sync_http_client: Any) -> None:
+    def test_http_client_property(self, mock_http_client: Any) -> None:
         """Test http_client property."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
-        assert oauth.http_client is mock_sync_http_client
+        assert oauth.http_client is mock_http_client
 
     def test_http_client_property_lazy_creation(self) -> None:
         """Test http_client property creates client if none provided."""
@@ -60,24 +60,24 @@ class TestMonzoOAuth:
         client2 = oauth.http_client
         assert client1 is client2
 
-    def test_context_manager(self, mock_sync_http_client: Any) -> None:
+    def test_context_manager(self, mock_http_client: Any) -> None:
         """Test sync context manager."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
         with oauth as client:
             assert client is oauth
 
-    def test_get_authorization_url(self, mock_sync_http_client: Any) -> None:
+    def test_get_authorization_url(self, mock_http_client: Any) -> None:
         """Test get_authorization_url method."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
 
         url = oauth.get_authorization_url()
@@ -87,13 +87,13 @@ class TestMonzoOAuth:
         assert "redirect_uri=https%3A%2F%2Fexample.com%2Fcallback" in url
         assert "response_type=code" in url
 
-    def test_get_authorization_url_with_state(self, mock_sync_http_client: Any) -> None:
+    def test_get_authorization_url_with_state(self, mock_http_client: Any) -> None:
         """Test get_authorization_url method with state."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
 
         url = oauth.get_authorization_url(state="test_state")
@@ -101,14 +101,14 @@ class TestMonzoOAuth:
         assert "state=test_state" in url
 
     def test_exchange_code_for_token(
-        self, mock_sync_http_client: Any, mock_httpx_response: Any
+        self, mock_http_client: Any, mock_response: Any
     ) -> None:
         """Test exchange_code_for_token method."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
 
         token_data = {
@@ -119,8 +119,8 @@ class TestMonzoOAuth:
             "token_type": "Bearer",
             "user_id": "user_123",
         }
-        mock_response = mock_httpx_response(json_data=token_data)
-        mock_sync_http_client.post.return_value = mock_response
+        mock_response = mock_response(json_data=token_data)
+        mock_http_client.post.return_value = mock_response
 
         token = oauth.exchange_code_for_token("auth_code_123")
 
@@ -130,14 +130,14 @@ class TestMonzoOAuth:
         assert token.user_id == "user_123"
 
     def test_refresh_token(
-        self, mock_sync_http_client: Any, mock_httpx_response: Any
+        self, mock_http_client: Any, mock_response: Any
     ) -> None:
         """Test refresh_token method."""
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
-            http_client=mock_sync_http_client,
+            http_client=mock_http_client,
         )
 
         token_data = {
@@ -148,8 +148,8 @@ class TestMonzoOAuth:
             "token_type": "Bearer",
             "user_id": "user_123",
         }
-        mock_response = mock_httpx_response(json_data=token_data)
-        mock_sync_http_client.post.return_value = mock_response
+        mock_response = mock_response(json_data=token_data)
+        mock_http_client.post.return_value = mock_response
 
         token = oauth.refresh_token("old_refresh_token_123")
 

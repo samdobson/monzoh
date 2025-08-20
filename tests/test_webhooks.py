@@ -9,16 +9,16 @@ from monzoh.webhooks import WebhooksAPI
 class TestWebhooksAPI:
     """Test WebhooksAPI."""
 
-    def test_init(self, monzo_sync_client: Any) -> None:
+    def test_init(self, monzo_client: Any) -> None:
         """Test client initialization."""
-        api = WebhooksAPI(monzo_sync_client._base_client)
-        assert api.client is monzo_sync_client._base_client
+        api = WebhooksAPI(monzo_client._base_client)
+        assert api.client is monzo_client._base_client
 
     def test_register(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
     ) -> None:
         """Test register webhook."""
         webhook_data = {
@@ -27,10 +27,10 @@ class TestWebhooksAPI:
             "url": "http://example.com/webhook",
         }
         response_data = {"webhook": webhook_data}
-        mock_response = mock_httpx_response(json_data=response_data)
-        monzo_sync_client._base_client._post.return_value = mock_response
+        mock_response = mock_response(json_data=response_data)
+        monzo_client._base_client._post.return_value = mock_response
 
-        api = WebhooksAPI(monzo_sync_client._base_client)
+        api = WebhooksAPI(monzo_client._base_client)
         result = api.register(
             "acc_00009237aqC8c5umZmrRdh", "http://example.com/webhook"
         )
@@ -42,9 +42,9 @@ class TestWebhooksAPI:
 
     def test_list(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
     ) -> None:
         """Test list webhooks."""
         webhook_data = [
@@ -60,10 +60,10 @@ class TestWebhooksAPI:
             },
         ]
         response_data = {"webhooks": webhook_data}
-        mock_response = mock_httpx_response(json_data=response_data)
-        monzo_sync_client._base_client._get.return_value = mock_response
+        mock_response = mock_response(json_data=response_data)
+        monzo_client._base_client._get.return_value = mock_response
 
-        api = WebhooksAPI(monzo_sync_client._base_client)
+        api = WebhooksAPI(monzo_client._base_client)
         result = api.list("acc_00009237aqC8c5umZmrRdh")
 
         assert isinstance(result, list)
@@ -74,16 +74,16 @@ class TestWebhooksAPI:
 
     def test_list_empty(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
     ) -> None:
         """Test list webhooks with empty result."""
         response_data: dict[str, Any] = {"webhooks": []}
-        mock_response = mock_httpx_response(json_data=response_data)
-        monzo_sync_client._base_client._get.return_value = mock_response
+        mock_response = mock_response(json_data=response_data)
+        monzo_client._base_client._get.return_value = mock_response
 
-        api = WebhooksAPI(monzo_sync_client._base_client)
+        api = WebhooksAPI(monzo_client._base_client)
         result = api.list("acc_00009237aqC8c5umZmrRdh")
 
         assert isinstance(result, list)
@@ -91,16 +91,16 @@ class TestWebhooksAPI:
 
     def test_delete(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
     ) -> None:
         """Test delete webhook."""
-        mock_response = mock_httpx_response(json_data={})
-        monzo_sync_client._base_client._delete.return_value = mock_response
+        mock_response = mock_response(json_data={})
+        monzo_client._base_client._delete.return_value = mock_response
 
-        api = WebhooksAPI(monzo_sync_client._base_client)
+        api = WebhooksAPI(monzo_client._base_client)
         api.delete("webhook_000091yhhOmrXQaVZ1Irsv")
-        monzo_sync_client._base_client._delete.assert_called_once_with(
+        monzo_client._base_client._delete.assert_called_once_with(
             "/webhooks/webhook_000091yhhOmrXQaVZ1Irsv"
         )

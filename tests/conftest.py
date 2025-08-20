@@ -1,7 +1,7 @@
 """Test configuration and fixtures."""
 
-from typing import Any, Callable, Optional
-from unittest.mock import AsyncMock, Mock
+from typing import Any, Optional
+from unittest.mock import Mock
 
 import httpx
 import pytest
@@ -10,143 +10,53 @@ from monzoh import MonzoClient, MonzoOAuth
 
 
 @pytest.fixture
-def mock_httpx_response() -> Callable[[int, Optional[dict[str, Any]]], Mock]:
-    """Create a mock httpx response."""
-
-    def _create_response(
-        status_code: int = 200, json_data: Optional[dict[str, Any]] = None
-    ) -> Mock:
+def mock_response() -> callable:
+    """Create a mock httpx response factory."""
+    def create_response(status_code: int = 200, json_data: Optional[dict[str, Any]] = None) -> Mock:
         response = Mock(spec=httpx.Response)
         response.status_code = status_code
         response.json.return_value = json_data or {}
         response.text = str(json_data) if json_data else ""
         return response
-
-    return _create_response
+    return create_response
 
 
 @pytest.fixture
-def mock_http_client(
-    mock_httpx_response: Callable[[int, Optional[dict[str, Any]]], Mock]
-) -> AsyncMock:
+def mock_http_client(mock_response: callable) -> Mock:
     """Create a mock HTTP client."""
-    client = AsyncMock(spec=httpx.AsyncClient)
-    client.request = AsyncMock(return_value=mock_httpx_response())  # type: ignore
-    client.get = AsyncMock(return_value=mock_httpx_response())  # type: ignore
-    client.post = AsyncMock(return_value=mock_httpx_response())  # type: ignore
-    client.put = AsyncMock(return_value=mock_httpx_response())  # type: ignore
-    client.patch = AsyncMock(return_value=mock_httpx_response())  # type: ignore
-    client.delete = AsyncMock(return_value=mock_httpx_response())  # type: ignore
-    client.aclose = AsyncMock()
-    return client
-
-
-@pytest.fixture
-def mock_sync_http_client(
-    mock_httpx_response: Callable[[int, Optional[dict[str, Any]]], Mock]
-) -> Mock:
-    """Create a mock sync HTTP client."""
     client = Mock(spec=httpx.Client)
-    client.request = Mock(return_value=mock_httpx_response())  # type: ignore
-    client.get = Mock(return_value=mock_httpx_response())  # type: ignore
-    client.post = Mock(return_value=mock_httpx_response())  # type: ignore
-    client.put = Mock(return_value=mock_httpx_response())  # type: ignore
-    client.patch = Mock(return_value=mock_httpx_response())  # type: ignore
-    client.delete = Mock(return_value=mock_httpx_response())  # type: ignore
-    client._get = Mock(return_value=mock_httpx_response())  # type: ignore
-    client._post = Mock(return_value=mock_httpx_response())  # type: ignore
-    client._put = Mock(return_value=mock_httpx_response())  # type: ignore
-    client._patch = Mock(return_value=mock_httpx_response())  # type: ignore
-    client._delete = Mock(return_value=mock_httpx_response())  # type: ignore
-    client.close = Mock()
+    default_response = mock_response()
+    client.request.return_value = default_response
+    client.get.return_value = default_response
+    client.post.return_value = default_response
+    client.put.return_value = default_response
+    client.patch.return_value = default_response
+    client.delete.return_value = default_response
+    client.close.return_value = None
     return client
 
 
 @pytest.fixture
-def monzo_client(mock_sync_http_client: Mock) -> MonzoClient:
+def monzo_client(mock_http_client: Mock, mock_response: callable) -> MonzoClient:
     """Create a Monzo client with mocked HTTP client."""
-    client = MonzoClient(access_token="test_token", http_client=mock_sync_http_client)
-    # Mock the BaseSyncClient methods
-    setattr(
-        client._base_client,
-        "_get",
-        Mock(return_value=mock_sync_http_client._get.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_post",
-        Mock(return_value=mock_sync_http_client._post.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_put",
-        Mock(return_value=mock_sync_http_client._put.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_patch",
-        Mock(return_value=mock_sync_http_client._patch.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_delete",
-        Mock(return_value=mock_sync_http_client._delete.return_value),
-    )
+    client = MonzoClient(access_token="test_token", http_client=mock_http_client)
+    default_response = mock_response()
+    client._base_client._get = Mock(return_value=default_response)
+    client._base_client._post = Mock(return_value=default_response)
+    client._base_client._put = Mock(return_value=default_response)
+    client._base_client._patch = Mock(return_value=default_response)
+    client._base_client._delete = Mock(return_value=default_response)
     return client
 
 
 @pytest.fixture
-def monzo_sync_client(mock_sync_http_client: Mock) -> MonzoClient:
-    """Create a sync Monzo client with mocked HTTP client."""
-    client = MonzoClient(access_token="test_token", http_client=mock_sync_http_client)
-    # Mock the BaseSyncClient methods
-    setattr(
-        client._base_client,
-        "_get",
-        Mock(return_value=mock_sync_http_client._get.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_post",
-        Mock(return_value=mock_sync_http_client._post.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_put",
-        Mock(return_value=mock_sync_http_client._put.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_patch",
-        Mock(return_value=mock_sync_http_client._patch.return_value),
-    )
-    setattr(
-        client._base_client,
-        "_delete",
-        Mock(return_value=mock_sync_http_client._delete.return_value),
-    )
-    return client
-
-
-@pytest.fixture
-def oauth_client(mock_sync_http_client: Mock) -> MonzoOAuth:
+def oauth_client(mock_http_client: Mock) -> MonzoOAuth:
     """Create a Monzo OAuth client with mocked HTTP client."""
     return MonzoOAuth(
         client_id="test_client_id",
         client_secret="test_client_secret",
         redirect_uri="https://example.com/callback",
-        http_client=mock_sync_http_client,
-    )
-
-
-@pytest.fixture
-def oauth_sync_client(mock_sync_http_client: Mock) -> MonzoOAuth:
-    """Create a Monzo OAuth client with mocked HTTP client."""
-    return MonzoOAuth(
-        client_id="test_client_id",
-        client_secret="test_client_secret",
-        redirect_uri="https://example.com/callback",
-        http_client=mock_sync_http_client,
+        http_client=mock_http_client,
     )
 
 

@@ -10,16 +10,16 @@ class TestPotsAPI:
 
     def test_list_pots(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test listing pots."""
-        mock_response = mock_httpx_response(json_data={"pots": [sample_pot]})
-        monzo_sync_client._base_client._get.return_value = mock_response
+        mock_response = mock_response(json_data={"pots": [sample_pot]})
+        monzo_client._base_client._get.return_value = mock_response
 
-        pots = monzo_sync_client.pots.list("acc_123")
+        pots = monzo_client.pots.list("acc_123")
 
         assert len(pots) == 1
         assert isinstance(pots[0], Pot)
@@ -27,26 +27,26 @@ class TestPotsAPI:
         assert pots[0].name == sample_pot["name"]
         assert pots[0].balance == sample_pot["balance"]
 
-        monzo_sync_client._base_client._get.assert_called_once()
-        call_args = monzo_sync_client._base_client._get.call_args
+        monzo_client._base_client._get.assert_called_once()
+        call_args = monzo_client._base_client._get.call_args
         assert "/pots" in call_args[0][0]
         assert call_args[1]["params"]["current_account_id"] == "acc_123"
 
     def test_deposit(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test depositing into a pot."""
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 150000  # Increased balance
 
-        mock_response = mock_httpx_response(json_data=updated_pot)
-        monzo_sync_client._base_client._put.return_value = mock_response
+        mock_response = mock_response(json_data=updated_pot)
+        monzo_client._base_client._put.return_value = mock_response
 
-        pot = monzo_sync_client.pots.deposit(
+        pot = monzo_client.pots.deposit(
             pot_id="pot_123",
             source_account_id="acc_123",
             amount=1000,
@@ -56,8 +56,8 @@ class TestPotsAPI:
         assert isinstance(pot, Pot)
         assert pot.balance == 150000
 
-        monzo_sync_client._base_client._put.assert_called_once()
-        call_args = monzo_sync_client._base_client._put.call_args
+        monzo_client._base_client._put.assert_called_once()
+        call_args = monzo_client._base_client._put.call_args
         assert "/pots/pot_123/deposit" in call_args[0][0]
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
         assert call_args[1]["data"]["amount"] == "1000"
@@ -65,19 +65,19 @@ class TestPotsAPI:
 
     def test_withdraw(
         self,
-        monzo_sync_client: Any,
-        mock_sync_http_client: Any,
-        mock_httpx_response: Any,
+        monzo_client: Any,
+        mock_http_client: Any,
+        mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test withdrawing from a pot."""
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 120000  # Decreased balance
 
-        mock_response = mock_httpx_response(json_data=updated_pot)
-        monzo_sync_client._base_client._put.return_value = mock_response
+        mock_response = mock_response(json_data=updated_pot)
+        monzo_client._base_client._put.return_value = mock_response
 
-        pot = monzo_sync_client.pots.withdraw(
+        pot = monzo_client.pots.withdraw(
             pot_id="pot_123",
             destination_account_id="acc_123",
             amount=500,
@@ -87,8 +87,8 @@ class TestPotsAPI:
         assert isinstance(pot, Pot)
         assert pot.balance == 120000
 
-        monzo_sync_client._base_client._put.assert_called_once()
-        call_args = monzo_sync_client._base_client._put.call_args
+        monzo_client._base_client._put.assert_called_once()
+        call_args = monzo_client._base_client._put.call_args
         assert "/pots/pot_123/withdraw" in call_args[0][0]
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
         assert call_args[1]["data"]["amount"] == "500"
