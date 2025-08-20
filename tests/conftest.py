@@ -12,12 +12,16 @@ from monzoh import MonzoClient, MonzoOAuth
 @pytest.fixture
 def mock_response() -> callable:
     """Create a mock httpx response factory."""
-    def create_response(status_code: int = 200, json_data: Optional[dict[str, Any]] = None) -> Mock:
+
+    def create_response(
+        status_code: int = 200, json_data: Optional[dict[str, Any]] = None
+    ) -> Mock:
         response = Mock(spec=httpx.Response)
         response.status_code = status_code
         response.json.return_value = json_data or {}
         response.text = str(json_data) if json_data else ""
         return response
+
     return create_response
 
 
