@@ -1,6 +1,7 @@
 """Test configuration and fixtures."""
 
-from typing import Any, Callable, Optional
+from collections.abc import Callable
+from typing import Any
 from unittest.mock import Mock
 
 import httpx
@@ -14,7 +15,7 @@ def mock_response() -> Callable[..., Mock]:
     """Create a mock httpx response factory."""
 
     def create_response(
-        status_code: int = 200, json_data: Optional[dict[str, Any]] = None
+        status_code: int = 200, json_data: dict[str, Any] | None = None
     ) -> Mock:
         response = Mock(spec=httpx.Response)
         response.status_code = status_code

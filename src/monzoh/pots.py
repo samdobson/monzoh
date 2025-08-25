@@ -1,6 +1,5 @@
 """Pots API endpoints."""
 
-
 from .client import BaseSyncClient
 from .models import Pot, PotsResponse
 

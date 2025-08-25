@@ -1,6 +1,5 @@
 """Feed-related models."""
 
-
 from pydantic import BaseModel, Field
 
 

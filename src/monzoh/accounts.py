@@ -1,6 +1,5 @@
 """Accounts API endpoints."""
 
-
 from .client import BaseSyncClient
 from .models import Account, AccountsResponse, Balance
 

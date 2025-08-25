@@ -43,21 +43,20 @@ class TransactionsAPI:
         """
         params = {"account_id": account_id}
 
-        # Add expand parameters - convert params dict to list of tuples for httpx
+        # Add pagination parameters to main params dict
+        pagination_params = self.client._prepare_pagination_params(
+            limit=limit, since=since, before=before
+        )
+        params.update(pagination_params)
+
+        # Add expand parameters - convert to list of tuples for httpx
         expand_params = self.client._prepare_expand_params(expand)
         if expand_params:
             # Convert params dict to list of tuples and extend with expand params
             params_list = list(params.items()) + expand_params
+            response = self.client._get("/transactions", params=params_list)
         else:
-            params_list = list(params.items())
-
-        # Add pagination parameters
-        pagination_params = self.client._prepare_pagination_params(
-            limit=limit, since=since, before=before
-        )
-        params_list.extend(pagination_params.items())
-
-        response = self.client._get("/transactions", params=params_list)
+            response = self.client._get("/transactions", params=params)
         transactions_response = TransactionsResponse(**response.json())
         return transactions_response.transactions
 

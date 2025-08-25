@@ -1,6 +1,5 @@
 """Webhooks API endpoints."""
 
-
 from .client import BaseSyncClient
 from .models import Webhook, WebhookResponse, WebhooksResponse
 
