@@ -3,6 +3,7 @@
 ![License](https://img.shields.io/pypi/l/monzoh)
 ![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
 ![py.typed](https://img.shields.io/badge/py-typed-FFD43B)
+[![Coverage Status](https://coveralls.io/repos/github/samdobson/monzoh/badge.svg?branch=main)](https://coveralls.io/github/samdobson/monzoh?branch=main)
 
 ![Hero](hero.png)
 
