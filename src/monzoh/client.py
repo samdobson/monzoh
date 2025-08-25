@@ -1,13 +1,19 @@
 """Base API client for Monzo API."""
 
+from __future__ import annotations
+
 import json
-from typing import Any, Optional, Union
+from typing import Any
 
 import httpx
+from httpx import QueryParams
 
 from .exceptions import MonzoNetworkError, create_error_from_response
 from .mock_data import get_mock_response
 from .models import WhoAmI
+
+# Simple type alias for query parameters
+QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
 
 
 class MockResponse:
@@ -40,7 +46,7 @@ class BaseSyncClient:
     def __init__(
         self,
         access_token: str,
-        http_client: Optional[httpx.Client] = None,
+        http_client: httpx.Client | None = None,
         timeout: float = 30.0,
     ) -> None:
         """Initialize base sync client.
@@ -74,7 +80,7 @@ class BaseSyncClient:
         """Check if client is in mock mode (using 'test' as access token)."""
         return self.access_token == "test"
 
-    def __enter__(self) -> "BaseSyncClient":
+    def __enter__(self) -> BaseSyncClient:
         """Context manager entry."""
         return self
 
@@ -87,12 +93,12 @@ class BaseSyncClient:
         self,
         method: str,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[dict[str, Any]] = None,
-        files: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-    ) -> Union[httpx.Response, MockResponse]:
+        params: QueryParamsType = None,
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response | MockResponse:
         """Make HTTP request.
 
         Args:
@@ -140,7 +146,7 @@ class BaseSyncClient:
                 error_data = {}
                 try:
                     error_data = response.json()
-                except Exception:
+                except (ValueError, KeyError, TypeError):
                     pass
 
                 raise create_error_from_response(
@@ -157,20 +163,20 @@ class BaseSyncClient:
     def _get(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-    ) -> Union[httpx.Response, MockResponse]:
+        params: QueryParamsType = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response | MockResponse:
         """Make GET request."""
         return self._request("GET", endpoint, params=params, headers=headers)
 
     def _post(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[dict[str, Any]] = None,
-        files: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-    ) -> Union[httpx.Response, MockResponse]:
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | None = None,
+        files: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response | MockResponse:
         """Make POST request."""
         return self._request(
             "POST",
@@ -184,10 +190,10 @@ class BaseSyncClient:
     def _put(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        json_data: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-    ) -> Union[httpx.Response, MockResponse]:
+        data: dict[str, Any] | None = None,
+        json_data: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response | MockResponse:
         """Make PUT request."""
         return self._request(
             "PUT", endpoint, data=data, json_data=json_data, headers=headers
@@ -196,18 +202,18 @@ class BaseSyncClient:
     def _patch(
         self,
         endpoint: str,
-        data: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-    ) -> Union[httpx.Response, MockResponse]:
+        data: dict[str, Any] | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response | MockResponse:
         """Make PATCH request."""
         return self._request("PATCH", endpoint, data=data, headers=headers)
 
     def _delete(
         self,
         endpoint: str,
-        params: Optional[dict[str, Any]] = None,
-        headers: Optional[dict[str, str]] = None,
-    ) -> Union[httpx.Response, MockResponse]:
+        params: QueryParamsType = None,
+        headers: dict[str, str] | None = None,
+    ) -> httpx.Response | MockResponse:
         """Make DELETE request."""
         return self._request("DELETE", endpoint, params=params, headers=headers)
 
@@ -221,8 +227,8 @@ class BaseSyncClient:
         return WhoAmI(**response.json())
 
     def _prepare_expand_params(
-        self, expand: Optional[list] = None
-    ) -> Optional[dict[str, Any]]:
+        self, expand: list[str] | None = None
+    ) -> list[tuple[str, str]] | None:
         """Prepare expand parameters for requests.
 
         Args:
@@ -235,13 +241,14 @@ class BaseSyncClient:
             return None
 
         # Format expand parameters as expand[]=field1&expand[]=field2
-        return {"expand[]": field for field in expand}
+        # Return list of tuples to handle multiple values for same key
+        return [("expand[]", field) for field in expand]
 
     def _prepare_pagination_params(
         self,
-        limit: Optional[int] = None,
-        since: Optional[Union[str, Any]] = None,
-        before: Optional[Union[str, Any]] = None,
+        limit: int | None = None,
+        since: str | Any | None = None,
+        before: str | Any | None = None,
     ) -> dict[str, Any]:
         """Prepare pagination parameters.
 

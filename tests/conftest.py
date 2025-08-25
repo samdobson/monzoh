@@ -29,7 +29,7 @@ def mock_response() -> Callable[..., Mock]:
 def mock_http_client(mock_response: Callable[..., Mock]) -> Mock:
     """Create a mock HTTP client."""
     client = Mock(spec=httpx.Client)
-    default_response = mock_response()
+    default_response = mock_response(200, {})
     client.request.return_value = default_response
     client.get.return_value = default_response
     client.post.return_value = default_response
@@ -53,6 +53,7 @@ def monzo_client(
     client._base_client._put = Mock(return_value=default_response)  # type: ignore
     client._base_client._patch = Mock(return_value=default_response)  # type: ignore
     client._base_client._delete = Mock(return_value=default_response)  # type: ignore
+
     return client
 
 

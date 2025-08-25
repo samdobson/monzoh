@@ -1,8 +1,10 @@
 """Transactions API endpoints."""
 
+from __future__ import annotations
+
 import builtins
 from datetime import datetime
-from typing import Any, Optional, Union
+from typing import Any
 
 from .client import BaseSyncClient
 from .models import Transaction, TransactionResponse, TransactionsResponse
@@ -22,11 +24,11 @@ class TransactionsAPI:
     def list(
         self,
         account_id: str,
-        expand: Optional[list[str]] = None,
-        limit: Optional[int] = None,
-        since: Optional[Union[datetime, str]] = None,
-        before: Optional[datetime] = None,
-    ) -> list[Transaction]:
+        expand: builtins.list[str] | None = None,
+        limit: int | None = None,
+        since: datetime | str | None = None,
+        before: datetime | None = None,
+    ) -> builtins.list[Transaction]:
         """List transactions for an account.
 
         Args:
@@ -41,23 +43,26 @@ class TransactionsAPI:
         """
         params = {"account_id": account_id}
 
-        # Add expand parameters
-        if expand:
-            for field in expand:
-                params["expand[]"] = field
+        # Add expand parameters - convert params dict to list of tuples for httpx
+        expand_params = self.client._prepare_expand_params(expand)
+        if expand_params:
+            # Convert params dict to list of tuples and extend with expand params
+            params_list = list(params.items()) + expand_params
+        else:
+            params_list = list(params.items())
 
         # Add pagination parameters
         pagination_params = self.client._prepare_pagination_params(
             limit=limit, since=since, before=before
         )
-        params.update(pagination_params)
+        params_list.extend(pagination_params.items())
 
-        response = self.client._get("/transactions", params=params)
+        response = self.client._get("/transactions", params=params_list)
         transactions_response = TransactionsResponse(**response.json())
         return transactions_response.transactions
 
     def retrieve(
-        self, transaction_id: str, expand: Optional[builtins.list[str]] = None
+        self, transaction_id: str, expand: builtins.list[str] | None = None
     ) -> Transaction:
         """Retrieve a single transaction by ID.
 
@@ -68,13 +73,10 @@ class TransactionsAPI:
         Returns:
             Transaction details
         """
-        params = {}
-        if expand:
-            for field in expand:
-                params["expand[]"] = field
+        expand_params = self.client._prepare_expand_params(expand)
 
         response = self.client._get(
-            f"/transactions/{transaction_id}", params=params if params else None
+            f"/transactions/{transaction_id}", params=expand_params
         )
         transaction_response = TransactionResponse(**response.json())
         return transaction_response.transaction

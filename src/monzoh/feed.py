@@ -1,6 +1,5 @@
 """Feed Items API endpoints."""
 
-from typing import Optional
 
 from .client import BaseSyncClient
 
@@ -21,11 +20,11 @@ class FeedAPI:
         account_id: str,
         title: str,
         image_url: str,
-        body: Optional[str] = None,
-        url: Optional[str] = None,
-        background_color: Optional[str] = None,
-        title_color: Optional[str] = None,
-        body_color: Optional[str] = None,
+        body: str | None = None,
+        url: str | None = None,
+        background_color: str | None = None,
+        title_color: str | None = None,
+        body_color: str | None = None,
     ) -> None:
         """Create a basic feed item.
 
