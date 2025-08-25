@@ -126,7 +126,7 @@ class Transaction(BaseModel):
             "CARD_BLOCKED",
             "INVALID_CVC",
             "OTHER",
-            "STRONG_CUSTOMER_AUTHENTICATION_REQUIRED", # NB: Missing from docs
+            "STRONG_CUSTOMER_AUTHENTICATION_REQUIRED",  # NB: Missing from docs
         ]
     ] = Field(
         None,
