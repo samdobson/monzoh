@@ -1,11 +1,14 @@
 """Tests for the main client."""
 
 from typing import Any
+from unittest.mock import Mock, patch
 
+import httpx
 import pytest
 
 from monzoh import MonzoClient, MonzoOAuth
-from monzoh.exceptions import MonzoBadRequestError
+from monzoh.client import BaseSyncClient, MockResponse
+from monzoh.exceptions import MonzoBadRequestError, MonzoNetworkError
 
 
 class TestMonzoClient:
@@ -168,3 +171,331 @@ class TestOAuthClient:
         call_args = mock_http_client.post.call_args
         assert "oauth2/logout" in call_args[0][0]
         assert call_args[1]["headers"]["Authorization"] == "Bearer test_token"
+
+
+class TestMockResponse:
+    """Test MockResponse class."""
+
+    def test_init(self) -> None:
+        """Test MockResponse initialization."""
+        json_data = {"test": "data"}
+        response = MockResponse(json_data, status_code=201)
+
+        assert response._json_data == json_data
+        assert response.status_code == 201
+        assert response.text == '{"test": "data"}'
+        assert response.headers == {}
+        assert response.cookies == {}
+        assert response.url == ""
+        assert response.request is None
+
+    def test_init_default_status(self) -> None:
+        """Test MockResponse with default status code."""
+        json_data = {"test": "data"}
+        response = MockResponse(json_data)
+
+        assert response.status_code == 200
+
+    def test_json_method(self) -> None:
+        """Test json method returns correct data."""
+        json_data = {"key": "value", "number": 123}
+        response = MockResponse(json_data)
+
+        assert response.json() == json_data
+
+    def test_raise_for_status_success(self) -> None:
+        """Test raise_for_status with successful status code."""
+        response = MockResponse({}, status_code=200)
+        # Should not raise any exception
+        response.raise_for_status()
+
+    def test_raise_for_status_error(self) -> None:
+        """Test raise_for_status with error status code."""
+        response = MockResponse({}, status_code=400)
+
+        with pytest.raises(Exception) as exc_info:
+            response.raise_for_status()
+
+        assert "HTTP 400 error" in str(exc_info.value)
+
+
+class TestBaseSyncClient:
+    """Test BaseSyncClient class."""
+
+    def test_init_with_http_client(self) -> None:
+        """Test initialization with provided HTTP client."""
+        mock_client = Mock()
+        client = BaseSyncClient("test_token", http_client=mock_client, timeout=60.0)
+
+        assert client.access_token == "test_token"
+        assert client._http_client is mock_client
+        assert client._own_client is False
+        assert client._timeout == 60.0
+
+    def test_init_without_http_client(self) -> None:
+        """Test initialization without HTTP client."""
+        client = BaseSyncClient("test_token")
+
+        assert client.access_token == "test_token"
+        assert client._http_client is None
+        assert client._own_client is True
+        assert client._timeout == 30.0
+
+    def test_http_client_property_creates_client(self) -> None:
+        """Test http_client property creates client when needed."""
+        client = BaseSyncClient("test_token")
+
+        with patch("httpx.Client") as mock_client_class:
+            mock_client = Mock()
+            mock_client_class.return_value = mock_client
+
+            result = client.http_client
+
+            assert result is mock_client
+            assert client._http_client is mock_client
+            mock_client_class.assert_called_once_with(
+                timeout=30.0, headers={"User-Agent": "monzoh-python-client"}
+            )
+
+    def test_http_client_property_returns_existing(self) -> None:
+        """Test http_client property returns existing client."""
+        mock_client = Mock()
+        client = BaseSyncClient("test_token", http_client=mock_client)
+
+        result = client.http_client
+        assert result is mock_client
+
+    def test_auth_headers(self) -> None:
+        """Test auth_headers property."""
+        client = BaseSyncClient("my_token")
+        headers = client.auth_headers
+
+        assert headers == {"Authorization": "Bearer my_token"}
+
+    def test_is_mock_mode_true(self) -> None:
+        """Test is_mock_mode when using test token."""
+        client = BaseSyncClient("test")
+        assert client.is_mock_mode is True
+
+    def test_is_mock_mode_false(self) -> None:
+        """Test is_mock_mode when using real token."""
+        client = BaseSyncClient("real_token")
+        assert client.is_mock_mode is False
+
+    def test_context_manager_with_own_client(self) -> None:
+        """Test context manager when client owns HTTP client."""
+        with patch("httpx.Client") as mock_client_class:
+            mock_client = Mock()
+            mock_client_class.return_value = mock_client
+
+            client = BaseSyncClient("test_token")
+
+            with client as ctx_client:
+                assert ctx_client is client
+                # Access http_client to create it
+                _ = ctx_client.http_client
+
+            # Client should be closed on exit
+            mock_client.close.assert_called_once()
+
+    def test_context_manager_without_own_client(self) -> None:
+        """Test context manager when client doesn't own HTTP client."""
+        mock_client = Mock()
+        client = BaseSyncClient("test_token", http_client=mock_client)
+
+        with client as ctx_client:
+            assert ctx_client is client
+
+        # Client should not be closed
+        mock_client.close.assert_not_called()
+
+    def test_request_mock_mode(self) -> None:
+        """Test _request method in mock mode."""
+        client = BaseSyncClient("test")
+
+        with patch("monzoh.client.get_mock_response") as mock_get_response:
+            mock_data = {"mocked": True}
+            mock_get_response.return_value = mock_data
+
+            response = client._request("GET", "/test")
+
+            assert isinstance(response, MockResponse)
+            assert response.json() == mock_data
+            mock_get_response.assert_called_once_with(
+                "/test", "GET", params=None, data=None, json_data=None
+            )
+
+    def test_request_real_mode_success(self) -> None:
+        """Test _request method in real mode with success."""
+        mock_http_client = Mock()
+        mock_response = Mock()
+        mock_response.status_code = 200
+        mock_http_client.request.return_value = mock_response
+
+        client = BaseSyncClient("real_token", http_client=mock_http_client)
+
+        response = client._request(
+            "POST",
+            "/test",
+            params={"param": "value"},
+            data={"key": "value"},
+            json_data={"json": "data"},
+            files={"file": "content"},
+            headers={"Custom": "Header"},
+        )
+
+        assert response is mock_response
+
+        mock_http_client.request.assert_called_once_with(
+            method="POST",
+            url="https://api.monzo.com/test",
+            params={"param": "value"},
+            data={"key": "value"},
+            json={"json": "data"},
+            files={"file": "content"},
+            headers={"Authorization": "Bearer real_token", "Custom": "Header"},
+        )
+
+    def test_request_real_mode_http_error(self) -> None:
+        """Test _request method with HTTP error status."""
+        mock_http_client = Mock()
+        mock_response = Mock()
+        mock_response.status_code = 400
+        mock_response.text = "Bad Request"
+        mock_response.json.return_value = {"error": "invalid_request"}
+        mock_http_client.request.return_value = mock_response
+
+        client = BaseSyncClient("real_token", http_client=mock_http_client)
+
+        with pytest.raises(MonzoBadRequestError):
+            client._request("GET", "/test")
+
+    def test_request_real_mode_http_error_no_json(self) -> None:
+        """Test _request method with HTTP error and invalid JSON."""
+        mock_http_client = Mock()
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.text = "Internal Server Error"
+        mock_response.json.side_effect = ValueError("Invalid JSON")
+        mock_http_client.request.return_value = mock_response
+
+        client = BaseSyncClient("real_token", http_client=mock_http_client)
+
+        with pytest.raises(
+            Exception
+        ):  # Should raise some error based on create_error_from_response
+            client._request("GET", "/test")
+
+    def test_request_network_error(self) -> None:
+        """Test _request method with network error."""
+        mock_http_client = Mock()
+        mock_http_client.request.side_effect = httpx.RequestError("Connection failed")
+
+        client = BaseSyncClient("real_token", http_client=mock_http_client)
+
+        with pytest.raises(MonzoNetworkError):
+            client._request("GET", "/test")
+
+    def test_convenience_methods(self) -> None:
+        """Test HTTP convenience methods."""
+        client = BaseSyncClient("test")
+
+        with patch.object(client, "_request") as mock_request:
+            mock_response = Mock()
+            mock_request.return_value = mock_response
+
+            # Test _get
+            result = client._get("/test", params={"p": "v"}, headers={"h": "v"})
+            assert result is mock_response
+            mock_request.assert_called_with(
+                "GET", "/test", params={"p": "v"}, headers={"h": "v"}
+            )
+
+            # Test _post
+            result = client._post(
+                "/test",
+                data={"d": "v"},
+                json_data={"j": "v"},
+                files={"f": "v"},
+                headers={"h": "v"},
+            )
+            assert result is mock_response
+            mock_request.assert_called_with(
+                "POST",
+                "/test",
+                data={"d": "v"},
+                json_data={"j": "v"},
+                files={"f": "v"},
+                headers={"h": "v"},
+            )
+
+            # Test _put
+            result = client._put(
+                "/test", data={"d": "v"}, json_data={"j": "v"}, headers={"h": "v"}
+            )
+            assert result is mock_response
+            mock_request.assert_called_with(
+                "PUT",
+                "/test",
+                data={"d": "v"},
+                json_data={"j": "v"},
+                headers={"h": "v"},
+            )
+
+            # Test _patch
+            result = client._patch("/test", data={"d": "v"}, headers={"h": "v"})
+            assert result is mock_response
+            mock_request.assert_called_with(
+                "PATCH", "/test", data={"d": "v"}, headers={"h": "v"}
+            )
+
+            # Test _delete
+            result = client._delete("/test", params={"p": "v"}, headers={"h": "v"})
+            assert result is mock_response
+            mock_request.assert_called_with(
+                "DELETE", "/test", params={"p": "v"}, headers={"h": "v"}
+            )
+
+    def test_prepare_expand_params_none(self) -> None:
+        """Test _prepare_expand_params with None."""
+        client = BaseSyncClient("test")
+        result = client._prepare_expand_params(None)
+        assert result is None
+
+    def test_prepare_expand_params_empty(self) -> None:
+        """Test _prepare_expand_params with empty list."""
+        client = BaseSyncClient("test")
+        result = client._prepare_expand_params([])
+        assert result is None
+
+    def test_prepare_expand_params_with_fields(self) -> None:
+        """Test _prepare_expand_params with fields."""
+        client = BaseSyncClient("test")
+        result = client._prepare_expand_params(["field1", "field2"])
+
+        expected = [("expand[]", "field1"), ("expand[]", "field2")]
+        assert result == expected
+
+    def test_prepare_pagination_params_all_none(self) -> None:
+        """Test _prepare_pagination_params with all None values."""
+        client = BaseSyncClient("test")
+        result = client._prepare_pagination_params()
+        assert result == {}
+
+    def test_prepare_pagination_params_with_values(self) -> None:
+        """Test _prepare_pagination_params with values."""
+        client = BaseSyncClient("test")
+        result = client._prepare_pagination_params(
+            limit=50, since="2023-01-01", before="2023-12-31"
+        )
+
+        expected = {"limit": "50", "since": "2023-01-01", "before": "2023-12-31"}
+        assert result == expected
+
+    def test_prepare_pagination_params_partial(self) -> None:
+        """Test _prepare_pagination_params with partial values."""
+        client = BaseSyncClient("test")
+        result = client._prepare_pagination_params(limit=25, since="2023-01-01")
+
+        expected = {"limit": "25", "since": "2023-01-01"}
+        assert result == expected
