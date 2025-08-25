@@ -73,14 +73,17 @@ class Transaction(BaseModel):
         default_factory=dict, description="Custom key-value metadata"
     )
     notes: str | None = Field(None, description="User-added notes for the transaction")
-    decline_reason: Literal[
-        "INSUFFICIENT_FUNDS",
-        "CARD_INACTIVE",
-        "CARD_BLOCKED",
-        "INVALID_CVC",
-        "OTHER",
-        "STRONG_CUSTOMER_AUTHENTICATION_REQUIRED",
-    ] | None = Field(
+    decline_reason: (
+        Literal[
+            "INSUFFICIENT_FUNDS",
+            "CARD_INACTIVE",
+            "CARD_BLOCKED",
+            "INVALID_CVC",
+            "OTHER",
+            "STRONG_CUSTOMER_AUTHENTICATION_REQUIRED",
+        ]
+        | None
+    ) = Field(
         None,
         description=(
             "Reason for transaction decline (only present on declined transactions)"

@@ -11,7 +11,7 @@ from monzoh import MonzoClient, MonzoOAuth
 
 
 @pytest.fixture
-def mock_response() -> Callable[[int, dict[str, Any] | None], Mock]:
+def mock_response() -> Callable[..., Mock]:
     """Create a mock httpx response factory."""
 
     def create_response(
@@ -27,9 +27,7 @@ def mock_response() -> Callable[[int, dict[str, Any] | None], Mock]:
 
 
 @pytest.fixture
-def mock_http_client(
-    mock_response: Callable[[int, dict[str, Any] | None], Mock]
-) -> Mock:
+def mock_http_client(mock_response: Callable[..., Mock]) -> Mock:
     """Create a mock HTTP client."""
     client = Mock(spec=httpx.Client)
     default_response = mock_response(200, {})
@@ -45,18 +43,17 @@ def mock_http_client(
 
 @pytest.fixture
 def monzo_client(
-    mock_http_client: Mock, mock_response: Callable[[int, dict[str, Any] | None], Mock]
+    mock_http_client: Mock, mock_response: Callable[..., Mock]
 ) -> MonzoClient:
     """Create a Monzo client with mocked HTTP client."""
     client = MonzoClient(access_token="test_token", http_client=mock_http_client)
-    default_response = mock_response(200, {})
-
-    # Mock base client's HTTP methods using setattr to avoid mypy method-assign errors
-    setattr(client._base_client, "_get", Mock(return_value=default_response))
-    setattr(client._base_client, "_post", Mock(return_value=default_response))
-    setattr(client._base_client, "_put", Mock(return_value=default_response))
-    setattr(client._base_client, "_patch", Mock(return_value=default_response))
-    setattr(client._base_client, "_delete", Mock(return_value=default_response))
+    default_response = mock_response()
+    # Type: ignore for method assignment to mock
+    client._base_client._get = Mock(return_value=default_response)  # type: ignore
+    client._base_client._post = Mock(return_value=default_response)  # type: ignore
+    client._base_client._put = Mock(return_value=default_response)  # type: ignore
+    client._base_client._patch = Mock(return_value=default_response)  # type: ignore
+    client._base_client._delete = Mock(return_value=default_response)  # type: ignore
 
     return client
 

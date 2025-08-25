@@ -1,6 +1,5 @@
 """Feed Items API endpoints."""
 
-
 from .client import BaseSyncClient
 
 
