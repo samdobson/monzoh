@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from monzoh import MonzoClient, MonzoOAuth
-from monzoh.client import BaseSyncClient, MockResponse
+from monzoh.core.base import BaseSyncClient, MockResponse
 from monzoh.exceptions import MonzoBadRequestError, MonzoNetworkError
 
 
@@ -313,7 +313,7 @@ class TestBaseSyncClient:
         """Test _request method in mock mode."""
         client = BaseSyncClient("test")
 
-        with patch("monzoh.client.get_mock_response") as mock_get_response:
+        with patch("monzoh.core.base.get_mock_response") as mock_get_response:
             mock_data = {"mocked": True}
             mock_get_response.return_value = mock_data
 

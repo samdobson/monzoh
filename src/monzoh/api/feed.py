@@ -1,6 +1,6 @@
 """Feed Items API endpoints."""
 
-from .client import BaseSyncClient
+from ..core import BaseSyncClient
 
 
 class FeedAPI:

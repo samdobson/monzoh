@@ -1,6 +1,6 @@
 """Tests for mock_data functionality."""
 
-from monzoh.mock_data import (
+from monzoh.core.mock_data import (
     MOCK_ACCOUNTS,
     MOCK_BALANCE,
     MOCK_POTS,

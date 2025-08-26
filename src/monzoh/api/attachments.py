@@ -2,8 +2,8 @@
 
 from typing import BinaryIO
 
-from .client import BaseSyncClient
-from .models import Attachment, AttachmentResponse, AttachmentUpload
+from ..core import BaseSyncClient
+from ..models import Attachment, AttachmentResponse, AttachmentUpload
 
 
 class AttachmentsAPI:

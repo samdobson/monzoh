@@ -5,8 +5,8 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from monzoh.client import MonzoClient, _load_cached_token
 from monzoh.exceptions import MonzoAuthenticationError
-from monzoh.main import MonzoClient, _load_cached_token
 
 
 class TestLoadCachedToken:
@@ -36,7 +36,7 @@ class TestMonzoClient:
         assert hasattr(client, "receipts")
         assert hasattr(client, "webhooks")
 
-    @patch("monzoh.main._load_cached_token")
+    @patch("monzoh.client._load_cached_token")
     def test_init_without_token_cached_available(
         self, mock_load_token: Any, mock_http_client: Any
     ) -> None:
@@ -48,7 +48,7 @@ class TestMonzoClient:
         assert client._base_client.access_token == "cached_token"
         mock_load_token.assert_called_once()
 
-    @patch("monzoh.main._load_cached_token")
+    @patch("monzoh.client._load_cached_token")
     def test_init_without_token_no_cache(
         self, mock_load_token: Any, mock_http_client: Any
     ) -> None:
@@ -130,13 +130,13 @@ class TestMonzoClient:
 
     def test_api_endpoints_initialization(self, mock_http_client: Any) -> None:
         """Test that all API endpoints are properly initialized."""
-        from monzoh.accounts import AccountsAPI
-        from monzoh.attachments import AttachmentsAPI
-        from monzoh.feed import FeedAPI
-        from monzoh.pots import PotsAPI
-        from monzoh.receipts import ReceiptsAPI
-        from monzoh.transactions import TransactionsAPI
-        from monzoh.webhooks import WebhooksAPI
+        from monzoh.api.accounts import AccountsAPI
+        from monzoh.api.attachments import AttachmentsAPI
+        from monzoh.api.feed import FeedAPI
+        from monzoh.api.pots import PotsAPI
+        from monzoh.api.receipts import ReceiptsAPI
+        from monzoh.api.transactions import TransactionsAPI
+        from monzoh.api.webhooks import WebhooksAPI
 
         client = MonzoClient("test_token", http_client=mock_http_client)
 

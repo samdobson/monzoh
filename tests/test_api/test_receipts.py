@@ -2,8 +2,8 @@
 
 from typing import Any
 
+from monzoh.api.receipts import ReceiptsAPI
 from monzoh.models import Receipt, ReceiptItem
-from monzoh.receipts import ReceiptsAPI
 
 
 class TestReceiptsAPI:

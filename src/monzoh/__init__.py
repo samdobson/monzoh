@@ -1,6 +1,7 @@
 """Monzoh - Python client for Monzo API."""
 
 from .auth import MonzoOAuth
+from .client import MonzoClient
 from .exceptions import (
     MonzoAuthenticationError,
     MonzoBadRequestError,
@@ -11,7 +12,6 @@ from .exceptions import (
     MonzoServerError,
     MonzoValidationError,
 )
-from .main import MonzoClient
 from .models import (
     Account,
     Attachment,

@@ -9,7 +9,7 @@ from rich.panel import Panel
 from rich.text import Text
 
 from ..auth import MonzoOAuth
-from ..main import MonzoClient
+from ..client import MonzoClient
 from .credentials import (
     get_credentials_interactively,
     load_env_credentials,

@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from monzoh.feed import FeedAPI
+from monzoh.api.feed import FeedAPI
 
 
 class TestFeedAPI:

@@ -1,7 +1,7 @@
 """Receipts API endpoints."""
 
-from .client import BaseSyncClient
-from .models import Receipt, ReceiptResponse
+from ..core import BaseSyncClient
+from ..models import Receipt, ReceiptResponse
 
 
 class ReceiptsAPI:
