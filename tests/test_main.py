@@ -27,7 +27,6 @@ class TestMonzoClient:
         client = MonzoClient("test_token", http_client=mock_http_client)
 
         assert client._base_client.access_token == "test_token"
-        assert client.async_mode is False
         assert hasattr(client, "accounts")
         assert hasattr(client, "transactions")
         assert hasattr(client, "pots")
@@ -60,13 +59,6 @@ class TestMonzoClient:
 
         assert "No access token provided and none found in cache" in str(exc_info.value)
         assert "Run 'monzoh-auth' to authenticate first" in str(exc_info.value)
-
-    def test_init_async_mode_error(self, mock_http_client: Any) -> None:
-        """Test initialization with async_mode=True raises ValueError."""
-        with pytest.raises(ValueError) as exc_info:
-            MonzoClient("test_token", http_client=mock_http_client, async_mode=True)
-
-        assert "Async mode is no longer supported" in str(exc_info.value)
 
     def test_init_with_custom_timeout(self, mock_http_client: Any) -> None:
         """Test initialization with custom timeout."""
