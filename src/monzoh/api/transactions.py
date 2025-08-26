@@ -6,8 +6,8 @@ import builtins
 from datetime import datetime
 from typing import Any
 
-from .client import BaseSyncClient
-from .models import Transaction, TransactionResponse, TransactionsResponse
+from ..core import BaseSyncClient
+from ..models import Transaction, TransactionResponse, TransactionsResponse
 
 
 class TransactionsAPI:

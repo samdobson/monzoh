@@ -2,8 +2,8 @@
 
 from typing import Any
 
+from monzoh.api.webhooks import WebhooksAPI
 from monzoh.models import Webhook
-from monzoh.webhooks import WebhooksAPI
 
 
 class TestWebhooksAPI:

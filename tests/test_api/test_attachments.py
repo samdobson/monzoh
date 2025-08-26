@@ -4,7 +4,7 @@ from io import BytesIO
 from typing import Any
 from unittest.mock import Mock, patch
 
-from monzoh.attachments import AttachmentsAPI
+from monzoh.api.attachments import AttachmentsAPI
 from monzoh.models import Attachment, AttachmentUpload
 
 
