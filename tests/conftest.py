@@ -48,12 +48,12 @@ def monzo_client(
     """Create a Monzo client with mocked HTTP client."""
     client = MonzoClient(access_token="test_token", http_client=mock_http_client)
     default_response = mock_response()
-    # Type: ignore for method assignment to mock
-    client._base_client._get = Mock(return_value=default_response)  # type: ignore
-    client._base_client._post = Mock(return_value=default_response)  # type: ignore
-    client._base_client._put = Mock(return_value=default_response)  # type: ignore
-    client._base_client._patch = Mock(return_value=default_response)  # type: ignore
-    client._base_client._delete = Mock(return_value=default_response)  # type: ignore
+
+    setattr(client._base_client, "_get", Mock(return_value=default_response))
+    setattr(client._base_client, "_post", Mock(return_value=default_response))
+    setattr(client._base_client, "_put", Mock(return_value=default_response))
+    setattr(client._base_client, "_patch", Mock(return_value=default_response))
+    setattr(client._base_client, "_delete", Mock(return_value=default_response))
 
     return client
 
