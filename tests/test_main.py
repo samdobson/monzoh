@@ -14,9 +14,10 @@ class TestLoadCachedToken:
 
     def test_load_cached_token_import_error(self) -> None:
         """Test when CLI module cannot be imported."""
-        # This is the main case we want to test - import error
-        result = _load_cached_token()
-        assert result is None
+        # Mock the import to raise an ImportError
+        with patch.dict("sys.modules", {"monzoh.cli": None}):
+            result = _load_cached_token()
+            assert result is None
 
 
 class TestMonzoClient:
