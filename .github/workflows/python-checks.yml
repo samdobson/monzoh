@@ -5,37 +5,39 @@ on:
     branches: [ main ]
 
 jobs:
-  code-quality:
+  format-check:
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-    
-    - name: Install uv
-      uses: astral-sh/setup-uv@v3
-    
-    - name: Install dependencies
-      run: uv sync --extra dev
-    
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
     - name: Run Black (format check)
       run: uv run black --check --diff src/ tests/
-    
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
     - name: Run Ruff (linting)
       run: uv run ruff check src/ tests/
-    
+
+  type-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
     - name: Run MyPy (type checking)
       run: uv run mypy src/
-    
-    - name: Run tests with coverage
-      run: uv run pytest tests/ -v --cov=monzoh --cov-report=lcov
-    
-    - name: Submit to Coveralls
-      uses: coverallsapp/github-action@v2
-      with:
-        github-token: ${{ secrets.GITHUB_TOKEN }}
-        file: coverage.lcov
+
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Python Environment
+      uses: ./.github/actions/setup-python-env
+    - name: Run tests
+      run: uv run pytest
+
