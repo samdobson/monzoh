@@ -29,6 +29,12 @@ uv add monzoh
 
 ## Quick Start
 
+1. Create an OAuth2 client on the [Monzo Developers Portal](https://developers.monzo.com/). *Redirect URL* must be `http://localhost:8080/callback` and *Confidentiality* must be `Confidential`.
+1. Run `monzo-auth` and complete the login flow.
+1. Authorise access on the Monzo app.
+
+You can now.
+
 ```python
 from monzoh import MonzoClient
 
