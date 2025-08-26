@@ -41,7 +41,6 @@ class MonzoClient:
         access_token: str | None = None,
         http_client: httpx.Client | None = None,
         timeout: float = 30.0,
-        async_mode: bool = False,
     ) -> None:
         """Initialize Monzo client.
 
@@ -50,15 +49,11 @@ class MonzoClient:
                 load from cache.
             http_client: Optional httpx client to use
             timeout: Request timeout in seconds
-            async_mode: If True, raises ValueError as async mode is no longer supported
 
         Raises:
             MonzoAuthenticationError: If no access token is provided and none can
                 be loaded from cache
-            ValueError: If async_mode is True
         """
-        if async_mode:
-            raise ValueError("Async mode is no longer supported")
 
         if access_token is None:
             access_token = _load_cached_token()
@@ -71,9 +66,6 @@ class MonzoClient:
         self._base_client = BaseSyncClient(
             access_token=access_token, http_client=http_client, timeout=timeout
         )
-
-        # Store async_mode property
-        self.async_mode = async_mode  # Will always be False due to validation above
 
         # Initialize API endpoints
         self.accounts = AccountsAPI(self._base_client)
