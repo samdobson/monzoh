@@ -1,5 +1,6 @@
 """Monzoh - Python client for Monzo API."""
 
+from .async_client import AsyncMonzoClient
 from .auth import MonzoOAuth
 from .client import MonzoClient
 from .exceptions import (
@@ -27,8 +28,9 @@ from .models import (
 __version__ = "1.1.0"
 
 __all__ = [
-    # Main client
+    # Main clients
     "MonzoClient",
+    "AsyncMonzoClient",
     "MonzoOAuth",
     # Models
     "Account",
