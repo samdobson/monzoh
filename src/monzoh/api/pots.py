@@ -1,5 +1,7 @@
 """Pots API endpoints."""
 
+import uuid
+
 from ..core import BaseSyncClient
 from ..models import Pot, PotsResponse
 
@@ -31,7 +33,11 @@ class PotsAPI:
         return pots_response.pots
 
     def deposit(
-        self, pot_id: str, source_account_id: str, amount: int, dedupe_id: str
+        self,
+        pot_id: str,
+        source_account_id: str,
+        amount: int,
+        dedupe_id: str | None = None,
     ) -> Pot:
         """Deposit money into a pot.
 
@@ -40,10 +46,14 @@ class PotsAPI:
             source_account_id: Source account ID
             amount: Amount in minor units (e.g., pennies)
             dedupe_id: Unique ID to prevent duplicate deposits
+                (auto-generated if not provided)
 
         Returns:
             Updated pot
         """
+        if dedupe_id is None:
+            dedupe_id = str(uuid.uuid4())
+
         data = {
             "source_account_id": source_account_id,
             "amount": str(amount),
@@ -54,7 +64,11 @@ class PotsAPI:
         return Pot(**response.json())
 
     def withdraw(
-        self, pot_id: str, destination_account_id: str, amount: int, dedupe_id: str
+        self,
+        pot_id: str,
+        destination_account_id: str,
+        amount: int,
+        dedupe_id: str | None = None,
     ) -> Pot:
         """Withdraw money from a pot.
 
@@ -63,10 +77,14 @@ class PotsAPI:
             destination_account_id: Destination account ID
             amount: Amount in minor units (e.g., pennies)
             dedupe_id: Unique ID to prevent duplicate withdrawals
+                (auto-generated if not provided)
 
         Returns:
             Updated pot
         """
+        if dedupe_id is None:
+            dedupe_id = str(uuid.uuid4())
+
         data = {
             "destination_account_id": destination_account_id,
             "amount": str(amount),
