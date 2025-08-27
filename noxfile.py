@@ -4,14 +4,14 @@ from nox import Session
 nox.options.sessions = ["tests", "lint", "mypy"]
 
 
-@nox.session(python=["3.10", "3.11", "3.12", "3.13"])
+@nox.session(python=["3.10", "3.11", "3.12", "3.13", "3.14"])
 def tests(session: Session) -> None:
     """Run the test suite."""
     session.install(".[dev]")
     session.run("pytest", *session.posargs)
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.14")
 def lint(session: Session) -> None:
     """Run the linter."""
     session.install(".[dev]")
@@ -19,14 +19,14 @@ def lint(session: Session) -> None:
     session.run("black", "--check", ".")
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.14")
 def mypy(session: Session) -> None:
     """Run mypy."""
     session.install(".[dev]")
     session.run("mypy", "src/monzoh")
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.14")
 def format(session: Session) -> None:
     """Format code with black and ruff."""
     session.install(".[dev]")
@@ -34,7 +34,7 @@ def format(session: Session) -> None:
     session.run("ruff", "check", "--fix", ".")
 
 
-@nox.session(python="3.10")
+@nox.session(python="3.14")
 def coverage(session: Session) -> None:
     """Generate coverage report."""
     session.install(".[dev]")

@@ -30,7 +30,7 @@ class ReceiptItem(BaseModel):
             "eg. pennies for GBP, or cents for EUR and USD"
         ),
     )
-    sub_items: list["ReceiptItem"] | None = Field(
+    sub_items: list[ReceiptItem] | None = Field(
         None, description="Sub-items (e.g., extras, modifications)"
     )
 

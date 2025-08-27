@@ -20,6 +20,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 requires-python = ">=3.10"
 dependencies = [
@@ -53,15 +54,15 @@ packages = ["src/monzoh"]
 
 [tool.black]
 line-length = 88
-target-version = ['py310']
+target-version = ['py313']
 
 [tool.ruff]
 line-length = 88
-target-version = "py310"
+target-version = "py314"
 lint.select = ["E", "F", "I", "N", "W", "UP"]
 
 [tool.mypy]
-python_version = "3.10"
+python_version = "3.14"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true

@@ -43,7 +43,7 @@ class MonzoOAuth:
             self._http_client = httpx.Client()
         return self._http_client
 
-    def __enter__(self) -> "MonzoOAuth":
+    def __enter__(self) -> MonzoOAuth:
         """Context manager entry."""
         return self
 

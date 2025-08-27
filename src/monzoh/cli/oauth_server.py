@@ -9,7 +9,7 @@ from typing import Any
 class OAuthCallbackHandler(BaseHTTPRequestHandler):
     """HTTP handler for OAuth callback."""
 
-    server: "OAuthCallbackServer"
+    server: OAuthCallbackServer
 
     def do_GET(self) -> None:  # noqa: N802
         """Handle GET request for OAuth callback."""

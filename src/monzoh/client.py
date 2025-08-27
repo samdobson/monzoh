@@ -78,7 +78,7 @@ class MonzoClient:
         self.receipts = ReceiptsAPI(self._base_client)
         self.webhooks = WebhooksAPI(self._base_client)
 
-    def __enter__(self) -> "MonzoClient":
+    def __enter__(self) -> MonzoClient:
         """Context manager entry."""
         self._base_client.__enter__()
         return self
