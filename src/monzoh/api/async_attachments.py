@@ -1,9 +1,10 @@
 """Async attachments API endpoints."""
 
-from typing import BinaryIO
+from pathlib import Path
 
 from ..core.async_base import BaseAsyncClient
 from ..models import Attachment, AttachmentResponse, AttachmentUpload
+from ..utils import infer_file_type, read_file_data
 
 
 class AsyncAttachmentsAPI:
@@ -18,6 +19,67 @@ class AsyncAttachmentsAPI:
         self.client = client
 
     async def upload(
+        self,
+        transaction_id: str,
+        file_path: str | Path | None = None,
+        file_name: str | None = None,
+        file_type: str | None = None,
+        file_data: bytes | None = None,
+    ) -> Attachment:
+        """Upload a file and attach it to a transaction in a single step.
+
+        Args:
+            transaction_id: Transaction ID to attach to
+            file_path: Path to file (if provided, file_name, file_type, and file_data
+                are inferred)
+            file_name: Name of the file (required if file_path not provided)
+            file_type: MIME type of the file (inferred from path if not provided)
+            file_data: File binary data (read from path if not provided)
+
+        Returns:
+            Registered attachment
+
+        Raises:
+            ValueError: If neither file_path nor (file_name and file_data) are provided
+        """
+        # Handle file_path vs direct data input
+        if file_path:
+            path = Path(file_path)
+            actual_file_name = file_name or path.name
+            actual_file_type = file_type or infer_file_type(path)
+            actual_file_data = read_file_data(path)
+        elif file_name and file_data is not None:
+            actual_file_name = file_name
+            actual_file_type = file_type or "application/octet-stream"
+            actual_file_data = file_data
+        else:
+            raise ValueError(
+                "Either file_path must be provided, or both file_name and file_data "
+                "must be provided"
+            )
+
+        # Step 1: Get upload URL
+        upload_info = await self._get_upload_url(
+            file_name=actual_file_name,
+            file_type=actual_file_type,
+            content_length=len(actual_file_data),
+        )
+
+        # Step 2: Upload the file data
+        await self._upload_file_to_url(
+            upload_url=upload_info.upload_url,
+            file_data=actual_file_data,
+        )
+
+        # Step 3: Register the attachment
+        attachment = await self._register(
+            external_id=transaction_id,
+            file_url=upload_info.file_url,
+            file_type=actual_file_type,
+        )
+        return attachment
+
+    async def _get_upload_url(
         self, file_name: str, file_type: str, content_length: int
     ) -> AttachmentUpload:
         """Get upload URL for an attachment.
@@ -39,7 +101,7 @@ class AsyncAttachmentsAPI:
         response = await self.client._post("/attachment/upload", data=data)
         return AttachmentUpload(**response.json())
 
-    async def register(
+    async def _register(
         self, external_id: str, file_url: str, file_type: str
     ) -> Attachment:
         """Register an attachment with a transaction.
@@ -75,14 +137,11 @@ class AsyncAttachmentsAPI:
 
         await self.client._post("/attachment/deregister", data=data)
 
-    async def upload_file_to_url(self, upload_url: str, file_data: BinaryIO) -> None:
+    async def _upload_file_to_url(self, upload_url: str, file_data: bytes) -> None:
         """Upload file data to the provided upload URL.
 
-        This is a helper method to upload the actual file content to the URL
-        returned by the upload() method.
-
         Args:
-            upload_url: Upload URL from upload() response
+            upload_url: Upload URL from upload response
             file_data: File binary data
 
         Returns:
@@ -91,4 +150,4 @@ class AsyncAttachmentsAPI:
         import httpx
 
         async with httpx.AsyncClient() as client:
-            await client.post(upload_url, content=file_data.read())
+            await client.post(upload_url, content=file_data)

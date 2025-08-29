@@ -1,6 +1,7 @@
 """Tests for async attachments API."""
 
-from io import BytesIO
+import tempfile
+from pathlib import Path
 from typing import Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
@@ -8,7 +9,7 @@ import pytest
 
 from monzoh.api.async_attachments import AsyncAttachmentsAPI
 from monzoh.core.async_base import BaseAsyncClient
-from monzoh.models import Attachment, AttachmentUpload
+from monzoh.models import Attachment
 
 
 class TestAsyncAttachmentsAPI:
@@ -21,42 +22,158 @@ class TestAsyncAttachmentsAPI:
         """Create async attachments API instance."""
         return AsyncAttachmentsAPI(mock_async_base_client)
 
+    @patch("httpx.AsyncClient")
     @pytest.mark.asyncio
     async def test_upload(
         self,
+        mock_httpx_client_class: Any,
         attachments_api: AsyncAttachmentsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test upload."""
+        """Test simplified upload process."""
+        # Mock the upload URL response
         upload_data = {
-            "upload_url": "https://s3.amazonaws.com/...",
-            "file_url": "https://s3.amazonaws.com/...",
+            "upload_url": "https://s3.amazonaws.com/upload",
+            "file_url": "https://s3.amazonaws.com/file",
         }
-        cast(Mock, mock_async_base_client._post).return_value.json.return_value = (
-            upload_data
+        # Mock the register response
+        attachment_data = {
+            "id": "attach_00009238aOZ8rp29FlJDQc",
+            "user_id": "user_00009237aqC8c5umZmrRdh",
+            "external_id": "tx_00008zIcpb1TB4yeIFXMzx",
+            "file_url": "https://s3.amazonaws.com/file",
+            "file_type": "image/jpeg",
+            "created": "2015-11-12T18:37:02Z",
+        }
+        register_response_data = {"attachment": attachment_data}
+
+        # Setup mock responses for the two API calls
+        upload_response = Mock()
+        upload_response.json.return_value = upload_data
+        register_response = Mock()
+        register_response.json.return_value = register_response_data
+        cast(Mock, mock_async_base_client._post).side_effect = [
+            upload_response,
+            register_response,
+        ]
+
+        # Mock httpx async client for file upload
+        mock_client = Mock()
+        mock_client.post = AsyncMock()
+        mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
+
+        file_data = b"test file content"
+        result = await attachments_api.upload(
+            transaction_id="tx_00008zIcpb1TB4yeIFXMzx",
+            file_name="test.jpg",
+            file_type="image/jpeg",
+            file_data=file_data,
         )
 
-        result = await attachments_api.upload("test.jpg", "image/jpeg", 1024)
+        # Verify the result is an attachment
+        assert isinstance(result, Attachment)
+        assert result.id == attachment_data["id"]
+        assert result.external_id == attachment_data["external_id"]
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
-            "/attachment/upload",
-            data={
-                "file_name": "test.jpg",
+        # Verify file upload was called
+        mock_client.post.assert_called_once_with(
+            "https://s3.amazonaws.com/upload", content=file_data
+        )
+
+    @patch("httpx.AsyncClient")
+    @pytest.mark.asyncio
+    async def test_upload_with_file_path(
+        self,
+        mock_httpx_client_class: Any,
+        attachments_api: AsyncAttachmentsAPI,
+        mock_async_base_client: BaseAsyncClient,
+    ) -> None:
+        """Test upload with file path."""
+        # Create a temporary test file
+        with tempfile.NamedTemporaryFile(
+            mode="wb", suffix=".jpg", delete=False
+        ) as tmp_file:
+            test_content = b"test image content"
+            tmp_file.write(test_content)
+            tmp_file_path = tmp_file.name
+
+        try:
+            # Mock the upload URL response
+            upload_data = {
+                "upload_url": "https://s3.amazonaws.com/upload",
+                "file_url": "https://s3.amazonaws.com/file",
+            }
+            # Mock the register response
+            attachment_data = {
+                "id": "attach_00009238aOZ8rp29FlJDQc",
+                "user_id": "user_00009237aqC8c5umZmrRdh",
+                "external_id": "tx_00008zIcpb1TB4yeIFXMzx",
+                "file_url": "https://s3.amazonaws.com/file",
                 "file_type": "image/jpeg",
-                "content_length": "1024",
-            },
-        )
-        assert isinstance(result, AttachmentUpload)
-        assert result.upload_url == upload_data["upload_url"]
-        assert result.file_url == upload_data["file_url"]
+                "created": "2015-11-12T18:37:02Z",
+            }
+            register_response_data = {"attachment": attachment_data}
+
+            # Setup mock responses for the two API calls
+            upload_response = Mock()
+            upload_response.json.return_value = upload_data
+            register_response = Mock()
+            register_response.json.return_value = register_response_data
+            cast(Mock, mock_async_base_client._post).side_effect = [
+                upload_response,
+                register_response,
+            ]
+
+            # Mock httpx async client for file upload
+            mock_client = Mock()
+            mock_client.post = AsyncMock()
+            mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
+
+            result = await attachments_api.upload(
+                transaction_id="tx_00008zIcpb1TB4yeIFXMzx", file_path=tmp_file_path
+            )
+
+            # Verify the result is an attachment
+            assert isinstance(result, Attachment)
+            assert result.id == attachment_data["id"]
+            assert result.external_id == attachment_data["external_id"]
+
+            # Verify file upload was called with correct content
+            mock_client.post.assert_called_once_with(
+                "https://s3.amazonaws.com/upload", content=test_content
+            )
+
+            # Verify the API calls were made with inferred values
+            expected_file_name = Path(tmp_file_path).name
+
+            # Check the first call (upload URL request)
+            actual_calls = cast(Mock, mock_async_base_client._post).call_args_list
+            assert len(actual_calls) >= 1
+            assert actual_calls[0][0] == ("/attachment/upload",)
+            assert actual_calls[0][1]["data"]["file_name"] == expected_file_name
+            assert actual_calls[0][1]["data"]["file_type"] == "image/jpeg"
+
+        finally:
+            # Clean up temporary file
+            Path(tmp_file_path).unlink()
 
     @pytest.mark.asyncio
-    async def test_register(
+    async def test_upload_validation_error(
+        self, attachments_api: AsyncAttachmentsAPI
+    ) -> None:
+        """Test upload validation when neither file_path nor required args provided."""
+        with pytest.raises(ValueError, match="Either file_path must be provided"):
+            await attachments_api.upload(
+                transaction_id="tx_123"
+            )  # Missing required args
+
+    @pytest.mark.asyncio
+    async def test_private_register(
         self,
         attachments_api: AsyncAttachmentsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test register."""
+        """Test private register method."""
         attachment_data = {
             "id": "attach_00009238aOZ8rp29FlJDQc",
             "user_id": "user_00009237aqC8c5umZmrRdh",
@@ -70,7 +187,7 @@ class TestAsyncAttachmentsAPI:
             response_data
         )
 
-        result = await attachments_api.register(
+        result = await attachments_api._register(
             "tx_00008zIcpb1TB4yeIFXMzx",
             "https://s3.amazonaws.com/...",
             "image/jpeg",
@@ -103,22 +220,22 @@ class TestAsyncAttachmentsAPI:
 
     @patch("httpx.AsyncClient")
     @pytest.mark.asyncio
-    async def test_upload_file_to_url(
+    async def test_private_upload_file_to_url(
         self,
         mock_httpx_client_class: Any,
         attachments_api: AsyncAttachmentsAPI,
     ) -> None:
-        """Test file upload to URL."""
+        """Test private file upload to URL method."""
         mock_client = Mock()
         mock_client.post = AsyncMock()
         mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
 
-        file_data = BytesIO(b"test file content")
+        file_data = b"test file content"
 
-        await attachments_api.upload_file_to_url(
+        await attachments_api._upload_file_to_url(
             "https://s3.amazonaws.com/upload", file_data
         )
 
         mock_client.post.assert_called_once_with(
-            "https://s3.amazonaws.com/upload", content=b"test file content"
+            "https://s3.amazonaws.com/upload", content=file_data
         )

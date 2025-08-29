@@ -34,21 +34,31 @@ uv add monzoh
 1. Run `monzo-auth` and complete the login flow.
 1. Authorise access on the Monzo app.
 
-### Synchronous Client
+You can now use the API:
 
 ```python
 from monzoh import MonzoClient
 
-# Initialize client
-with MonzoClient() as client:
-    # List accounts
-    accounts = client.accounts.list()
+client = MonzoClient() # No access token needed!
 
-    # Get account balance
-    balance = client.accounts.get_balance(account_id="acc_123")
+account = client.accounts.list()[0]
 
-    # List transactions
-    transactions = client.transactions.list(account_id="acc_123")
+balance = account.get_balance()
+print(f"Total Balance (incl. pots): £{balance.total_balance / 100:.2f}")
+
+transactions = account.list_transactions(limit=10)
+for transaction in transactions:
+    if transaction.amount < -5000:  # Transactions over £50
+        transaction.annotate({"category": "large_expense"})
+
+transactions[0].upload_attachment("image.jpg")
+
+pots = account.list_pots()
+for pot in pots:
+    if pot.name == "Savings":
+        pot.deposit(1000)  # Deposit £10.00
+        break
+
 ```
 
 ### Asynchronous Client

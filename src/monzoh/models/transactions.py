@@ -1,9 +1,16 @@
 """Transaction-related models."""
 
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Literal
+from pathlib import Path
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+if TYPE_CHECKING:
+    from ..core import BaseSyncClient
+    from .attachments import Attachment
 
 
 class Address(BaseModel):
@@ -89,6 +96,60 @@ class Transaction(BaseModel):
             "Reason for transaction decline (only present on declined transactions)"
         ),
     )
+
+    model_config = {"arbitrary_types_allowed": True}
+
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+        self._client: BaseSyncClient | None = None
+
+    def model_post_init(self, __context: Any) -> None:
+        """Post-init hook to set up client if available."""
+        super().model_post_init(__context)
+
+    def _ensure_client(self) -> BaseSyncClient:
+        """Ensure client is available for API calls."""
+        if self._client is None:
+            raise RuntimeError(
+                "No client available. Transaction must be retrieved from MonzoClient "
+                "to use methods."
+            )
+        return self._client
+
+    def _set_client(self, client: BaseSyncClient) -> Transaction:
+        """Set the client for this transaction instance."""
+        self._client = client
+        return self
+
+    def upload_attachment(
+        self,
+        file_path: str | Path,
+        file_name: str | None = None,
+        file_type: str | None = None,
+    ) -> Attachment:
+        """Upload and attach a file to this transaction.
+
+        Args:
+            file_path: Path to the file to upload
+            file_name: Custom name for the file (defaults to filename from path)
+            file_type: MIME type (inferred from file extension if not provided)
+
+        Returns:
+            The uploaded attachment
+
+        Raises:
+            RuntimeError: If no client is available (transaction not retrieved from API)
+        """
+        client = self._ensure_client()
+        from ..api.attachments import AttachmentsAPI
+
+        attachments_api = AttachmentsAPI(client)
+        return attachments_api.upload(
+            transaction_id=self.id,
+            file_path=file_path,
+            file_name=file_name,
+            file_type=file_type,
+        )
 
     @field_validator("settled", mode="before")
     @classmethod
