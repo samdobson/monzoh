@@ -1,9 +1,14 @@
 """Transaction-related models."""
 
+from __future__ import annotations
+
 from datetime import datetime
-from typing import Any, Literal
+from typing import TYPE_CHECKING, Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
+
+if TYPE_CHECKING:
+    from ..core import BaseSyncClient
 
 
 class Address(BaseModel):
@@ -89,6 +94,78 @@ class Transaction(BaseModel):
             "Reason for transaction decline (only present on declined transactions)"
         ),
     )
+
+    model_config = {"arbitrary_types_allowed": True}
+
+    def __init__(self, **data: Any) -> None:
+        super().__init__(**data)
+        self._client: BaseSyncClient | None = None
+
+    def model_post_init(self, __context: Any) -> None:
+        """Post-init hook to set up client if available."""
+        super().model_post_init(__context)
+
+    def _ensure_client(self) -> BaseSyncClient:
+        """Ensure client is available for API calls."""
+        if self._client is None:
+            raise RuntimeError(
+                "No client available. Transaction must be retrieved from MonzoClient "
+                "to use methods."
+            )
+        return self._client
+
+    def _set_client(self, client: BaseSyncClient) -> Transaction:
+        """Set the client for this transaction instance."""
+        self._client = client
+        return self
+
+    def annotate(self, metadata: dict[str, Any]) -> Transaction:
+        """Add annotations to this transaction.
+
+        Args:
+            metadata: Key-value metadata to store
+
+        Returns:
+            Updated transaction
+        """
+        # TransactionResponse is defined in this file
+
+        client = self._ensure_client()
+
+        # Prepare form data for metadata
+        data = {}
+        for key, value in metadata.items():
+            # Handle the special case of deleting metadata
+            if value == "":
+                data[f"metadata[{key}]"] = ""
+            else:
+                data[f"metadata[{key}]"] = str(value)
+
+        response = client._patch(f"/transactions/{self.id}", data=data)
+        transaction_response = TransactionResponse(**response.json())
+        updated_transaction = transaction_response.transaction
+        updated_transaction._set_client(client)
+        return updated_transaction
+
+    def refresh(self, expand: list[str] | None = None) -> Transaction:
+        """Refresh this transaction with latest data from the API.
+
+        Args:
+            expand: Fields to expand (e.g., ['merchant'])
+
+        Returns:
+            Refreshed transaction
+        """
+        # TransactionResponse is defined in this file
+
+        client = self._ensure_client()
+        expand_params = client._prepare_expand_params(expand)
+
+        response = client._get(f"/transactions/{self.id}", params=expand_params)
+        transaction_response = TransactionResponse(**response.json())
+        updated_transaction = transaction_response.transaction
+        updated_transaction._set_client(client)
+        return updated_transaction
 
     @field_validator("settled", mode="before")
     @classmethod
