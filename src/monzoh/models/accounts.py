@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import builtins
 from datetime import datetime
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field
 
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
+    from ..core.async_base import BaseAsyncClient
     from .pots import Pot
     from .transactions import Transaction
 
@@ -26,13 +27,13 @@ class Account(BaseModel):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self._client: BaseSyncClient | None = None
+        self._client: BaseSyncClient | BaseAsyncClient | None = None
 
     def model_post_init(self, __context: Any) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
 
-    def _ensure_client(self) -> BaseSyncClient:
+    def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
         """Ensure client is available for API calls."""
         if self._client is None:
             raise RuntimeError(
@@ -41,7 +42,7 @@ class Account(BaseModel):
             )
         return self._client
 
-    def _set_client(self, client: BaseSyncClient) -> Account:
+    def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Account:
         """Set the client for this account instance."""
         self._client = client
         return self
@@ -52,7 +53,7 @@ class Account(BaseModel):
         Returns:
             Account balance information
         """
-        client = self._ensure_client()
+        client = cast("BaseSyncClient", self._ensure_client())
         params = {"account_id": self.id}
         response = client._get("/balance", params=params)
         return Balance(**response.json())
@@ -77,7 +78,7 @@ class Account(BaseModel):
         """
         from .transactions import TransactionsResponse
 
-        client = self._ensure_client()
+        client = cast("BaseSyncClient", self._ensure_client())
         params = {"account_id": self.id}
 
         # Add pagination parameters
@@ -110,10 +111,108 @@ class Account(BaseModel):
         """
         from .pots import PotsResponse
 
-        client = self._ensure_client()
+        client = cast("BaseSyncClient", self._ensure_client())
         params = {"current_account_id": self.id}
 
         response = client._get("/pots", params=params)
+        pots_response = PotsResponse(**response.json())
+
+        # Set client and source account on all pot objects
+        for pot in pots_response.pots:
+            pot._set_client(client)
+            pot._source_account_id = self.id
+
+        return pots_response.pots
+
+    # Async methods
+    async def aget_balance(self) -> Balance:
+        """Get balance information for this account (async version).
+
+        Returns:
+            Account balance information
+        """
+        from ..core.async_base import BaseAsyncClient
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on account with sync client. "
+                "Use get_balance() instead or retrieve account from AsyncMonzoClient."
+            )
+        params = {"account_id": self.id}
+        response = await client._get("/balance", params=params)
+        return Balance(**response.json())
+
+    async def alist_transactions(
+        self,
+        expand: builtins.list[str] | None = None,
+        limit: int | None = None,
+        since: datetime | str | None = None,
+        before: datetime | None = None,
+    ) -> builtins.list[Transaction]:
+        """List transactions for this account (async version).
+
+        Args:
+            expand: Fields to expand (e.g., ['merchant'])
+            limit: Maximum number of results (1-100)
+            since: Start time as RFC3339 timestamp or transaction ID
+            before: End time as RFC3339 timestamp
+
+        Returns:
+            List of transactions
+        """
+        from ..core.async_base import BaseAsyncClient
+        from .transactions import TransactionsResponse
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on account with sync client. "
+                "Use list_transactions() instead or retrieve account from "
+                "AsyncMonzoClient."
+            )
+        params = {"account_id": self.id}
+
+        # Add pagination parameters
+        pagination_params = client._prepare_pagination_params(
+            limit=limit, since=since, before=before
+        )
+        params.update(pagination_params)
+
+        # Add expand parameters
+        expand_params = client._prepare_expand_params(expand)
+        if expand_params:
+            params_list = list(params.items()) + expand_params
+            response = await client._get("/transactions", params=params_list)
+        else:
+            response = await client._get("/transactions", params=params)
+
+        transactions_response = TransactionsResponse(**response.json())
+
+        # Set client on all transaction objects
+        for transaction in transactions_response.transactions:
+            transaction._set_client(client)
+
+        return transactions_response.transactions
+
+    async def alist_pots(self) -> builtins.list[Pot]:
+        """List pots for this account (async version).
+
+        Returns:
+            List of pots
+        """
+        from ..core.async_base import BaseAsyncClient
+        from .pots import PotsResponse
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on account with sync client. "
+                "Use list_pots() instead or retrieve account from AsyncMonzoClient."
+            )
+        params = {"current_account_id": self.id}
+
+        response = await client._get("/pots", params=params)
         pots_response = PotsResponse(**response.json())
 
         # Set client and source account on all pot objects

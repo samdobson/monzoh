@@ -36,6 +36,8 @@ uv add monzoh
 
 You can now use the API:
 
+### Synchronous API
+
 ```python
 from monzoh import MonzoClient
 
@@ -56,5 +58,31 @@ for pot in pots:
     if pot.name == "Savings":
         pot.deposit(1000)  # Deposit £10.00
         break
+```
 
+### Asynchronous API
+
+```python
+import asyncio
+from monzoh import AsyncMonzoClient
+
+async def main():
+    async with AsyncMonzoClient() as client:
+        account = (await client.accounts.list())[0]
+        
+        balance = await account.aget_balance()
+        print(f"Total Balance (incl. pots): £{balance.total_balance / 100:.2f}")
+        
+        transactions = await account.alist_transactions(limit=10)
+        for transaction in transactions:
+            if transaction.amount < -5000:  # Transactions over £50
+                await transaction.aannotate({"category": "large_expense"})
+        
+        pots = await account.alist_pots()
+        for pot in pots:
+            if pot.name == "Savings":
+                await pot.adeposit(1000)  # Deposit £10.00
+                break
+
+asyncio.run(main())
 ```
