@@ -18,6 +18,7 @@ A Python library for the Monzo Developer API.
 - 🌐 Full Monzo API coverage
 - 🔐 Simple OAuth2 authentication flow
 - 🔒 Type-safe with Pydantic models
+- ⚡ Async/await support with httpx
 - ✅ Well-tested and documented
 - ⚠️  Comprehensive error handling
 
@@ -33,21 +34,41 @@ uv add monzoh
 1. Run `monzo-auth` and complete the login flow.
 1. Authorise access on the Monzo app.
 
-You can now.
+### Synchronous Client
 
 ```python
 from monzoh import MonzoClient
 
 # Initialize client
-client = MonzoClient()
+with MonzoClient() as client:
+    # List accounts
+    accounts = client.accounts.list()
 
-# List accounts
-accounts = client.accounts.list()
+    # Get account balance
+    balance = client.accounts.get_balance(account_id="acc_123")
 
-# Get account balance
-balance = client.accounts.get_balance(account_id="acc_123")
+    # List transactions
+    transactions = client.transactions.list(account_id="acc_123")
+```
 
-# List transactions
-transactions = client.transactions.list(account_id="acc_123")
+### Asynchronous Client
+
+```python
+import asyncio
+from monzoh import AsyncMonzoClient
+
+async def main():
+    async with AsyncMonzoClient() as client:
+        # List accounts
+        accounts = await client.accounts.list()
+
+        # Get account balance
+        balance = await client.accounts.get_balance(account_id="acc_123")
+
+        # List transactions
+        transactions = await client.transactions.list(account_id="acc_123")
+
+# Run the async function
+asyncio.run(main())
 ```
 

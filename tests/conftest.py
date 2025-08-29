@@ -2,12 +2,13 @@
 
 from collections.abc import Callable
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import httpx
 import pytest
 
-from monzoh import MonzoClient, MonzoOAuth
+from monzoh import AsyncMonzoClient, MonzoClient, MonzoOAuth
+from monzoh.core.async_base import BaseAsyncClient
 
 
 @pytest.fixture
@@ -116,3 +117,77 @@ def sample_pot() -> dict[str, Any]:
         "updated": "2017-11-09T12:30:53.695Z",
         "deleted": False,
     }
+
+
+# Async fixtures
+@pytest.fixture
+def mock_async_response() -> Callable[..., Mock]:
+    """Create a mock async response factory."""
+
+    def create_response(
+        status_code: int = 200, json_data: dict[str, Any] | None = None
+    ) -> Mock:
+        response = Mock()
+        response.status_code = status_code
+        response.json.return_value = json_data or {}
+        response.text = str(json_data) if json_data else ""
+        return response
+
+    return create_response
+
+
+@pytest.fixture
+def mock_async_http_client(mock_async_response: Callable[..., Mock]) -> Mock:
+    """Create a mock async HTTP client."""
+    client = Mock(spec=httpx.AsyncClient)
+    default_response = mock_async_response(200, {})
+
+    client.request = AsyncMock(return_value=default_response)
+    client.get = AsyncMock(return_value=default_response)
+    client.post = AsyncMock(return_value=default_response)
+    client.put = AsyncMock(return_value=default_response)
+    client.patch = AsyncMock(return_value=default_response)
+    client.delete = AsyncMock(return_value=default_response)
+    client.aclose = AsyncMock(return_value=None)
+
+    return client
+
+
+@pytest.fixture
+def mock_async_base_client(mock_async_response: Callable[..., Mock]) -> Mock:
+    """Create mock async base client."""
+    client = Mock(spec=BaseAsyncClient)
+
+    # Set up default response
+    mock_response = mock_async_response()
+    client._get = AsyncMock(return_value=mock_response)
+    client._post = AsyncMock(return_value=mock_response)
+    client._put = AsyncMock(return_value=mock_response)
+    client._patch = AsyncMock(return_value=mock_response)
+    client._delete = AsyncMock(return_value=mock_response)
+
+    # Mock helper methods
+    client._prepare_pagination_params = Mock(return_value={})
+    client._prepare_expand_params = Mock(return_value=None)
+
+    return client
+
+
+@pytest.fixture
+def async_monzo_client(
+    mock_async_http_client: Mock, mock_async_response: Callable[..., Mock]
+) -> AsyncMonzoClient:
+    """Create an async Monzo client with mocked HTTP client."""
+    client = AsyncMonzoClient(
+        access_token="test_token", http_client=mock_async_http_client
+    )
+    default_response = mock_async_response()
+
+    # Mock the base client methods to return async mocks
+    setattr(client._base_client, "_get", AsyncMock(return_value=default_response))
+    setattr(client._base_client, "_post", AsyncMock(return_value=default_response))
+    setattr(client._base_client, "_put", AsyncMock(return_value=default_response))
+    setattr(client._base_client, "_patch", AsyncMock(return_value=default_response))
+    setattr(client._base_client, "_delete", AsyncMock(return_value=default_response))
+
+    return client

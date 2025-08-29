@@ -5,7 +5,7 @@ description: 'Learn how to use Monzoh with asynchronous programming patterns'
 
 ## Overview
 
-While Monzoh is primarily designed as a synchronous library, you can easily integrate it with asynchronous applications using Python's `asyncio` and thread execution patterns. This guide shows you how to use Monzoh in async contexts without blocking your event loop.
+Monzoh provides both synchronous and asynchronous clients for the Monzo API. The `AsyncMonzoClient` offers native async/await support, while the synchronous `MonzoClient` can be integrated with async applications using thread execution patterns. This guide covers both approaches.
 
 ## Why Async Integration?
 
@@ -16,33 +16,27 @@ Integrating Monzoh with async frameworks is useful for:
 - **Non-blocking Operations**: Keep your application responsive during API calls
 - **Background Tasks**: Process Monzo data without blocking the main thread
 
-## Basic Async Integration
+## Native Async Client
 
-### Using asyncio.to_thread() (Python 3.9+)
+### Using AsyncMonzoClient (Recommended)
 
-The recommended approach for Python 3.9+ is using `asyncio.to_thread()`:
+The `AsyncMonzoClient` provides native async/await support:
 
 ```python
 import asyncio
-from monzoh import MonzoClient
+from monzoh import AsyncMonzoClient
 
 async def get_accounts_async():
-    """Get accounts asynchronously without blocking the event loop."""
-    client = MonzoClient()
-    
-    # Run the synchronous call in a thread pool
-    accounts = await asyncio.to_thread(client.accounts.list)
-    return accounts
+    """Get accounts using native async client."""
+    async with AsyncMonzoClient() as client:
+        accounts = await client.accounts.list()
+        return accounts
 
 async def get_account_balance_async(account_id: str):
-    """Get account balance asynchronously."""
-    client = MonzoClient()
-    
-    balance = await asyncio.to_thread(
-        client.accounts.get_balance,
-        account_id=account_id
-    )
-    return balance
+    """Get account balance using native async client."""
+    async with AsyncMonzoClient() as client:
+        balance = await client.accounts.get_balance(account_id=account_id)
+        return balance
 
 # Usage
 async def main():
@@ -57,27 +51,66 @@ async def main():
 asyncio.run(main())
 ```
 
+### Context Manager Usage
+
+The async client supports async context managers for proper resource cleanup:
+
+```python
+import asyncio
+from monzoh import AsyncMonzoClient
+
+async def main():
+    async with AsyncMonzoClient() as client:
+        # Get basic info
+        whoami = await client.whoami()
+        print(f"Authenticated as: {whoami.user_id}")
+        
+        # Get accounts
+        accounts = await client.accounts.list()
+        print(f"Found {len(accounts)} accounts")
+        
+        # Get transactions for first account
+        if accounts:
+            transactions = await client.transactions.list(
+                account_id=accounts[0].id,
+                limit=10
+            )
+            print(f"Recent transactions: {len(transactions)}")
+
+asyncio.run(main())
+```
+
+
 ## FastAPI Integration
 
-Monzoh integrates seamlessly with FastAPI applications:
+Monzoh integrates seamlessly with FastAPI applications using the native async client:
 
 ```python
 from fastapi import FastAPI, HTTPException, Depends
+from contextlib import asynccontextmanager
 from typing import List
-import asyncio
-from monzoh import MonzoClient, MonzoError
+from monzoh import AsyncMonzoClient, MonzoError
 from monzoh.models import Account, Balance, Transaction
 
-app = FastAPI(title="Monzo API Proxy", version="1.0.0")
+# Create a shared client for the application
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Create shared async client
+    app.state.monzo_client = AsyncMonzoClient()
+    yield
+    # Clean up
+    await app.state.monzo_client.__aexit__(None, None, None)
 
-def get_monzo_client() -> MonzoClient:
-    return MonzoClient()
+app = FastAPI(title="Monzo API Proxy", version="1.0.0", lifespan=lifespan)
+
+def get_monzo_client() -> AsyncMonzoClient:
+    return app.state.monzo_client
 
 @app.get("/accounts", response_model=List[Account])
-async def get_accounts(client: MonzoClient = Depends(get_monzo_client)):
+async def get_accounts(client: AsyncMonzoClient = Depends(get_monzo_client)):
     """Get all accounts."""
     try:
-        accounts = await asyncio.to_thread(client.accounts.list)
+        accounts = await client.accounts.list()
         return accounts
     except MonzoError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -85,14 +118,11 @@ async def get_accounts(client: MonzoClient = Depends(get_monzo_client)):
 @app.get("/accounts/{account_id}/balance", response_model=Balance)
 async def get_account_balance(
     account_id: str,
-    client: MonzoClient = Depends(get_monzo_client)
+    client: AsyncMonzoClient = Depends(get_monzo_client)
 ):
     """Get account balance."""
     try:
-        balance = await asyncio.to_thread(
-            client.accounts.get_balance,
-            account_id=account_id
-        )
+        balance = await client.accounts.get_balance(account_id=account_id)
         return balance
     except MonzoError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -101,12 +131,11 @@ async def get_account_balance(
 async def get_transactions(
     account_id: str,
     limit: int = 100,
-    client: MonzoClient = Depends(get_monzo_client)
+    client: AsyncMonzoClient = Depends(get_monzo_client)
 ):
     """Get account transactions."""
     try:
-        transactions = await asyncio.to_thread(
-            client.transactions.list,
+        transactions = await client.transactions.list(
             account_id=account_id,
             limit=limit
         )
@@ -117,26 +146,15 @@ async def get_transactions(
 @app.get("/dashboard/{account_id}")
 async def get_dashboard_data(
     account_id: str,
-    client: MonzoClient = Depends(get_monzo_client)
+    client: AsyncMonzoClient = Depends(get_monzo_client)
 ):
     """Get dashboard data with concurrent API calls."""
     try:
-        # Make multiple API calls concurrently
-        balance_task = asyncio.to_thread(
-            client.accounts.get_balance,
-            account_id=account_id
-        )
-        transactions_task = asyncio.to_thread(
-            client.transactions.list,
-            account_id=account_id,
-            limit=20
-        )
-        pots_task = asyncio.to_thread(client.pots.list)
-        
+        # Make multiple API calls concurrently using native async client
         balance, transactions, pots = await asyncio.gather(
-            balance_task,
-            transactions_task,
-            pots_task,
+            client.accounts.get_balance(account_id=account_id),
+            client.transactions.list(account_id=account_id, limit=20),
+            client.pots.list(),
             return_exceptions=True
         )
         
@@ -247,41 +265,31 @@ def sync_all_accounts():
 # }
 ```
 
-## Async Context Managers
+## Custom Async Context Managers
 
-Create async context managers for resource management:
+You can create custom async context managers for additional functionality:
 
 ```python
 import asyncio
 from contextlib import asynccontextmanager
-from monzoh import MonzoClient, MonzoError
+from monzoh import AsyncMonzoClient, MonzoError
+import httpx
 
 @asynccontextmanager
-async def async_monzo_client():
-    """Async context manager for Monzo client."""
-    client = None
-    try:
-        client = await asyncio.to_thread(MonzoClient)
-        yield client
-    except MonzoError as e:
-        print(f"Monzo client error: {e}")
-        raise
-    finally:
-        # Cleanup if needed
-        if client and hasattr(client, 'close'):
-            await asyncio.to_thread(client.close)
+async def monzo_client_with_custom_timeout(timeout: float = 60.0):
+    """Async context manager for Monzo client with custom timeout."""
+    async with httpx.AsyncClient(timeout=timeout) as http_client:
+        async with AsyncMonzoClient(http_client=http_client) as client:
+            yield client
 
 # Usage
 async def get_account_summary():
-    async with async_monzo_client() as client:
-        accounts = await asyncio.to_thread(client.accounts.list)
+    async with monzo_client_with_custom_timeout(timeout=120.0) as client:
+        accounts = await client.accounts.list()
         
         summaries = []
         for account in accounts:
-            balance = await asyncio.to_thread(
-                client.accounts.get_balance,
-                account_id=account.id
-            )
+            balance = await client.accounts.get_balance(account_id=account.id)
             summaries.append({
                 "account": account.description,
                 "balance": balance.balance / 100
@@ -292,33 +300,23 @@ async def get_account_summary():
 
 ## Concurrent API Calls
 
-Process multiple accounts or operations concurrently:
+Process multiple accounts or operations concurrently using the native async client:
 
 ```python
 import asyncio
-from monzoh import MonzoClient
+from monzoh import AsyncMonzoClient
 from typing import List, Dict, Any
 
 async def process_account_concurrently(
-    client: MonzoClient,
+    client: AsyncMonzoClient,
     account_id: str
 ) -> Dict[str, Any]:
     """Process a single account's data concurrently."""
     
     # Make multiple calls for this account concurrently
-    balance_task = asyncio.to_thread(
-        client.accounts.get_balance,
-        account_id=account_id
-    )
-    transactions_task = asyncio.to_thread(
-        client.transactions.list,
-        account_id=account_id,
-        limit=50
-    )
-    
     balance, transactions = await asyncio.gather(
-        balance_task,
-        transactions_task
+        client.accounts.get_balance(account_id=account_id),
+        client.transactions.list(account_id=account_id, limit=50)
     )
     
     # Calculate spending statistics
@@ -338,31 +336,30 @@ async def process_account_concurrently(
 
 async def get_financial_overview():
     """Get overview of all accounts concurrently."""
-    client = MonzoClient()
-    
-    # Get all accounts first
-    accounts = await asyncio.to_thread(client.accounts.list)
-    
-    # Process all accounts concurrently
-    tasks = [
-        process_account_concurrently(client, account.id)
-        for account in accounts
-    ]
-    
-    account_summaries = await asyncio.gather(*tasks)
-    
-    # Aggregate data
-    total_balance = sum(summary["balance"] for summary in account_summaries)
-    total_spending = sum(summary["spending_today"] for summary in account_summaries)
-    
-    return {
-        "overview": {
-            "total_balance": total_balance,
-            "total_spending_today": total_spending,
-            "account_count": len(accounts)
-        },
-        "accounts": account_summaries
-    }
+    async with AsyncMonzoClient() as client:
+        # Get all accounts first
+        accounts = await client.accounts.list()
+        
+        # Process all accounts concurrently
+        tasks = [
+            process_account_concurrently(client, account.id)
+            for account in accounts
+        ]
+        
+        account_summaries = await asyncio.gather(*tasks)
+        
+        # Aggregate data
+        total_balance = sum(summary["balance"] for summary in account_summaries)
+        total_spending = sum(summary["spending_today"] for summary in account_summaries)
+        
+        return {
+            "overview": {
+                "total_balance": total_balance,
+                "total_spending_today": total_spending,
+                "account_count": len(accounts)
+            },
+            "accounts": account_summaries
+        }
 
 # Usage
 async def main():
@@ -375,13 +372,13 @@ asyncio.run(main())
 
 ## Error Handling in Async Context
 
-Handle errors properly in async operations:
+Handle errors properly with the native async client:
 
 ```python
 import asyncio
 import logging
 from monzoh import (
-    MonzoClient,
+    AsyncMonzoClient,
     MonzoError,
     MonzoRateLimitError,
     MonzoNetworkError
@@ -389,12 +386,12 @@ from monzoh import (
 
 logger = logging.getLogger(__name__)
 
-async def robust_api_call(operation, *args, max_retries=3, **kwargs):
+async def robust_api_call(client_coro, max_retries=3):
     """Make a robust async API call with retries."""
     
     for attempt in range(max_retries):
         try:
-            result = await asyncio.to_thread(operation, *args, **kwargs)
+            result = await client_coro
             return result
             
         except MonzoRateLimitError as e:
@@ -421,11 +418,10 @@ async def robust_api_call(operation, *args, max_retries=3, **kwargs):
 
 async def safe_get_accounts():
     """Safely get accounts with error handling."""
-    client = MonzoClient()
-    
     try:
-        accounts = await robust_api_call(client.accounts.list)
-        return accounts
+        async with AsyncMonzoClient() as client:
+            accounts = await robust_api_call(client.accounts.list())
+            return accounts
     except MonzoError as e:
         logger.error(f"Failed to get accounts: {e}")
         return []
@@ -444,73 +440,83 @@ asyncio.run(main())
 
 ### Connection Pooling
 
-When making many concurrent requests, consider connection pooling:
+The `AsyncMonzoClient` automatically handles connection pooling with proper resource management:
 
 ```python
 import asyncio
 import httpx
-from monzoh import MonzoClient
+from monzoh import AsyncMonzoClient
 
-async def create_optimized_clients(num_clients=5):
-    """Create multiple clients with shared connection pool."""
+async def create_optimized_client():
+    """Create async client with optimized connection pooling."""
     
-    # Shared HTTP client with connection pooling
-    http_client = httpx.Client(
+    # Custom HTTP client with connection pooling
+    http_client = httpx.AsyncClient(
         limits=httpx.Limits(
-            max_connections=10,
-            max_keepalive_connections=5
+            max_connections=20,
+            max_keepalive_connections=10
         ),
         timeout=30.0
     )
     
-    clients = []
-    for _ in range(num_clients):
-        client = MonzoClient(http_client=http_client)
-        clients.append(client)
-    
-    return clients, http_client
+    return AsyncMonzoClient(http_client=http_client)
 
 async def batch_process_accounts():
     """Process accounts in batches for better performance."""
-    clients, http_client = await asyncio.to_thread(create_optimized_clients)
-    
-    try:
-        # Get accounts using first client
-        accounts = await asyncio.to_thread(clients[0].accounts.list)
+    async with create_optimized_client() as client:
+        # Get accounts
+        accounts = await client.accounts.list()
         
-        # Process accounts in batches
+        # Process accounts in batches to avoid overwhelming the API
         batch_size = 5
         for i in range(0, len(accounts), batch_size):
             batch = accounts[i:i + batch_size]
             
             # Process batch concurrently
             tasks = [
-                asyncio.to_thread(
-                    clients[j % len(clients)].accounts.get_balance,
-                    account.id
-                )
-                for j, account in enumerate(batch)
+                client.accounts.get_balance(account_id=account.id)
+                for account in batch
             ]
             
             balances = await asyncio.gather(*tasks)
             
             for account, balance in zip(batch, balances):
                 print(f"{account.description}: £{balance.balance / 100:.2f}")
-    
-    finally:
-        # Clean up
-        await asyncio.to_thread(http_client.close)
+                
+            # Optional: small delay between batches to be API-friendly
+            if i + batch_size < len(accounts):
+                await asyncio.sleep(0.1)
 
 asyncio.run(batch_process_accounts())
 ```
 
 ## Best Practices
 
-1. **Use `asyncio.to_thread()`** for Python 3.9+ - it's the recommended approach
-2. **Limit concurrency** to avoid overwhelming the API or your system
-3. **Handle errors gracefully** with proper retry logic for transient failures
-4. **Use connection pooling** when making many concurrent requests
-5. **Clean up resources** properly in async context managers
-6. **Monitor performance** and adjust concurrency levels based on your needs
+1. **Use `AsyncMonzoClient`** for new projects - it provides native async/await support
+2. **Use async context managers** (`async with`) for proper resource cleanup
+3. **Limit concurrency** to avoid overwhelming the API (batch requests when needed)
+4. **Handle errors gracefully** with proper retry logic for transient failures
+5. **Use connection pooling** by passing a custom `httpx.AsyncClient` when needed
+6. **Monitor performance** and adjust concurrency levels based on your requirements
 
-Async integration allows you to build responsive applications that can handle multiple Monzo API operations efficiently without blocking your application's main execution flow.
+## Migration from Sync to Async
+
+To migrate from the synchronous client to the async client:
+
+```python
+# Before (sync)
+from monzoh import MonzoClient
+
+client = MonzoClient()
+accounts = client.accounts.list()
+balance = client.accounts.get_balance(account_id=accounts[0].id)
+
+# After (async)
+from monzoh import AsyncMonzoClient
+
+async with AsyncMonzoClient() as client:
+    accounts = await client.accounts.list()
+    balance = await client.accounts.get_balance(account_id=accounts[0].id)
+```
+
+The async client provides all the same functionality as the sync client with native async/await support, better resource management, and improved performance for concurrent operations.
