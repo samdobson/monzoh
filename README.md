@@ -20,7 +20,7 @@ A Python library for the Monzo Developer API.
 - 🔒 Type-safe with Pydantic models
 - ⚡ Async/await support with httpx
 - ✅ Well-tested and documented
-- ⚠️  Comprehensive error handling
+- ⚠️ Comprehensive error handling
 
 ## Installation
 
@@ -36,8 +36,6 @@ uv add monzoh
 
 You can now use the API:
 
-### Synchronous API
-
 ```python
 from monzoh import MonzoClient
 
@@ -52,6 +50,8 @@ transactions = account.list_transactions(limit=10)
 for transaction in transactions:
     if transaction.amount < -5000:  # Transactions over £50
         transaction.annotate({"category": "large_expense"})
+
+transactions[0].upload_attachment("image.jpg")
 
 pots = account.list_pots()
 for pot in pots:

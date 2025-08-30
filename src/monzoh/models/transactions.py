@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
@@ -10,6 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
     from ..core.async_base import BaseAsyncClient
+    from .attachments import Attachment
 
 
 class Address(BaseModel):
@@ -120,6 +122,44 @@ class Transaction(BaseModel):
         self._client = client
         return self
 
+    def upload_attachment(
+        self,
+        file_path: str | Path,
+        file_name: str | None = None,
+        file_type: str | None = None,
+    ) -> Attachment:
+        """Upload and attach a file to this transaction.
+
+        Args:
+            file_path: Path to the file to upload
+            file_name: Custom name for the file (defaults to filename from path)
+            file_type: MIME type (inferred from file extension if not provided)
+
+        Returns:
+            The uploaded attachment
+
+        Raises:
+            RuntimeError: If no client is available or if using async client
+        """
+        from ..api.attachments import AttachmentsAPI
+        from ..core import BaseSyncClient
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseSyncClient):
+            raise RuntimeError(
+                "Sync method called on transaction with async client. "
+                "Use aupload_attachment() instead or retrieve transaction "
+                "from MonzoClient."
+            )
+
+        attachments_api = AttachmentsAPI(client)
+        return attachments_api.upload(
+            transaction_id=self.id,
+            file_path=file_path,
+            file_name=file_name,
+            file_type=file_type,
+        )
+
     def annotate(self, metadata: dict[str, Any]) -> Transaction:
         """Add annotations to this transaction.
 
@@ -169,6 +209,44 @@ class Transaction(BaseModel):
         return updated_transaction
 
     # Async methods
+    async def aupload_attachment(
+        self,
+        file_path: str | Path,
+        file_name: str | None = None,
+        file_type: str | None = None,
+    ) -> Attachment:
+        """Upload and attach a file to this transaction (async version).
+
+        Args:
+            file_path: Path to the file to upload
+            file_name: Custom name for the file (defaults to filename from path)
+            file_type: MIME type (inferred from file extension if not provided)
+
+        Returns:
+            The uploaded attachment
+
+        Raises:
+            RuntimeError: If no client is available or if using sync client
+        """
+        from ..api.async_attachments import AsyncAttachmentsAPI
+        from ..core.async_base import BaseAsyncClient
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on transaction with sync client. "
+                "Use upload_attachment() instead or retrieve transaction "
+                "from AsyncMonzoClient."
+            )
+
+        attachments_api = AsyncAttachmentsAPI(client)
+        return await attachments_api.upload(
+            transaction_id=self.id,
+            file_path=file_path,
+            file_name=file_name,
+            file_type=file_type,
+        )
+
     async def aannotate(self, metadata: dict[str, Any]) -> Transaction:
         """Add annotations to this transaction (async version).
 
