@@ -69,8 +69,13 @@ class TestAttachmentsAPI:
         assert result.external_id == attachment_data["external_id"]
 
         # Verify file upload was called
-        mock_client.post.assert_called_once_with(
-            "https://s3.amazonaws.com/upload", content=file_data
+        mock_client.put.assert_called_once_with(
+            "https://s3.amazonaws.com/upload",
+            content=file_data,
+            headers={
+                "Content-Type": "image/jpeg",
+                "Content-Length": str(len(file_data)),
+            },
         )
 
     @patch("httpx.Client")
@@ -130,8 +135,13 @@ class TestAttachmentsAPI:
             assert result.external_id == attachment_data["external_id"]
 
             # Verify file upload was called with correct content
-            mock_client.post.assert_called_once_with(
-                "https://s3.amazonaws.com/upload", content=test_content
+            mock_client.put.assert_called_once_with(
+                "https://s3.amazonaws.com/upload",
+                content=test_content,
+                headers={
+                    "Content-Type": "image/jpeg",
+                    "Content-Length": str(len(test_content)),
+                },
             )
 
             # Verify the API calls were made with inferred values
@@ -213,7 +223,14 @@ class TestAttachmentsAPI:
         api = AttachmentsAPI(monzo_client._base_client)
         file_data = b"test file content"
 
-        api._upload_file_to_url("https://s3.amazonaws.com/upload", file_data)
-        mock_client.post.assert_called_once_with(
-            "https://s3.amazonaws.com/upload", content=file_data
+        api._upload_file_to_url(
+            "https://s3.amazonaws.com/upload", file_data, "application/octet-stream"
+        )
+        mock_client.put.assert_called_once_with(
+            "https://s3.amazonaws.com/upload",
+            content=file_data,
+            headers={
+                "Content-Type": "application/octet-stream",
+                "Content-Length": str(len(file_data)),
+            },
         )
