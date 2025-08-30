@@ -11,6 +11,7 @@ class FeedItemParams(BaseModel):
         ..., description="URL of image to display (supports animated GIFs)"
     )
     body: str | None = Field(None, description="Optional body text for the feed item")
+    url: str | None = Field(None, description="Optional URL to open when tapped")
     background_color: str | None = Field(
         None, description="Hex color for background (#RRGGBB format)"
     )
