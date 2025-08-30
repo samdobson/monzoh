@@ -69,6 +69,7 @@ class AsyncAttachmentsAPI:
         await self._upload_file_to_url(
             upload_url=upload_info.upload_url,
             file_data=actual_file_data,
+            file_type=actual_file_type,
         )
 
         # Step 3: Register the attachment
@@ -137,17 +138,30 @@ class AsyncAttachmentsAPI:
 
         await self.client._post("/attachment/deregister", data=data)
 
-    async def _upload_file_to_url(self, upload_url: str, file_data: bytes) -> None:
+    async def _upload_file_to_url(
+        self, upload_url: str, file_data: bytes, file_type: str
+    ) -> None:
         """Upload file data to the provided upload URL.
 
         Args:
             upload_url: Upload URL from upload response
             file_data: File binary data
+            file_type: MIME type of the file
 
         Returns:
             None
+
+        Raises:
+            RuntimeError: If the upload to the external URL fails
         """
         import httpx
 
+        # AWS S3 signed URLs require specific headers that match the signature
+        headers = {
+            "Content-Type": file_type,
+            "Content-Length": str(len(file_data)),
+        }
+
         async with httpx.AsyncClient() as client:
-            await client.post(upload_url, content=file_data)
+            response = await client.put(upload_url, content=file_data, headers=headers)
+            response.raise_for_status()  # Raise exception if upload fails
