@@ -133,7 +133,14 @@ response = requests.post(
 upload_info = response.json()
 
 file_data = Path("receipt.jpg").read_bytes()
-requests.post(upload_info["upload_url"], data=file_data)
+requests.put(
+    upload_info["upload_url"], 
+    data=file_data,
+    headers={
+        "Content-Type": "image/jpeg",
+        "Content-Length": str(len(file_data))
+    }
+)
 
 requests.post(
     "https://api.monzo.com/attachment/register",
