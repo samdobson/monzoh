@@ -58,6 +58,11 @@ class AsyncTransactionsAPI:
         else:
             response = await self.client._get("/transactions", params=params)
         transactions_response = TransactionsResponse(**response.json())
+
+        # Set client on all transaction objects
+        for transaction in transactions_response.transactions:
+            transaction._set_client(self.client)
+
         return transactions_response.transactions
 
     async def retrieve(
@@ -78,6 +83,7 @@ class AsyncTransactionsAPI:
             f"/transactions/{transaction_id}", params=expand_params
         )
         transaction_response = TransactionResponse(**response.json())
+        transaction_response.transaction._set_client(self.client)
         return transaction_response.transaction
 
     async def annotate(
@@ -105,4 +111,5 @@ class AsyncTransactionsAPI:
             f"/transactions/{transaction_id}", data=data
         )
         transaction_response = TransactionResponse(**response.json())
+        transaction_response.transaction._set_client(self.client)
         return transaction_response.transaction

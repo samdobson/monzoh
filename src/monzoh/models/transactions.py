@@ -4,13 +4,14 @@ from __future__ import annotations
 
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Literal
+from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
     from .attachments import Attachment
+    from ..core.async_base import BaseAsyncClient
 
 
 class Address(BaseModel):
@@ -101,13 +102,13 @@ class Transaction(BaseModel):
 
     def __init__(self, **data: Any) -> None:
         super().__init__(**data)
-        self._client: BaseSyncClient | None = None
+        self._client: BaseSyncClient | BaseAsyncClient | None = None
 
     def model_post_init(self, __context: Any) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
 
-    def _ensure_client(self) -> BaseSyncClient:
+    def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
         """Ensure client is available for API calls."""
         if self._client is None:
             raise RuntimeError(
@@ -116,7 +117,7 @@ class Transaction(BaseModel):
             )
         return self._client
 
-    def _set_client(self, client: BaseSyncClient) -> Transaction:
+    def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Transaction:
         """Set the client for this transaction instance."""
         self._client = client
         return self
@@ -150,6 +151,113 @@ class Transaction(BaseModel):
             file_name=file_name,
             file_type=file_type,
         )
+
+    def annotate(self, metadata: dict[str, Any]) -> Transaction:
+        """Add annotations to this transaction.
+
+        Args:
+            metadata: Key-value metadata to store
+
+        Returns:
+            Updated transaction
+        """
+        # TransactionResponse is defined in this file
+
+        client = cast("BaseSyncClient", self._ensure_client())
+
+        # Prepare form data for metadata
+        data = {}
+        for key, value in metadata.items():
+            # Handle the special case of deleting metadata
+            if value == "":
+                data[f"metadata[{key}]"] = ""
+            else:
+                data[f"metadata[{key}]"] = str(value)
+
+        response = client._patch(f"/transactions/{self.id}", data=data)
+        transaction_response = TransactionResponse(**response.json())
+        updated_transaction = transaction_response.transaction
+        updated_transaction._set_client(client)
+        return updated_transaction
+
+    def refresh(self, expand: list[str] | None = None) -> Transaction:
+        """Refresh this transaction with latest data from the API.
+
+        Args:
+            expand: Fields to expand (e.g., ['merchant'])
+
+        Returns:
+            Refreshed transaction
+        """
+        # TransactionResponse is defined in this file
+
+        client = cast("BaseSyncClient", self._ensure_client())
+        expand_params = client._prepare_expand_params(expand)
+
+        response = client._get(f"/transactions/{self.id}", params=expand_params)
+        transaction_response = TransactionResponse(**response.json())
+        updated_transaction = transaction_response.transaction
+        updated_transaction._set_client(client)
+        return updated_transaction
+
+    # Async methods
+    async def aannotate(self, metadata: dict[str, Any]) -> Transaction:
+        """Add annotations to this transaction (async version).
+
+        Args:
+            metadata: Key-value metadata to store
+
+        Returns:
+            Updated transaction
+        """
+        from ..core.async_base import BaseAsyncClient
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on transaction with sync client. "
+                "Use annotate() instead or retrieve transaction from AsyncMonzoClient."
+            )
+
+        # Prepare form data for metadata
+        data = {}
+        for key, value in metadata.items():
+            # Handle the special case of deleting metadata
+            if value == "":
+                data[f"metadata[{key}]"] = ""
+            else:
+                data[f"metadata[{key}]"] = str(value)
+
+        response = await client._patch(f"/transactions/{self.id}", data=data)
+        transaction_response = TransactionResponse(**response.json())
+        updated_transaction = transaction_response.transaction
+        updated_transaction._set_client(client)
+        return updated_transaction
+
+    async def arefresh(self, expand: list[str] | None = None) -> Transaction:
+        """Refresh this transaction with latest data from the API (async version).
+
+        Args:
+            expand: Fields to expand (e.g., ['merchant'])
+
+        Returns:
+            Refreshed transaction
+        """
+        from ..core.async_base import BaseAsyncClient
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on transaction with sync client. "
+                "Use refresh() instead or retrieve transaction from AsyncMonzoClient."
+            )
+        expand_params = client._prepare_expand_params(expand)
+
+        response = await client._get(f"/transactions/{self.id}", params=expand_params)
+        transaction_response = TransactionResponse(**response.json())
+        updated_transaction = transaction_response.transaction
+        updated_transaction._set_client(client)
+        return updated_transaction
 
     @field_validator("settled", mode="before")
     @classmethod

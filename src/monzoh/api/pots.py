@@ -22,12 +22,18 @@ class PotsAPI:
             current_account_id: Account ID
 
         Returns:
-            List of pots
+            List of pots with client attached
         """
         params = {"current_account_id": current_account_id}
 
         response = self.client._get("/pots", params=params)
         pots_response = PotsResponse(**response.json())
+
+        # Set client and source account on all pot objects
+        for pot in pots_response.pots:
+            pot._set_client(self.client)
+            pot._source_account_id = current_account_id
+
         return pots_response.pots
 
     def deposit(
@@ -42,7 +48,7 @@ class PotsAPI:
             dedupe_id: Unique ID to prevent duplicate deposits
 
         Returns:
-            Updated pot
+            Updated pot with client attached
         """
         data = {
             "source_account_id": source_account_id,
@@ -51,7 +57,10 @@ class PotsAPI:
         }
 
         response = self.client._put(f"/pots/{pot_id}/deposit", data=data)
-        return Pot(**response.json())
+        pot = Pot(**response.json())
+        pot._set_client(self.client)
+        pot._source_account_id = source_account_id
+        return pot
 
     def withdraw(
         self, pot_id: str, destination_account_id: str, amount: int, dedupe_id: str
@@ -65,7 +74,7 @@ class PotsAPI:
             dedupe_id: Unique ID to prevent duplicate withdrawals
 
         Returns:
-            Updated pot
+            Updated pot with client attached
         """
         data = {
             "destination_account_id": destination_account_id,
@@ -74,4 +83,7 @@ class PotsAPI:
         }
 
         response = self.client._put(f"/pots/{pot_id}/withdraw", data=data)
-        return Pot(**response.json())
+        pot = Pot(**response.json())
+        pot._set_client(self.client)
+        pot._source_account_id = destination_account_id
+        return pot

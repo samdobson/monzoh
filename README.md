@@ -20,7 +20,7 @@ A Python library for the Monzo Developer API.
 - 🔒 Type-safe with Pydantic models
 - ⚡ Async/await support with httpx
 - ✅ Well-tested and documented
-- ⚠️  Comprehensive error handling
+- ⚠️ Comprehensive error handling
 
 ## Installation
 
@@ -58,10 +58,9 @@ for pot in pots:
     if pot.name == "Savings":
         pot.deposit(1000)  # Deposit £10.00
         break
-
 ```
 
-### Asynchronous Client
+### Asynchronous API
 
 ```python
 import asyncio
@@ -69,16 +68,21 @@ from monzoh import AsyncMonzoClient
 
 async def main():
     async with AsyncMonzoClient() as client:
-        # List accounts
-        accounts = await client.accounts.list()
+        account = (await client.accounts.list())[0]
+        
+        balance = await account.aget_balance()
+        print(f"Total Balance (incl. pots): £{balance.total_balance / 100:.2f}")
+        
+        transactions = await account.alist_transactions(limit=10)
+        for transaction in transactions:
+            if transaction.amount < -5000:  # Transactions over £50
+                await transaction.aannotate({"category": "large_expense"})
+        
+        pots = await account.alist_pots()
+        for pot in pots:
+            if pot.name == "Savings":
+                await pot.adeposit(1000)  # Deposit £10.00
+                break
 
-        # Get account balance
-        balance = await client.accounts.get_balance(account_id="acc_123")
-
-        # List transactions
-        transactions = await client.transactions.list(account_id="acc_123")
-
-# Run the async function
 asyncio.run(main())
 ```
-

@@ -58,6 +58,11 @@ class TransactionsAPI:
         else:
             response = self.client._get("/transactions", params=params)
         transactions_response = TransactionsResponse(**response.json())
+
+        # Set client on all transaction objects
+        for transaction in transactions_response.transactions:
+            transaction._set_client(self.client)
+
         return transactions_response.transactions
 
     def retrieve(
@@ -78,6 +83,7 @@ class TransactionsAPI:
             f"/transactions/{transaction_id}", params=expand_params
         )
         transaction_response = TransactionResponse(**response.json())
+        transaction_response.transaction._set_client(self.client)
         return transaction_response.transaction
 
     def annotate(self, transaction_id: str, metadata: dict[str, Any]) -> Transaction:
@@ -101,4 +107,5 @@ class TransactionsAPI:
 
         response = self.client._patch(f"/transactions/{transaction_id}", data=data)
         transaction_response = TransactionResponse(**response.json())
+        transaction_response.transaction._set_client(self.client)
         return transaction_response.transaction

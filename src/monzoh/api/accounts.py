@@ -22,7 +22,7 @@ class AccountsAPI:
             account_type: Filter by account type ('uk_retail', 'uk_retail_joint')
 
         Returns:
-            List of accounts
+            List of accounts with client attached
         """
         params = {}
         if account_type:
@@ -30,6 +30,11 @@ class AccountsAPI:
 
         response = self.client._get("/accounts", params=params)
         accounts_response = AccountsResponse(**response.json())
+
+        # Set client on all account objects
+        for account in accounts_response.accounts:
+            account._set_client(self.client)
+
         return accounts_response.accounts
 
     def get_balance(self, account_id: str) -> Balance:
