@@ -55,11 +55,30 @@ class TestMonzoClient:
         """Test initialization without token when no cached token is available."""
         mock_load_token.return_value = None
 
-        with pytest.raises(MonzoAuthenticationError) as exc_info:
-            MonzoClient(http_client=mock_http_client)
+        # Should not raise error during initialization anymore
+        client = MonzoClient(http_client=mock_http_client)
 
-        assert "No access token provided and none found in cache" in str(exc_info.value)
-        assert "Run 'monzoh-auth' to authenticate first" in str(exc_info.value)
+        # Token should be None
+        assert client._base_client.access_token is None
+
+        # But API calls should raise authentication error
+        with pytest.raises(MonzoAuthenticationError, match="Access token is not set"):
+            client.whoami()
+
+    @patch("monzoh.client._load_cached_token")
+    def test_set_access_token(
+        self, mock_load_token: Any, mock_http_client: Any
+    ) -> None:
+        """Test setting access token after client creation."""
+        mock_load_token.return_value = None
+
+        # Create client without token
+        client = MonzoClient(http_client=mock_http_client)
+        assert client._base_client.access_token is None
+
+        # Set token
+        client.set_access_token("new_token")
+        assert client._base_client.access_token == "new_token"
 
     def test_init_with_custom_timeout(self, mock_http_client: Any) -> None:
         """Test initialization with custom timeout."""
