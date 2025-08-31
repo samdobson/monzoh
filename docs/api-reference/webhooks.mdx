@@ -99,7 +99,7 @@ print("✅ Webhook deleted")
 
 ## Webhook Processing Utilities
 
-Monzoh provides built-in utilities to parse and validate incoming webhook payloads with proper signature verification and type safety.
+Monzoh provides built-in utilities to parse and validate incoming webhook payloads with type safety.
 
 ### Core Functions
 
@@ -108,27 +108,20 @@ Monzoh provides built-in utilities to parse and validate incoming webhook payloa
 Parse and validate any incoming webhook payload:
 
 ```python
-from monzoh.webhooks import parse_webhook_payload, WebhookParseError, WebhookSignatureError
+from monzoh.webhooks import parse_webhook_payload, WebhookParseError
 
 def parse_webhook_payload(
     body: str | bytes,
-    headers: dict[str, str],
-    webhook_secret: str | None = None,
-    verify_signature: bool = True,
 ) -> TransactionWebhookPayload | WebhookPayload:
     """Parse and validate incoming webhook payload."""
 ```
 
 **Parameters**:
 - `body`: Raw request body (string or bytes)
-- `headers`: Request headers dictionary 
-- `webhook_secret`: Webhook secret for signature verification (required if verify_signature=True)
-- `verify_signature`: Whether to verify the webhook signature (default: True)
 
 **Returns**: Parsed webhook payload with validated data
 
 **Raises**:
-- `WebhookSignatureError`: If signature verification fails
 - `WebhookParseError`: If payload parsing or validation fails
 
 #### parse_transaction_webhook()
@@ -140,27 +133,12 @@ from monzoh.webhooks import parse_transaction_webhook
 
 def parse_transaction_webhook(
     body: str | bytes,
-    headers: dict[str, str],
-    webhook_secret: str | None = None,
-    verify_signature: bool = True,
 ) -> Transaction:
     """Parse transaction.created webhook and return Transaction object directly."""
 ```
 
-#### verify_webhook_signature()
-
-Verify webhook signature manually:
-
-```python
-from monzoh.webhooks import verify_webhook_signature
-
-def verify_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
-    """Verify webhook signature using HMAC-SHA1."""
-```
 
 ### Webhook Event Handling
-
-#### Basic Usage Without Signature Verification
 
 ```python
 from fastapi import FastAPI, Request, HTTPException
@@ -172,17 +150,12 @@ app = FastAPI(title="Monzo Webhook Handler")
 async def handle_monzo_webhook(request: Request):
     """Handle incoming Monzo webhook events."""
     
-    # Get raw request body and headers
+    # Get raw request body
     body = await request.body()
-    headers = dict(request.headers)
     
     try:
-        # Parse webhook payload without signature verification
-        payload = parse_webhook_payload(
-            body=body,
-            headers=headers,
-            verify_signature=False
-        )
+        # Parse webhook payload
+        payload = parse_webhook_payload(body=body)
         
         # Handle different event types with type safety
         if isinstance(payload, TransactionWebhookPayload):
@@ -204,105 +177,32 @@ async def handle_monzo_webhook(request: Request):
     return {"status": "received"}
 ```
 
-#### Secure Usage With Signature Verification
-
-```python
-from fastapi import FastAPI, Request, HTTPException
-from monzoh.webhooks import (
-    parse_transaction_webhook, 
-    WebhookSignatureError, 
-    WebhookParseError
-)
-import os
-
-app = FastAPI(title="Monzo Webhook Handler")
-
-# Your webhook secret (set this as an environment variable)
-WEBHOOK_SECRET = os.getenv("MONZO_WEBHOOK_SECRET", "your_secret_here")
-
-@app.post("/webhooks/monzo")
-async def handle_monzo_webhook(request: Request):
-    """Handle incoming Monzo webhook events with signature verification."""
-    
-    # Get raw request body and headers
-    body = await request.body()
-    headers = dict(request.headers)
-    
-    try:
-        # Parse transaction webhook with full security validation
-        transaction = parse_transaction_webhook(
-            body=body,
-            headers=headers,
-            webhook_secret=WEBHOOK_SECRET,
-            verify_signature=True
-        )
-        
-        # Transaction is fully validated and type-safe
-        await process_transaction(transaction)
-        
-    except WebhookSignatureError:
-        raise HTTPException(status_code=403, detail="Invalid webhook signature")
-    except WebhookParseError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid webhook payload: {e}")
-    
-    return {"status": "received"}
-
-async def process_transaction(transaction):
-    """Process validated transaction with full type safety."""
-    
-    amount_pounds = abs(transaction.amount) / 100
-    balance_pounds = transaction.account_balance / 100
-    
-    print(f"💳 New Transaction: {transaction.description}")
-    print(f"   Amount: £{amount_pounds:.2f}")
-    print(f"   Balance: £{balance_pounds:.2f}")
-    print(f"   Category: {transaction.category}")
-    print(f"   Merchant: {transaction.merchant}")
-    
-    # Business logic with validated data
-    if amount_pounds > 100:
-        await send_large_transaction_alert(transaction)
-    
-    if transaction.category == "eating_out" and "coffee" in transaction.description.lower():
-        await track_coffee_spending(transaction)
-```
 
 ### Setting up a Complete Webhook Server
 
-Here's a complete example using the new webhook utilities:
+Here's a complete example using the webhook utilities:
 
 ```python
 from fastapi import FastAPI, Request, HTTPException
 from monzoh.webhooks import (
     parse_webhook_payload, 
     TransactionWebhookPayload,
-    WebhookSignatureError,
     WebhookParseError
 )
 from datetime import datetime
-import os
 
 app = FastAPI(title="Monzo Webhook Handler")
-
-# Your webhook secret (set this as an environment variable)  
-WEBHOOK_SECRET = os.getenv("MONZO_WEBHOOK_SECRET", "your_secret_here")
 
 @app.post("/webhooks/monzo")
 async def handle_monzo_webhook(request: Request):
     """Handle incoming Monzo webhook events."""
     
-    # Get raw request body and headers
+    # Get raw request body
     body = await request.body()
-    headers = dict(request.headers)
     
     try:
-        # Parse webhook with signature verification
-        payload = parse_webhook_payload(
-            body=body,
-            headers=headers,
-            webhook_secret=WEBHOOK_SECRET,
-            verify_signature=True
-        )
+        # Parse webhook payload
+        payload = parse_webhook_payload(body=body)
         
         # Handle different event types
         if isinstance(payload, TransactionWebhookPayload):
@@ -310,8 +210,6 @@ async def handle_monzo_webhook(request: Request):
         else:
             await handle_other_event(payload)
             
-    except WebhookSignatureError:
-        raise HTTPException(status_code=403, detail="Invalid signature")
     except WebhookParseError as e:
         raise HTTPException(status_code=400, detail=str(e))
     
@@ -624,58 +522,6 @@ if __name__ == "__main__":
 
 ## Webhook Security
 
-### Built-in Signature Verification
-
-Monzoh includes built-in signature verification that handles all security concerns:
-
-```python
-from monzoh.webhooks import verify_webhook_signature, WebhookSignatureError
-
-# Manual signature verification
-body = await request.body()
-signature = request.headers.get("X-Monzo-Signature", "")
-secret = "your_webhook_secret"
-
-if verify_webhook_signature(body, signature, secret):
-    print("✅ Signature valid")
-else:
-    print("❌ Invalid signature")
-
-# Automatic verification in parse functions
-try:
-    payload = parse_webhook_payload(
-        body=body,
-        headers=headers,
-        webhook_secret=secret,
-        verify_signature=True  # Default
-    )
-except WebhookSignatureError:
-    raise HTTPException(status_code=403, detail="Invalid signature")
-```
-
-### Legacy Manual Signature Verification
-
-If you need to implement signature verification manually:
-
-```python
-import hmac
-import hashlib
-
-def verify_webhook_signature_manual(body: bytes, signature: str, secret: str) -> bool:
-    """Manual webhook signature verification."""
-    
-    if not signature:
-        return False
-    
-    expected_signature = hmac.new(
-        secret.encode('utf-8'),
-        body,
-        hashlib.sha1
-    ).hexdigest()
-    
-    return hmac.compare_digest(signature, expected_signature)
-```
-
 ### Rate Limiting
 
 Implement rate limiting to prevent abuse:
@@ -722,11 +568,10 @@ async def handle_webhook(request: Request):
 ## Best Practices
 
 1. **Use HTTPS**: Webhook URLs must use HTTPS in production
-2. **Verify signatures**: Always verify webhook signatures for security
-3. **Handle idempotency**: Process duplicate events gracefully
-4. **Respond quickly**: Return 200 status code within 10 seconds
-5. **Log events**: Maintain logs for debugging and monitoring
-6. **Implement retries**: Handle temporary failures with retry logic
-7. **Rate limiting**: Protect your endpoint from excessive requests
+2. **Handle idempotency**: Process duplicate events gracefully
+3. **Respond quickly**: Return 200 status code within 10 seconds
+4. **Log events**: Maintain logs for debugging and monitoring
+5. **Implement retries**: Handle temporary failures with retry logic
+6. **Rate limiting**: Protect your endpoint from excessive requests
 
 The Webhooks API enables real-time monitoring and automated responses to account events, making it possible to build responsive financial applications and automated workflows.

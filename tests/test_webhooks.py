@@ -1,64 +1,18 @@
 """Tests for webhook parsing functionality."""
 
-import hashlib
-import hmac
 import json
-from typing import Any
+from typing import Any, Literal, cast
 
 import pytest
 
+from monzoh.models import Transaction
 from monzoh.webhooks import (
     TransactionWebhookPayload,
     WebhookParseError,
     WebhookPayload,
-    WebhookSignatureError,
     parse_transaction_webhook,
     parse_webhook_payload,
-    verify_webhook_signature,
 )
-
-
-class TestWebhookSignatureVerification:
-    """Test webhook signature verification."""
-
-    def test_verify_webhook_signature_valid(self) -> None:
-        """Test signature verification with valid signature."""
-        secret = "test_secret"
-        body = b'{"type":"transaction.created","data":{"id":"tx_123"}}'
-
-        # Generate valid signature
-        signature = hmac.new(secret.encode("utf-8"), body, hashlib.sha1).hexdigest()
-
-        assert verify_webhook_signature(body, signature, secret) is True
-
-    def test_verify_webhook_signature_invalid(self) -> None:
-        """Test signature verification with invalid signature."""
-        secret = "test_secret"
-        body = b'{"type":"transaction.created","data":{"id":"tx_123"}}'
-        invalid_signature = "invalid_signature"
-
-        assert verify_webhook_signature(body, invalid_signature, secret) is False
-
-    def test_verify_webhook_signature_empty(self) -> None:
-        """Test signature verification with empty signature."""
-        secret = "test_secret"
-        body = b'{"type":"transaction.created","data":{"id":"tx_123"}}'
-
-        assert verify_webhook_signature(body, "", secret) is False
-
-    def test_verify_webhook_signature_wrong_secret(self) -> None:
-        """Test signature verification with wrong secret."""
-        correct_secret = "correct_secret"
-        wrong_secret = "wrong_secret"
-        body = b'{"type":"transaction.created","data":{"id":"tx_123"}}'
-
-        # Generate signature with correct secret
-        signature = hmac.new(
-            correct_secret.encode("utf-8"), body, hashlib.sha1
-        ).hexdigest()
-
-        # Verify with wrong secret should fail
-        assert verify_webhook_signature(body, signature, wrong_secret) is False
 
 
 class TestWebhookPayloadParsing:
@@ -93,16 +47,13 @@ class TestWebhookPayloadParsing:
             "data": {"account_id": "acc_123", "balance": 125000, "currency": "GBP"},
         }
 
-    def test_parse_webhook_payload_transaction_without_signature(
+    def test_parse_webhook_payload_transaction(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
-        """Test parsing transaction webhook without signature verification."""
+        """Test parsing transaction webhook."""
         body = json.dumps(sample_transaction_payload)
-        headers: dict[str, str] = {}
 
-        payload = parse_webhook_payload(
-            body=body, headers=headers, verify_signature=False
-        )
+        payload = parse_webhook_payload(body=body)
 
         assert isinstance(payload, TransactionWebhookPayload)
         assert payload.type == "transaction.created"
@@ -110,38 +61,13 @@ class TestWebhookPayloadParsing:
         assert payload.data.amount == -450
         assert payload.data.description == "Coffee Shop Purchase"
 
-    def test_parse_webhook_payload_transaction_with_valid_signature(
-        self, sample_transaction_payload: dict[str, Any]
-    ) -> None:
-        """Test parsing transaction webhook with valid signature."""
-        secret = "test_secret"
-        body = json.dumps(sample_transaction_payload)
-        body_bytes = body.encode("utf-8")
-
-        # Generate valid signature
-        signature = hmac.new(
-            secret.encode("utf-8"), body_bytes, hashlib.sha1
-        ).hexdigest()
-
-        headers = {"X-Monzo-Signature": signature}
-
-        payload = parse_webhook_payload(
-            body=body, headers=headers, webhook_secret=secret, verify_signature=True
-        )
-
-        assert isinstance(payload, TransactionWebhookPayload)
-        assert payload.type == "transaction.created"
-
     def test_parse_webhook_payload_bytes_input(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
         """Test parsing webhook with bytes input."""
         body_bytes = json.dumps(sample_transaction_payload).encode("utf-8")
-        headers: dict[str, str] = {}
 
-        payload = parse_webhook_payload(
-            body=body_bytes, headers=headers, verify_signature=False
-        )
+        payload = parse_webhook_payload(body=body_bytes)
 
         assert isinstance(payload, TransactionWebhookPayload)
         assert payload.type == "transaction.created"
@@ -151,59 +77,29 @@ class TestWebhookPayloadParsing:
     ) -> None:
         """Test parsing balance update webhook."""
         body = json.dumps(sample_balance_payload)
-        headers: dict[str, str] = {}
 
-        payload = parse_webhook_payload(
-            body=body, headers=headers, verify_signature=False
-        )
+        payload = parse_webhook_payload(body=body)
 
         assert isinstance(payload, WebhookPayload)
         assert payload.type == "balance.updated"
         assert "account_id" in payload.data
 
-    def test_parse_webhook_payload_invalid_signature(
-        self, sample_transaction_payload: dict[str, Any]
-    ) -> None:
-        """Test parsing webhook with invalid signature."""
-        secret = "test_secret"
-        body = json.dumps(sample_transaction_payload)
-        headers = {"X-Monzo-Signature": "invalid_signature"}
-
-        with pytest.raises(WebhookSignatureError, match="Invalid webhook signature"):
-            parse_webhook_payload(
-                body=body, headers=headers, webhook_secret=secret, verify_signature=True
-            )
-
-    def test_parse_webhook_payload_missing_secret(
-        self, sample_transaction_payload: dict[str, Any]
-    ) -> None:
-        """Test parsing webhook with signature verification but missing secret."""
-        body = json.dumps(sample_transaction_payload)
-        headers: dict[str, str] = {}
-
-        with pytest.raises(WebhookParseError, match="webhook_secret is required"):
-            parse_webhook_payload(
-                body=body, headers=headers, webhook_secret=None, verify_signature=True
-            )
-
     def test_parse_webhook_payload_invalid_json(self) -> None:
         """Test parsing webhook with invalid JSON."""
         body = "invalid json"
-        headers: dict[str, str] = {}
 
         with pytest.raises(WebhookParseError, match="Invalid JSON payload"):
-            parse_webhook_payload(body=body, headers=headers, verify_signature=False)
+            parse_webhook_payload(body=body)
 
     def test_parse_webhook_payload_missing_required_fields(self) -> None:
         """Test parsing webhook with missing required fields."""
         payload = {"type": "transaction.created"}  # Missing 'data' field
         body = json.dumps(payload)
-        headers: dict[str, str] = {}
 
         with pytest.raises(
             WebhookParseError, match="Invalid webhook payload structure"
         ):
-            parse_webhook_payload(body=body, headers=headers, verify_signature=False)
+            parse_webhook_payload(body=body)
 
     def test_parse_webhook_payload_invalid_transaction_data(self) -> None:
         """Test parsing transaction webhook with invalid transaction data."""
@@ -215,12 +111,11 @@ class TestWebhookPayloadParsing:
             },
         }
         body = json.dumps(payload)
-        headers: dict[str, str] = {}
 
         with pytest.raises(
             WebhookParseError, match="Invalid transaction webhook payload"
         ):
-            parse_webhook_payload(body=body, headers=headers, verify_signature=False)
+            parse_webhook_payload(body=body)
 
 
 class TestTransactionWebhookParsing:
@@ -252,11 +147,8 @@ class TestTransactionWebhookParsing:
     ) -> None:
         """Test successful transaction webhook parsing."""
         body = json.dumps(sample_transaction_payload)
-        headers: dict[str, str] = {}
 
-        transaction = parse_transaction_webhook(
-            body=body, headers=headers, verify_signature=False
-        )
+        transaction = parse_transaction_webhook(body=body)
 
         assert transaction.id == "tx_123456789"
         assert transaction.amount == -1250
@@ -265,28 +157,6 @@ class TestTransactionWebhookParsing:
         assert transaction.metadata == {"note": "Weekly shopping"}
         assert transaction.notes == "Bought essentials"
 
-    def test_parse_transaction_webhook_with_signature(
-        self, sample_transaction_payload: dict[str, Any]
-    ) -> None:
-        """Test transaction webhook parsing with signature verification."""
-        secret = "webhook_secret_123"
-        body = json.dumps(sample_transaction_payload)
-        body_bytes = body.encode("utf-8")
-
-        # Generate valid signature
-        signature = hmac.new(
-            secret.encode("utf-8"), body_bytes, hashlib.sha1
-        ).hexdigest()
-
-        headers = {"X-Monzo-Signature": signature}
-
-        transaction = parse_transaction_webhook(
-            body=body, headers=headers, webhook_secret=secret, verify_signature=True
-        )
-
-        assert transaction.id == "tx_123456789"
-        assert transaction.amount == -1250
-
     def test_parse_transaction_webhook_wrong_event_type(self) -> None:
         """Test parsing transaction webhook with wrong event type."""
         payload = {
@@ -294,86 +164,191 @@ class TestTransactionWebhookParsing:
             "data": {"account_id": "acc_123", "balance": 125000},
         }
         body = json.dumps(payload)
-        headers: dict[str, str] = {}
 
         with pytest.raises(
             WebhookParseError,
             match="Expected transaction.created event, got balance.updated",
         ):
-            parse_transaction_webhook(
-                body=body, headers=headers, verify_signature=False
-            )
+            parse_transaction_webhook(body=body)
 
-    def test_parse_transaction_webhook_invalid_signature(
+    def test_parse_transaction_webhook_invalid_transaction_data(self) -> None:
+        """Test parsing transaction webhook with invalid data."""
+        payload = {
+            "type": "transaction.created",
+            "data": {
+                "id": "tx_123",
+                # Missing required fields
+            },
+        }
+        body = json.dumps(payload)
+
+        with pytest.raises(WebhookParseError):
+            parse_transaction_webhook(body=body)
+
+    def test_parse_transaction_webhook_bytes_input(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
-        """Test transaction webhook parsing with invalid signature."""
-        secret = "correct_secret"
-        body = json.dumps(sample_transaction_payload)
-        headers = {"X-Monzo-Signature": "invalid_signature"}
+        """Test parsing transaction webhook with bytes input."""
+        body_bytes = json.dumps(sample_transaction_payload).encode("utf-8")
 
-        with pytest.raises(WebhookSignatureError):
-            parse_transaction_webhook(
-                body=body, headers=headers, webhook_secret=secret, verify_signature=True
+        transaction = parse_transaction_webhook(body=body_bytes)
+
+        assert transaction.id == "tx_123456789"
+        assert transaction.amount == -1250
+
+
+class TestWebhookTypes:
+    """Test webhook type definitions."""
+
+    def test_transaction_webhook_payload_validation(self) -> None:
+        """Test TransactionWebhookPayload validation."""
+        valid_data = {
+            "type": "transaction.created",
+            "data": {
+                "id": "tx_123",
+                "amount": -500,
+                "created": "2023-01-01T12:00:00Z",
+                "currency": "GBP",
+                "description": "Test Transaction",
+                "account_balance": 100000,
+                "category": "general",
+                "is_load": False,
+                "settled": "2023-01-01T12:00:00Z",
+                "metadata": {},
+                "notes": None,
+                "decline_reason": None,
+            },
+        }
+
+        payload = TransactionWebhookPayload(
+            type=cast(Literal["transaction.created"], valid_data["type"]),
+            data=Transaction(**cast(dict[str, Any], valid_data["data"])),
+        )
+        assert payload.type == "transaction.created"
+        assert payload.data.id == "tx_123"
+
+    def test_webhook_payload_generic(self) -> None:
+        """Test generic WebhookPayload validation."""
+        data = {
+            "type": "balance.updated",
+            "data": {"account_id": "acc_123", "balance": 50000},
+        }
+
+        payload = WebhookPayload(
+            type=cast(str, data["type"]), data=cast(dict[str, Any], data["data"])
+        )
+        assert payload.type == "balance.updated"
+        assert payload.data["account_id"] == "acc_123"
+
+    def test_transaction_webhook_payload_invalid_type(self) -> None:
+        """Test TransactionWebhookPayload with invalid type."""
+        invalid_data = {
+            "type": "balance.updated",  # Wrong type
+            "data": {
+                "id": "tx_123",
+                "amount": -500,
+                "created": "2023-01-01T12:00:00Z",
+                "currency": "GBP",
+                "description": "Test Transaction",
+                "account_balance": 100000,
+                "category": "general",
+                "is_load": False,
+                "settled": "2023-01-01T12:00:00Z",
+                "metadata": {},
+                "notes": None,
+                "decline_reason": None,
+            },
+        }
+
+        with pytest.raises(ValueError):
+            TransactionWebhookPayload(
+                type=cast(Literal["transaction.created"], invalid_data["type"]),
+                data=Transaction(**cast(dict[str, Any], invalid_data["data"])),
             )
 
 
 class TestWebhookIntegration:
-    """Integration tests for webhook functionality."""
+    """Integration tests for webhook processing."""
 
-    def test_complete_webhook_flow(self) -> None:
-        """Test complete webhook processing flow."""
-        # Simulate a real webhook payload from Monzo
-        webhook_payload = {
+    def test_full_transaction_workflow(self) -> None:
+        """Test complete transaction webhook processing workflow."""
+        # Simulate incoming webhook data
+        webhook_body = {
             "type": "transaction.created",
             "data": {
-                "id": "tx_000123456789abcdef",
+                "id": "tx_integration_test",
                 "amount": -750,  # £7.50 spending
-                "created": "2023-12-01T10:30:00.000Z",
+                "created": "2023-06-15T14:30:00Z",
                 "currency": "GBP",
                 "description": "Local Coffee Shop",
-                "account_balance": 42500,  # £425.00 remaining
+                "account_balance": 89250,  # £892.50
                 "category": "eating_out",
                 "is_load": False,
-                "settled": "2023-12-01T10:30:00.000Z",
-                "metadata": {},
-                "notes": None,
+                "settled": "2023-06-15T14:30:00Z",
+                "metadata": {"location": "High Street"},
+                "notes": "Morning coffee",
                 "decline_reason": None,
-                "merchant": None,
             },
         }
 
-        # Webhook secret
-        secret = "your_webhook_secret_here"
+        # Parse as generic payload
+        payload = parse_webhook_payload(body=json.dumps(webhook_body))
+        assert isinstance(payload, TransactionWebhookPayload)
 
-        # Serialize payload
-        body = json.dumps(webhook_payload)
-        body_bytes = body.encode("utf-8")
+        # Parse as specific transaction
+        transaction = parse_transaction_webhook(body=json.dumps(webhook_body))
 
-        # Generate signature (simulating Monzo's signature)
-        signature = hmac.new(
-            secret.encode("utf-8"), body_bytes, hashlib.sha1
-        ).hexdigest()
+        # Verify parsing consistency
+        assert payload.data.id == transaction.id
+        assert payload.data.amount == transaction.amount
+        assert payload.data.description == transaction.description
 
-        headers = {"X-Monzo-Signature": signature, "Content-Type": "application/json"}
-
-        # Parse with full validation
-        transaction = parse_transaction_webhook(
-            body=body, headers=headers, webhook_secret=secret, verify_signature=True
+        # Verify business logic can access data
+        amount_pounds = (
+            abs(transaction.amount) / 100 if transaction.amount is not None else 0
         )
+        balance_pounds = (transaction.account_balance or 0) / 100
 
-        # Verify transaction details
-        assert transaction.id == "tx_000123456789abcdef"
-        assert transaction.amount == -750
-        assert transaction.description == "Local Coffee Shop"
+        assert amount_pounds == 7.5
+        assert balance_pounds == 892.5
         assert transaction.category == "eating_out"
-        assert transaction.account_balance == 42500
-        assert transaction.currency == "GBP"
-        assert transaction.is_load is False
+        assert "coffee" in transaction.description.lower()
 
-        # Verify amounts in pounds
-        amount_pounds = abs(transaction.amount) / 100
-        balance_pounds = transaction.account_balance / 100
+    def test_multiple_event_types(self) -> None:
+        """Test handling multiple webhook event types."""
+        events = [
+            {
+                "type": "transaction.created",
+                "data": {
+                    "id": "tx_multi_test1",
+                    "amount": -250,
+                    "created": "2023-06-15T10:00:00Z",
+                    "currency": "GBP",
+                    "description": "Bus Fare",
+                    "account_balance": 99750,
+                    "category": "transport",
+                    "is_load": False,
+                    "settled": "2023-06-15T10:00:00Z",
+                    "metadata": {},
+                    "notes": None,
+                    "decline_reason": None,
+                },
+            },
+            {
+                "type": "balance.updated",
+                "data": {
+                    "account_id": "acc_test123",
+                    "balance": 99500,
+                    "currency": "GBP",
+                },
+            },
+        ]
 
-        assert amount_pounds == 7.50
-        assert balance_pounds == 425.00
+        for event_data in events:
+            payload = parse_webhook_payload(body=json.dumps(event_data))
+
+            if isinstance(payload, TransactionWebhookPayload):
+                assert payload.data.description == "Bus Fare"
+            else:
+                assert payload.type == "balance.updated"
+                assert payload.data["balance"] == 99500
