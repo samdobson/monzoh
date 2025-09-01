@@ -49,7 +49,7 @@ class TestPotsAPI:
         pot = monzo_client.pots.deposit(
             pot_id="pot_123",
             source_account_id="acc_123",
-            amount=1000,
+            amount=10.00,  # £10.00 in major units
             dedupe_id="deposit_123",
         )
 
@@ -60,7 +60,7 @@ class TestPotsAPI:
         call_args = monzo_client._base_client._put.call_args
         assert "/pots/pot_123/deposit" in call_args[0][0]
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "1000"
+        assert call_args[1]["data"]["amount"] == "1000"  # £10.00 -> 1000 pennies
         assert call_args[1]["data"]["dedupe_id"] == "deposit_123"
 
     def test_withdraw(
@@ -80,7 +80,7 @@ class TestPotsAPI:
         pot = monzo_client.pots.withdraw(
             pot_id="pot_123",
             destination_account_id="acc_123",
-            amount=500,
+            amount=5.00,  # £5.00 in major units
             dedupe_id="withdraw_123",
         )
 
@@ -91,5 +91,5 @@ class TestPotsAPI:
         call_args = monzo_client._base_client._put.call_args
         assert "/pots/pot_123/withdraw" in call_args[0][0]
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "500"
+        assert call_args[1]["data"]["amount"] == "500"  # £5.00 -> 500 pennies
         assert call_args[1]["data"]["dedupe_id"] == "withdraw_123"

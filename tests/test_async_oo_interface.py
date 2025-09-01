@@ -136,7 +136,7 @@ class TestAsyncPotOOInterface:
         mock_client._put.assert_called_once()
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/deposit"
-        assert call_args[1]["data"]["amount"] == "1000"
+        assert call_args[1]["data"]["amount"] == "100000"
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
 
     @pytest.mark.asyncio

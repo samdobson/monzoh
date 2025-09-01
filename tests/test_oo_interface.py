@@ -210,7 +210,7 @@ class TestPotOOInterface:
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/deposit"
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "1000"
+        assert call_args[1]["data"]["amount"] == "100000"
         assert "dedupe_id" in call_args[1]["data"]
 
     def test_pot_deposit_with_custom_dedupe_id(self) -> None:
@@ -295,7 +295,7 @@ class TestPotOOInterface:
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/withdraw"
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "500"
+        assert call_args[1]["data"]["amount"] == "50000"
 
     def test_pot_without_source_account_raises_error(self) -> None:
         """Test that pot methods raise error when no source account is available."""

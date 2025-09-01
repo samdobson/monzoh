@@ -67,7 +67,7 @@ class TestAsyncPotsAPI:
             "/pots/pot_123/deposit",
             data={
                 "source_account_id": "acc_123",
-                "amount": "1000",
+                "amount": "100000",
                 "dedupe_id": "deposit_123",
             },
         )
@@ -100,7 +100,7 @@ class TestAsyncPotsAPI:
             "/pots/pot_123/withdraw",
             data={
                 "destination_account_id": "acc_123",
-                "amount": "500",
+                "amount": "50000",
                 "dedupe_id": "withdraw_123",
             },
         )
