@@ -8,7 +8,11 @@ from typing import Any
 import httpx
 from httpx import QueryParams
 
-from ..exceptions import MonzoNetworkError, create_error_from_response
+from ..exceptions import (
+    MonzoAuthenticationError,
+    MonzoNetworkError,
+    create_error_from_response,
+)
 from ..models import WhoAmI
 from .mock_data import get_mock_response
 
@@ -45,7 +49,7 @@ class BaseSyncClient:
 
     def __init__(
         self,
-        access_token: str,
+        access_token: str | None,
         http_client: httpx.Client | None = None,
         timeout: float = 30.0,
     ) -> None:
@@ -73,6 +77,8 @@ class BaseSyncClient:
     @property
     def auth_headers(self) -> dict[str, str]:
         """Get authorization headers."""
+        if not self.access_token:
+            raise MonzoAuthenticationError("Access token is not set.")
         return {"Authorization": f"Bearer {self.access_token}"}
 
     @property
