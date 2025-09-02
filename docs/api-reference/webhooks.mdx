@@ -97,25 +97,54 @@ result = client.webhooks.delete(webhook_id="webhook_123")
 print("✅ Webhook deleted")
 ```
 
-## Webhook Event Handling
+## Webhook Processing Utilities
 
-### Setting up a Webhook Server
+Monzoh provides built-in utilities to parse and validate incoming webhook payloads with type safety.
 
-Here's how to create a webhook server to handle Monzo events:
+### Core Functions
+
+#### parse_webhook_payload()
+
+Parse and validate any incoming webhook payload:
+
+```python
+from monzoh.webhooks import parse_webhook_payload, WebhookParseError
+
+def parse_webhook_payload(
+    body: str | bytes,
+) -> TransactionWebhookPayload | WebhookPayload:
+    """Parse and validate incoming webhook payload."""
+```
+
+**Parameters**:
+- `body`: Raw request body (string or bytes)
+
+**Returns**: Parsed webhook payload with validated data
+
+**Raises**:
+- `WebhookParseError`: If payload parsing or validation fails
+
+#### parse_transaction_webhook()
+
+Convenience function for transaction-specific webhooks:
+
+```python
+from monzoh.webhooks import parse_transaction_webhook
+
+def parse_transaction_webhook(
+    body: str | bytes,
+) -> Transaction:
+    """Parse transaction.created webhook and return Transaction object directly."""
+```
+
+
+### Webhook Event Handling
 
 ```python
 from fastapi import FastAPI, Request, HTTPException
-from monzoh import MonzoClient
-import hmac
-import hashlib
-import json
-from datetime import datetime
-import os
+from monzoh.webhooks import parse_webhook_payload, TransactionWebhookPayload
 
 app = FastAPI(title="Monzo Webhook Handler")
-
-# Your webhook secret (set this as an environment variable)
-WEBHOOK_SECRET = os.getenv("MONZO_WEBHOOK_SECRET", "your_secret_here")
 
 @app.post("/webhooks/monzo")
 async def handle_monzo_webhook(request: Request):
@@ -124,33 +153,65 @@ async def handle_monzo_webhook(request: Request):
     # Get raw request body
     body = await request.body()
     
-    # Verify webhook signature (if implemented by Monzo)
-    signature = request.headers.get("X-Monzo-Signature")
-    if signature:
-        expected_signature = hmac.new(
-            WEBHOOK_SECRET.encode(),
-            body,
-            hashlib.sha1
-        ).hexdigest()
-        
-        if not hmac.compare_digest(signature, expected_signature):
-            raise HTTPException(status_code=403, detail="Invalid signature")
-    
-    # Parse the JSON payload
     try:
-        event_data = json.loads(body.decode())
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid JSON")
+        # Parse webhook payload
+        payload = parse_webhook_payload(body=body)
+        
+        # Handle different event types with type safety
+        if isinstance(payload, TransactionWebhookPayload):
+            transaction = payload.data
+            print(f"New transaction: {transaction.description}")
+            print(f"Amount: £{transaction.amount/100:.2f}")
+            print(f"Category: {transaction.category}")
+            
+            # Process the transaction
+            await handle_transaction_created(transaction)
+        else:
+            print(f"Received {payload.type} event")
+            await handle_other_event(payload)
+            
+    except Exception as e:
+        print(f"Error processing webhook: {e}")
+        raise HTTPException(status_code=400, detail=str(e))
     
-    # Handle different event types
-    event_type = event_data.get("type")
+    return {"status": "received"}
+```
+
+
+### Setting up a Complete Webhook Server
+
+Here's a complete example using the webhook utilities:
+
+```python
+from fastapi import FastAPI, Request, HTTPException
+from monzoh.webhooks import (
+    parse_webhook_payload, 
+    TransactionWebhookPayload,
+    WebhookParseError
+)
+from datetime import datetime
+
+app = FastAPI(title="Monzo Webhook Handler")
+
+@app.post("/webhooks/monzo")
+async def handle_monzo_webhook(request: Request):
+    """Handle incoming Monzo webhook events."""
     
-    if event_type == "transaction.created":
-        await handle_transaction_created(event_data["data"])
-    elif event_type == "account_balance.updated":
-        await handle_balance_updated(event_data["data"])
-    else:
-        print(f"Unhandled event type: {event_type}")
+    # Get raw request body
+    body = await request.body()
+    
+    try:
+        # Parse webhook payload
+        payload = parse_webhook_payload(body=body)
+        
+        # Handle different event types
+        if isinstance(payload, TransactionWebhookPayload):
+            await handle_transaction_created(payload.data)
+        else:
+            await handle_other_event(payload)
+            
+    except WebhookParseError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     
     return {"status": "received"}
 
@@ -461,40 +522,6 @@ if __name__ == "__main__":
 
 ## Webhook Security
 
-### Signature Verification
-
-Always verify webhook signatures to ensure requests are from Monzo:
-
-```python
-import hmac
-import hashlib
-
-def verify_webhook_signature(body: bytes, signature: str, secret: str) -> bool:
-    """Verify webhook signature."""
-    
-    if not signature:
-        return False
-    
-    expected_signature = hmac.new(
-        secret.encode('utf-8'),
-        body,
-        hashlib.sha1
-    ).hexdigest()
-    
-    return hmac.compare_digest(signature, expected_signature)
-
-# Usage in your webhook handler
-@app.post("/webhooks/monzo")
-async def handle_webhook(request: Request):
-    body = await request.body()
-    signature = request.headers.get("X-Monzo-Signature", "")
-    
-    if not verify_webhook_signature(body, signature, WEBHOOK_SECRET):
-        raise HTTPException(status_code=403, detail="Invalid signature")
-    
-    # Process webhook...
-```
-
 ### Rate Limiting
 
 Implement rate limiting to prevent abuse:
@@ -541,11 +568,10 @@ async def handle_webhook(request: Request):
 ## Best Practices
 
 1. **Use HTTPS**: Webhook URLs must use HTTPS in production
-2. **Verify signatures**: Always verify webhook signatures for security
-3. **Handle idempotency**: Process duplicate events gracefully
-4. **Respond quickly**: Return 200 status code within 10 seconds
-5. **Log events**: Maintain logs for debugging and monitoring
-6. **Implement retries**: Handle temporary failures with retry logic
-7. **Rate limiting**: Protect your endpoint from excessive requests
+2. **Handle idempotency**: Process duplicate events gracefully
+3. **Respond quickly**: Return 200 status code within 10 seconds
+4. **Log events**: Maintain logs for debugging and monitoring
+5. **Implement retries**: Handle temporary failures with retry logic
+6. **Rate limiting**: Protect your endpoint from excessive requests
 
 The Webhooks API enables real-time monitoring and automated responses to account events, making it possible to build responsive financial applications and automated workflows.

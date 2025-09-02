@@ -24,6 +24,11 @@ from .models import (
     Webhook,
     WhoAmI,
 )
+from .webhooks import (
+    WebhookParseError,
+    parse_transaction_webhook,
+    parse_webhook_payload,
+)
 
 __version__ = "1.1.0"
 
@@ -51,4 +56,8 @@ __all__ = [
     "MonzoServerError",
     "MonzoNetworkError",
     "MonzoValidationError",
+    # Webhook utilities
+    "WebhookParseError",
+    "parse_transaction_webhook",
+    "parse_webhook_payload",
 ]
