@@ -198,7 +198,7 @@ class TestPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test deposit
-        updated_pot = pot.deposit(1000)
+        updated_pot = pot.deposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == 11000
@@ -210,7 +210,7 @@ class TestPotOOInterface:
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/deposit"
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "100000"
+        assert call_args[1]["data"]["amount"] == "1000"
         assert "dedupe_id" in call_args[1]["data"]
 
     def test_pot_deposit_with_custom_dedupe_id(self) -> None:
@@ -245,7 +245,7 @@ class TestPotOOInterface:
 
         # Test deposit with custom dedupe_id
         custom_dedupe_id = str(uuid4())
-        pot.deposit(1000, dedupe_id=custom_dedupe_id)
+        pot.deposit(10.00, dedupe_id=custom_dedupe_id)  # £10.00 in major units
 
         # Verify API call used custom dedupe_id
         call_args = mock_client._put.call_args
@@ -283,7 +283,7 @@ class TestPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test withdraw
-        updated_pot = pot.withdraw(500)
+        updated_pot = pot.withdraw(5.00)  # £5.00 in major units
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == 9500
@@ -295,7 +295,7 @@ class TestPotOOInterface:
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/withdraw"
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "50000"
+        assert call_args[1]["data"]["amount"] == "500"
 
     def test_pot_without_source_account_raises_error(self) -> None:
         """Test that pot methods raise error when no source account is available."""
@@ -312,10 +312,10 @@ class TestPotOOInterface:
         pot._set_client(mock_client)
 
         with pytest.raises(RuntimeError, match="No source account ID available"):
-            pot.deposit(1000)
+            pot.deposit(10.00)
 
         with pytest.raises(RuntimeError, match="No source account ID available"):
-            pot.withdraw(500)
+            pot.withdraw(5.00)
 
 
 class TestTransactionOOInterface:

@@ -125,7 +125,7 @@ class TestAsyncPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test adeposit
-        updated_pot = await pot.adeposit(1000)
+        updated_pot = await pot.adeposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == 11000
@@ -136,7 +136,7 @@ class TestAsyncPotOOInterface:
         mock_client._put.assert_called_once()
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/deposit"
-        assert call_args[1]["data"]["amount"] == "100000"
+        assert call_args[1]["data"]["amount"] == "1000"
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
 
     @pytest.mark.asyncio
@@ -165,7 +165,7 @@ class TestAsyncPotOOInterface:
         with pytest.raises(
             RuntimeError, match="Async method called on pot with sync client"
         ):
-            await pot.adeposit(1000)
+            await pot.adeposit(10.00)
 
 
 class TestAsyncTransactionOOInterface:
