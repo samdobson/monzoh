@@ -200,7 +200,7 @@ class TestAsyncPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test adeposit
-        updated_pot = await pot.adeposit(1000)
+        updated_pot = await pot.adeposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == 11000
@@ -240,7 +240,7 @@ class TestAsyncPotOOInterface:
         with pytest.raises(
             RuntimeError, match="Async method called on pot with sync client"
         ):
-            await pot.adeposit(1000)
+            await pot.adeposit(10.00)
 
 
 class TestAsyncTransactionOOInterface:

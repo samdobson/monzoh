@@ -56,7 +56,7 @@ transactions[0].upload_attachment("image.jpg")
 pots = account.list_pots()
 for pot in pots:
     if pot.name == "Savings":
-        pot.deposit(1000)  # Deposit £10.00
+        pot.deposit(10.00)  # Deposit £10.00
         break
 ```
 
@@ -81,7 +81,7 @@ async def main():
         pots = await account.alist_pots()
         for pot in pots:
             if pot.name == "Savings":
-                await pot.adeposit(1000)  # Deposit £10.00
+                await pot.adeposit(10.00)  # Deposit £10.00
                 break
 
 asyncio.run(main())

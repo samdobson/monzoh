@@ -59,7 +59,7 @@ class TestAsyncPotsAPI:
         pot = await pots_api.deposit(
             pot_id="pot_123",
             source_account_id="acc_123",
-            amount=1000,
+            amount=10.00,  # £10.00 in major units
             dedupe_id="deposit_123",
         )
 
@@ -92,7 +92,7 @@ class TestAsyncPotsAPI:
         pot = await pots_api.withdraw(
             pot_id="pot_123",
             destination_account_id="acc_123",
-            amount=500,
+            amount=5.00,  # £5.00 in major units
             dedupe_id="withdraw_123",
         )
 

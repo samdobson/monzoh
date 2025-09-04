@@ -55,7 +55,7 @@ def deposit(
     self,
     pot_id: str,
     account_id: str,
-    amount: int
+    amount: int | float | Decimal | str
 ) -> dict:
     """Deposit money into a pot."""
 ```
@@ -63,7 +63,7 @@ def deposit(
 **Parameters**:
 - `pot_id`: The unique pot identifier
 - `account_id`: The source account identifier
-- `amount`: Amount to deposit in pence
+- `amount`: Amount to deposit in major units (e.g., 1.50 for £1.50)
 
 **Returns**: `dict` - Deposit confirmation details
 
@@ -80,7 +80,7 @@ savings_pot = next(pot for pot in pots if not pot.deleted)
 result = client.pots.deposit(
     pot_id=savings_pot.id,
     account_id=current_account.id,
-    amount=2500  # £25.00 in pence
+    amount=25.00
 )
 
 print(f"✅ Deposited £25.00 into {savings_pot.name}")
@@ -95,7 +95,7 @@ def withdraw(
     self,
     pot_id: str,
     account_id: str,
-    amount: int
+    amount: int | float | Decimal | str
 ) -> dict:
     """Withdraw money from a pot."""
 ```
@@ -103,7 +103,7 @@ def withdraw(
 **Parameters**:
 - `pot_id`: The unique pot identifier  
 - `account_id`: The destination account identifier
-- `amount`: Amount to withdraw in pence
+- `amount`: Amount to withdraw in major units (e.g., 1.50 for £1.50)
 
 **Returns**: `dict` - Withdrawal confirmation details
 
@@ -113,7 +113,7 @@ def withdraw(
 result = client.pots.withdraw(
     pot_id=savings_pot.id,
     account_id=current_account.id,
-    amount=1000  # £10.00 in pence
+    amount=10.00
 )
 
 print(f"✅ Withdrew £10.00 from {savings_pot.name}")
@@ -173,13 +173,12 @@ class AutoSavings:
         if total_roundup > 0 and self.active_pots:
             # Use first available pot
             savings_pot = self.active_pots[0]
-            amount_pence = int(total_roundup * 100)
             
             try:
                 result = self.client.pots.deposit(
                     pot_id=savings_pot.id,
                     account_id=self.current_account.id,
-                    amount=amount_pence
+                    amount=float(total_roundup)
                 )
                 
                 print(f"✅ Deposited £{total_roundup:.2f} into {savings_pot.name}")
@@ -223,13 +222,11 @@ class AutoSavings:
                 weekly_contribution = min(target_weekly_amount, weekly_needed)
                 
                 if weekly_contribution >= 1:  # Minimum £1
-                    amount_pence = int(weekly_contribution * 100)
-                    
                     try:
                         result = self.client.pots.deposit(
                             pot_id=pot.id,
                             account_id=self.current_account.id,
-                            amount=amount_pence
+                            amount=weekly_contribution
                         )
                         
                         new_balance = balance + weekly_contribution
@@ -554,11 +551,10 @@ class SmartPotAllocator:
                 
                 # Perform the transfer
                 try:
-                    amount_pence = int(allocation_amount * 100)
                     result = self.client.pots.deposit(
                         pot_id=pot.id,
                         account_id=self.current_account.id,
-                        amount=amount_pence
+                        amount=allocation_amount
                     )
                     
                     remaining_surplus -= allocation_amount

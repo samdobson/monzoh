@@ -287,7 +287,7 @@ class TestPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test deposit
-        updated_pot = pot.deposit(1000)
+        updated_pot = pot.deposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == 11000
@@ -334,7 +334,7 @@ class TestPotOOInterface:
 
         # Test deposit with custom dedupe_id
         custom_dedupe_id = str(uuid4())
-        pot.deposit(1000, dedupe_id=custom_dedupe_id)
+        pot.deposit(10.00, dedupe_id=custom_dedupe_id)  # £10.00 in major units
 
         # Verify API call used custom dedupe_id
         call_args = mock_client._put.call_args
@@ -372,7 +372,7 @@ class TestPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test withdraw
-        updated_pot = pot.withdraw(500)
+        updated_pot = pot.withdraw(5.00)  # £5.00 in major units
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == 9500
@@ -401,10 +401,10 @@ class TestPotOOInterface:
         pot._set_client(mock_client)
 
         with pytest.raises(RuntimeError, match="No source account ID available"):
-            pot.deposit(1000)
+            pot.deposit(10.00)
 
         with pytest.raises(RuntimeError, match="No source account ID available"):
-            pot.withdraw(500)
+            pot.withdraw(5.00)
 
 
 class TestTransactionOOInterface:

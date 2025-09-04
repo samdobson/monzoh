@@ -1,6 +1,7 @@
 """Base models and common types."""
 
 from datetime import datetime
+from decimal import Decimal
 
 from pydantic import BaseModel, Field
 
@@ -44,3 +45,57 @@ class ExpandParams(BaseModel):
     expand: list[str] | None = Field(
         None, description="List of related objects to expand inline"
     )
+
+
+def convert_amount_to_minor_units(amount: int | float | Decimal | str) -> int:
+    """Convert amount from major units to minor units.
+
+    Args:
+        amount: Amount in major units (e.g., pounds, euros, dollars)
+
+    Returns:
+        Amount in minor units (e.g., pennies, cents)
+
+    Raises:
+        ValueError: If amount is negative or invalid
+
+    Examples:
+        >>> convert_amount_to_minor_units(1.50)
+        150
+        >>> convert_amount_to_minor_units("10.99")
+        1099
+        >>> convert_amount_to_minor_units(5)
+        500
+    """
+    try:
+        if isinstance(amount, str):
+            amount = Decimal(amount)
+        elif isinstance(amount, int | float):
+            amount = Decimal(str(amount))
+
+        if amount < 0:
+            raise ValueError("Amount cannot be negative")
+
+        # All supported currencies (GBP, EUR, USD) use 2 decimal places
+        return int(amount * 100)
+
+    except (ValueError, TypeError, ArithmeticError) as e:
+        raise ValueError(f"Invalid amount '{amount}': {e}") from e
+
+
+def convert_amount_from_minor_units(amount: int) -> Decimal:
+    """Convert amount from minor units to major units.
+
+    Args:
+        amount: Amount in minor units (e.g., pennies, cents)
+
+    Returns:
+        Amount in major units as Decimal
+
+    Examples:
+        >>> convert_amount_from_minor_units(150)
+        Decimal('1.50')
+        >>> convert_amount_from_minor_units(1099)
+        Decimal('10.99')
+    """
+    return Decimal(amount) / 100

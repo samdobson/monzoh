@@ -1,7 +1,10 @@
 """Async pots API endpoints."""
 
+from decimal import Decimal
+
 from ..core.async_base import BaseAsyncClient
 from ..models import Pot, PotsResponse
+from ..models.base import convert_amount_to_minor_units
 
 
 class AsyncPotsAPI:
@@ -37,22 +40,29 @@ class AsyncPotsAPI:
         return pots_response.pots
 
     async def deposit(
-        self, pot_id: str, source_account_id: str, amount: int, dedupe_id: str
+        self,
+        pot_id: str,
+        source_account_id: str,
+        amount: int | float | Decimal | str,
+        dedupe_id: str,
     ) -> Pot:
         """Deposit money into a pot.
 
         Args:
             pot_id: Pot ID
             source_account_id: Source account ID
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate deposits
 
         Returns:
             Updated pot
         """
+        # Convert amount from major units to minor units
+        amount_minor = convert_amount_to_minor_units(amount)
+
         data = {
             "source_account_id": source_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 
@@ -63,22 +73,29 @@ class AsyncPotsAPI:
         return pot
 
     async def withdraw(
-        self, pot_id: str, destination_account_id: str, amount: int, dedupe_id: str
+        self,
+        pot_id: str,
+        destination_account_id: str,
+        amount: int | float | Decimal | str,
+        dedupe_id: str,
     ) -> Pot:
         """Withdraw money from a pot.
 
         Args:
             pot_id: Pot ID
             destination_account_id: Destination account ID
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate withdrawals
 
         Returns:
             Updated pot
         """
+        # Convert amount from major units to minor units
+        amount_minor = convert_amount_to_minor_units(amount)
+
         data = {
             "destination_account_id": destination_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 
