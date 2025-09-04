@@ -30,6 +30,14 @@ class TestAccountOOInterface:
         with pytest.raises(RuntimeError, match="No client available"):
             account.list_pots()
 
+        with pytest.raises(RuntimeError, match="No client available"):
+            from monzoh.models.feed import FeedItemParams
+
+            params = FeedItemParams(
+                title="Test", image_url="https://example.com/image.jpg"
+            )
+            account.create_feed_item(params)
+
     def test_account_get_balance(self) -> None:
         """Test Account.get_balance() method."""
         # Mock client
@@ -143,6 +151,87 @@ class TestAccountOOInterface:
         # Verify client is set on returned pot
         assert pots[0]._client == mock_client
         assert pots[0]._source_account_id == "acc_123"
+
+    def test_account_create_feed_item(self) -> None:
+        """Test Account.create_feed_item() method."""
+        from monzoh.models.feed import FeedItemParams
+
+        # Mock client
+        mock_client = Mock(spec=BaseSyncClient)
+        mock_response = Mock()
+        mock_response.json.return_value = {}
+        mock_client._post.return_value = mock_response
+
+        # Create account and set client
+        account = Account(
+            id="acc_123",
+            description="Test Account",
+            created=datetime.now(),
+        )
+        account._set_client(mock_client)
+
+        # Test create_feed_item with minimal params
+        params = FeedItemParams(
+            title="Test Feed Item", image_url="https://example.com/image.jpg"
+        )
+        account.create_feed_item(params)
+
+        # Verify API call
+        mock_client._post.assert_called_once_with(
+            "/feed",
+            data={
+                "account_id": "acc_123",
+                "type": "basic",
+                "params[title]": "Test Feed Item",
+                "params[image_url]": "https://example.com/image.jpg",
+            },
+        )
+
+    def test_account_create_feed_item_with_all_params(self) -> None:
+        """Test Account.create_feed_item() method with all parameters."""
+        from monzoh.models.feed import FeedItemParams
+
+        # Mock client
+        mock_client = Mock(spec=BaseSyncClient)
+        mock_response = Mock()
+        mock_response.json.return_value = {}
+        mock_client._post.return_value = mock_response
+
+        # Create account and set client
+        account = Account(
+            id="acc_123",
+            description="Test Account",
+            created=datetime.now(),
+        )
+        account._set_client(mock_client)
+
+        # Test create_feed_item with all params
+        params = FeedItemParams(
+            title="Test Feed Item",
+            image_url="https://example.com/image.jpg",
+            body="Test body text",
+            url="https://example.com/redirect",
+            background_color="#FF0000",
+            title_color="#000000",
+            body_color="#333333",
+        )
+        account.create_feed_item(params)
+
+        # Verify API call
+        mock_client._post.assert_called_once_with(
+            "/feed",
+            data={
+                "account_id": "acc_123",
+                "type": "basic",
+                "url": "https://example.com/redirect",
+                "params[title]": "Test Feed Item",
+                "params[image_url]": "https://example.com/image.jpg",
+                "params[body]": "Test body text",
+                "params[background_color]": "#FF0000",
+                "params[title_color]": "#000000",
+                "params[body_color]": "#333333",
+            },
+        )
 
 
 class TestPotOOInterface:
