@@ -15,7 +15,14 @@ class TestAsyncWebhooksAPI:
 
     @pytest.fixture
     def webhooks_api(self, mock_async_base_client: BaseAsyncClient) -> AsyncWebhooksAPI:
-        """Create async webhooks API instance."""
+        """Create async webhooks API instance.
+
+        Args:
+            mock_async_base_client: Mock async base client fixture.
+
+        Returns:
+            AsyncWebhooksAPI instance.
+        """
         return AsyncWebhooksAPI(mock_async_base_client)
 
     @pytest.mark.asyncio
@@ -24,7 +31,12 @@ class TestAsyncWebhooksAPI:
         webhooks_api: AsyncWebhooksAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test register webhook."""
+        """Test register webhook.
+
+        Args:
+            webhooks_api: Async webhooks API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         webhook_data = {
             "id": "webhook_000091yhhOmrXQaVZ1Irsv",
             "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -57,7 +69,12 @@ class TestAsyncWebhooksAPI:
         webhooks_api: AsyncWebhooksAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test list webhooks."""
+        """Test list webhooks.
+
+        Args:
+            webhooks_api: Async webhooks API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         webhook_data = [
             {
                 "id": "webhook_000091yhhOmrXQaVZ1Irsv",
@@ -92,7 +109,12 @@ class TestAsyncWebhooksAPI:
         webhooks_api: AsyncWebhooksAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test list webhooks with empty result."""
+        """Test list webhooks with empty result.
+
+        Args:
+            webhooks_api: Async webhooks API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         response_data: dict[str, Any] = {"webhooks": []}
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = (
             response_data
@@ -109,7 +131,12 @@ class TestAsyncWebhooksAPI:
         webhooks_api: AsyncWebhooksAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test delete webhook."""
+        """Test delete webhook.
+
+        Args:
+            webhooks_api: Async webhooks API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         await webhooks_api.delete("webhook_000091yhhOmrXQaVZ1Irsv")
 
         cast(Mock, mock_async_base_client._delete).assert_called_once_with(

@@ -20,7 +20,11 @@ class TestWebhookPayloadParsing:
 
     @pytest.fixture
     def sample_transaction_payload(self) -> dict[str, Any]:
-        """Sample transaction webhook payload."""
+        """Sample transaction webhook payload.
+
+        Returns:
+            Dictionary containing sample transaction webhook payload.
+        """
         return {
             "type": "transaction.created",
             "data": {
@@ -41,7 +45,11 @@ class TestWebhookPayloadParsing:
 
     @pytest.fixture
     def sample_balance_payload(self) -> dict[str, Any]:
-        """Sample balance update webhook payload."""
+        """Sample balance update webhook payload.
+
+        Returns:
+            Dictionary containing sample balance update webhook payload.
+        """
         return {
             "type": "balance.updated",
             "data": {"account_id": "acc_123", "balance": 125000, "currency": "GBP"},
@@ -50,7 +58,11 @@ class TestWebhookPayloadParsing:
     def test_parse_webhook_payload_transaction(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
-        """Test parsing transaction webhook."""
+        """Test parsing transaction webhook.
+
+        Args:
+            sample_transaction_payload: Sample transaction payload fixture.
+        """
         body = json.dumps(sample_transaction_payload)
 
         payload = parse_webhook_payload(body=body)
@@ -64,7 +76,11 @@ class TestWebhookPayloadParsing:
     def test_parse_webhook_payload_bytes_input(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
-        """Test parsing webhook with bytes input."""
+        """Test parsing webhook with bytes input.
+
+        Args:
+            sample_transaction_payload: Sample transaction payload fixture.
+        """
         body_bytes = json.dumps(sample_transaction_payload).encode("utf-8")
 
         payload = parse_webhook_payload(body=body_bytes)
@@ -75,7 +91,11 @@ class TestWebhookPayloadParsing:
     def test_parse_webhook_payload_balance_update(
         self, sample_balance_payload: dict[str, Any]
     ) -> None:
-        """Test parsing balance update webhook."""
+        """Test parsing balance update webhook.
+
+        Args:
+            sample_balance_payload: Sample balance payload fixture.
+        """
         body = json.dumps(sample_balance_payload)
 
         payload = parse_webhook_payload(body=body)
@@ -123,7 +143,11 @@ class TestTransactionWebhookParsing:
 
     @pytest.fixture
     def sample_transaction_payload(self) -> dict[str, Any]:
-        """Sample transaction webhook payload."""
+        """Sample transaction webhook payload.
+
+        Returns:
+            Dictionary containing sample transaction webhook payload.
+        """
         return {
             "type": "transaction.created",
             "data": {
@@ -145,7 +169,11 @@ class TestTransactionWebhookParsing:
     def test_parse_transaction_webhook_success(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
-        """Test successful transaction webhook parsing."""
+        """Test successful transaction webhook parsing.
+
+        Args:
+            sample_transaction_payload: Sample transaction payload fixture.
+        """
         body = json.dumps(sample_transaction_payload)
 
         transaction = parse_transaction_webhook(body=body)
@@ -188,7 +216,11 @@ class TestTransactionWebhookParsing:
     def test_parse_transaction_webhook_bytes_input(
         self, sample_transaction_payload: dict[str, Any]
     ) -> None:
-        """Test parsing transaction webhook with bytes input."""
+        """Test parsing transaction webhook with bytes input.
+
+        Args:
+            sample_transaction_payload: Sample transaction payload fixture.
+        """
         body_bytes = json.dumps(sample_transaction_payload).encode("utf-8")
 
         transaction = parse_transaction_webhook(body=body_bytes)

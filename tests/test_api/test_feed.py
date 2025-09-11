@@ -10,7 +10,11 @@ class TestFeedAPI:
     """Test FeedAPI."""
 
     def test_init(self, monzo_client: Any) -> None:
-        """Test client initialization."""
+        """Test client initialization.
+
+        Args:
+            monzo_client: Monzo client fixture.
+        """
         api = FeedAPI(monzo_client._base_client)
         assert api.client is monzo_client._base_client
 
@@ -20,7 +24,13 @@ class TestFeedAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test create item with minimal parameters."""
+        """Test create item with minimal parameters.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(json_data={})
         monzo_client._base_client._post.return_value = mock_response
 
@@ -46,7 +56,13 @@ class TestFeedAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test create item with all parameters."""
+        """Test create item with all parameters.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(json_data={})
         monzo_client._base_client._post.return_value = mock_response
 
@@ -83,7 +99,13 @@ class TestFeedAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test create item with some optional parameters."""
+        """Test create item with some optional parameters.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(json_data={})
         monzo_client._base_client._post.return_value = mock_response
 

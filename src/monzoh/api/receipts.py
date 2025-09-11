@@ -5,14 +5,13 @@ from ..models import Receipt, ReceiptResponse
 
 
 class ReceiptsAPI:
-    """Receipts API client."""
+    """Receipts API client.
+
+    Args:
+        client: Base API client
+    """
 
     def __init__(self, client: BaseSyncClient) -> None:
-        """Initialize receipts API.
-
-        Args:
-            client: Base API client
-        """
         self.client = client
 
     def create(self, receipt: Receipt) -> str:

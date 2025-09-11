@@ -4,7 +4,13 @@ from typing import Any
 
 
 class MonzoError(Exception):
-    """Base exception for all Monzo API errors."""
+    """Base exception for all Monzo API errors.
+
+    Args:
+        message: Error message
+        status_code: HTTP status code if available
+        response_data: API response data if available
+    """
 
     def __init__(
         self,
@@ -12,13 +18,6 @@ class MonzoError(Exception):
         status_code: int | None = None,
         response_data: dict[str, Any] | None = None,
     ) -> None:
-        """Initialize MonzoError.
-
-        Args:
-            message: Error message
-            status_code: HTTP status code if available
-            response_data: API response data if available
-        """
         self.original_message = message
         self.status_code = status_code
         self.response_data = response_data or {}
@@ -29,7 +28,11 @@ class MonzoError(Exception):
         self.message = friendly_message
 
     def _create_friendly_message(self) -> str:
-        """Create a user-friendly error message."""
+        """Create a user-friendly error message.
+
+        Returns:
+            User-friendly error message
+        """
         # Extract meaningful information from response data
         if isinstance(self.response_data, dict):
             # Try to get the main error message
@@ -63,7 +66,11 @@ class MonzoAuthenticationError(MonzoError):
     """Authentication-related errors (401, 403)."""
 
     def _create_friendly_message(self) -> str:
-        """Create a user-friendly authentication error message."""
+        """Create a user-friendly authentication error message.
+
+        Returns:
+            User-friendly authentication error message
+        """
         # First try the parent's logic
         base_message = super()._create_friendly_message()
 
@@ -120,7 +127,11 @@ class MonzoRateLimitError(MonzoError):
     """Rate limit exceeded error (429)."""
 
     def _create_friendly_message(self) -> str:
-        """Create a user-friendly rate limit error message."""
+        """Create a user-friendly rate limit error message.
+
+        Returns:
+            User-friendly rate limit error message
+        """
         return (
             "Rate limit exceeded: You're making requests too quickly. "
             "Please wait a moment and try again."
@@ -143,7 +154,11 @@ class MonzoNetworkError(MonzoError):
     """Network-related errors."""
 
     def _create_friendly_message(self) -> str:
-        """Create a user-friendly network error message."""
+        """Create a user-friendly network error message.
+
+        Returns:
+            User-friendly network error message
+        """
         if "timeout" in self.original_message.lower():
             return (
                 "Request timed out: The Monzo API is not responding. "
@@ -169,7 +184,16 @@ class MonzoValidationError(MonzoError):
 def create_error_from_response(
     status_code: int, message: str, response_data: dict[str, Any] | None = None
 ) -> MonzoError:
-    """Create appropriate exception based on HTTP status code."""
+    """Create appropriate exception based on HTTP status code.
+
+    Args:
+        status_code: HTTP status code
+        message: Error message
+        response_data: Optional API response data
+
+    Returns:
+        Appropriate exception instance based on status code
+    """
     error_map = {
         400: MonzoBadRequestError,
         401: MonzoAuthenticationError,

@@ -11,14 +11,13 @@ from ..models import Transaction, TransactionResponse, TransactionsResponse
 
 
 class TransactionsAPI:
-    """Transactions API client."""
+    """Transactions API client.
+
+    Args:
+        client: Base API client
+    """
 
     def __init__(self, client: BaseSyncClient) -> None:
-        """Initialize transactions API.
-
-        Args:
-            client: Base API client
-        """
         self.client = client
 
     def list(

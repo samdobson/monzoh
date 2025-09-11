@@ -17,15 +17,14 @@ QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
 
 
 class AsyncMockResponse:
-    """Async mock HTTP response for testing purposes."""
+    """Async mock HTTP response for testing purposes.
+
+    Args:
+        json_data: JSON data to return
+        status_code: HTTP status code to simulate
+    """
 
     def __init__(self, json_data: dict[str, Any], status_code: int = 200):
-        """Initialize AsyncMockResponse.
-
-        Args:
-            json_data: JSON data to return
-            status_code: HTTP status code to simulate
-        """
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
@@ -44,13 +43,26 @@ class AsyncMockResponse:
         return self._json_data
 
     def raise_for_status(self) -> None:
-        """Mock implementation of raise_for_status."""
+        """Mock implementation of raise_for_status.
+
+        Raises:
+            Exception: If status code indicates an error (>= 400)
+        """
         if self.status_code >= 400:
             raise Exception(f"HTTP {self.status_code} error")
 
 
 class BaseAsyncClient:
-    """Asynchronous base HTTP client for Monzo API operations."""
+    """Asynchronous base HTTP client for Monzo API operations.
+
+    Args:
+        access_token: OAuth access token
+        http_client: Optional httpx async client to use
+        timeout: Request timeout in seconds
+
+    Attributes:
+        BASE_URL: Base URL for Monzo API endpoints
+    """
 
     BASE_URL = "https://api.monzo.com"
 
@@ -60,13 +72,6 @@ class BaseAsyncClient:
         http_client: httpx.AsyncClient | None = None,
         timeout: float = 30.0,
     ) -> None:
-        """Initialize base async client.
-
-        Args:
-            access_token: OAuth access token
-            http_client: Optional httpx async client to use
-            timeout: Request timeout in seconds
-        """
         self.access_token = access_token
         self._http_client = http_client
         self._own_client = http_client is None
@@ -74,7 +79,11 @@ class BaseAsyncClient:
 
     @property
     def http_client(self) -> httpx.AsyncClient:
-        """Get or create HTTP client."""
+        """Get or create HTTP client.
+
+        Returns:
+            The httpx async client instance
+        """
         if self._http_client is None:
             self._http_client = httpx.AsyncClient(
                 timeout=self._timeout, headers={"User-Agent": "monzoh-python-client"}
@@ -83,20 +92,38 @@ class BaseAsyncClient:
 
     @property
     def auth_headers(self) -> dict[str, str]:
-        """Get authorization headers."""
+        """Get authorization headers.
+
+        Returns:
+            Dictionary containing authorization headers
+        """
         return {"Authorization": f"Bearer {self.access_token}"}
 
     @property
     def is_mock_mode(self) -> bool:
-        """Check if client is in mock mode (using 'test' as access token)."""
+        """Check if client is in mock mode (using 'test' as access token).
+
+        Returns:
+            True if client is in mock mode, False otherwise
+        """
         return self.access_token == "test"
 
     async def __aenter__(self) -> BaseAsyncClient:
-        """Async context manager entry."""
+        """Async context manager entry.
+
+        Returns:
+            The client instance
+        """
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Async context manager exit."""
+        """Async context manager exit.
+
+        Args:
+            exc_type: Exception type
+            exc_val: Exception value
+            exc_tb: Exception traceback
+        """
         if self._own_client and self._http_client:
             await self._http_client.aclose()
 
@@ -125,7 +152,8 @@ class BaseAsyncClient:
             HTTP response
 
         Raises:
-            MonzoError: If request fails
+            MonzoNetworkError: If network request fails
+            create_error_from_response: If API returns an error response
         """
         # Return mock data if using test token
         if self.is_mock_mode:
@@ -177,7 +205,16 @@ class BaseAsyncClient:
         params: QueryParamsType = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
-        """Make GET request."""
+        """Make GET request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            params: URL parameters
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return await self._request("GET", endpoint, params=params, headers=headers)
 
     async def _post(
@@ -188,7 +225,18 @@ class BaseAsyncClient:
         files: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
-        """Make POST request."""
+        """Make POST request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            data: Form data
+            json_data: JSON data
+            files: File uploads
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return await self._request(
             "POST",
             endpoint,
@@ -205,7 +253,17 @@ class BaseAsyncClient:
         json_data: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
-        """Make PUT request."""
+        """Make PUT request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            data: Form data
+            json_data: JSON data
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return await self._request(
             "PUT", endpoint, data=data, json_data=json_data, headers=headers
         )
@@ -216,7 +274,16 @@ class BaseAsyncClient:
         data: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
-        """Make PATCH request."""
+        """Make PATCH request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            data: Form data
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return await self._request("PATCH", endpoint, data=data, headers=headers)
 
     async def _delete(
@@ -225,7 +292,16 @@ class BaseAsyncClient:
         params: QueryParamsType = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
-        """Make DELETE request."""
+        """Make DELETE request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            params: URL parameters
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return await self._request("DELETE", endpoint, params=params, headers=headers)
 
     async def whoami(self) -> WhoAmI:

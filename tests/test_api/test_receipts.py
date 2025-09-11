@@ -10,7 +10,11 @@ class TestReceiptsAPI:
     """Test ReceiptsAPI."""
 
     def test_init(self, monzo_client: Any) -> None:
-        """Test client initialization."""
+        """Test client initialization.
+
+        Args:
+            monzo_client: Monzo client fixture.
+        """
         api = ReceiptsAPI(monzo_client._base_client)
         assert api.client is monzo_client._base_client
 
@@ -20,7 +24,13 @@ class TestReceiptsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test create receipt."""
+        """Test create receipt.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         response_data = {"receipt_id": "receipt_123"}
         mock_response = mock_response(json_data=response_data)
         monzo_client._base_client._put.return_value = mock_response
@@ -68,7 +78,13 @@ class TestReceiptsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test create receipt with no receipt_id returned."""
+        """Test create receipt with no receipt_id returned.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         response_data: dict[str, Any] = {}
         mock_response = mock_response(json_data=response_data)
         monzo_client._base_client._put.return_value = mock_response
@@ -96,7 +112,13 @@ class TestReceiptsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test create receipt with non-string receipt_id."""
+        """Test create receipt with non-string receipt_id.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         response_data = {"receipt_id": 12345}
         mock_response = mock_response(json_data=response_data)
         monzo_client._base_client._put.return_value = mock_response
@@ -124,7 +146,13 @@ class TestReceiptsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test retrieve receipt."""
+        """Test retrieve receipt.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         receipt_data = {
             "external_id": "tx_00008zIcpb1TB4yeIFXMzx",
             "transaction_id": "tx_00008zIcpb1TB4yeIFXMzx",
@@ -156,7 +184,13 @@ class TestReceiptsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test delete receipt."""
+        """Test delete receipt.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(json_data={})
         monzo_client._base_client._delete.return_value = mock_response
 

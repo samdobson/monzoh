@@ -5,14 +5,13 @@ from ..models import Account, AccountsResponse, Balance
 
 
 class AsyncAccountsAPI:
-    """Async accounts API client."""
+    """Async accounts API client.
+
+    Args:
+        client: Base async API client
+    """
 
     def __init__(self, client: BaseAsyncClient) -> None:
-        """Initialize async accounts API.
-
-        Args:
-            client: Base async API client
-        """
         self.client = client
 
     async def list(self, account_type: str | None = None) -> list[Account]:

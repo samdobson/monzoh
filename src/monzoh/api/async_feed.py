@@ -5,14 +5,13 @@ from ..models.feed import FeedItemParams
 
 
 class AsyncFeedAPI:
-    """Async feed Items API client."""
+    """Async feed Items API client.
+
+    Args:
+        client: Base async API client
+    """
 
     def __init__(self, client: BaseAsyncClient) -> None:
-        """Initialize async feed API.
-
-        Args:
-            client: Base async API client
-        """
         self.client = client
 
     async def create_item(

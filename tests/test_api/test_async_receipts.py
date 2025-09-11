@@ -15,7 +15,14 @@ class TestAsyncReceiptsAPI:
 
     @pytest.fixture
     def receipts_api(self, mock_async_base_client: BaseAsyncClient) -> AsyncReceiptsAPI:
-        """Create async receipts API instance."""
+        """Create async receipts API instance.
+
+        Args:
+            mock_async_base_client: Mock async base client fixture.
+
+        Returns:
+            AsyncReceiptsAPI instance.
+        """
         return AsyncReceiptsAPI(mock_async_base_client)
 
     @pytest.mark.asyncio
@@ -24,7 +31,12 @@ class TestAsyncReceiptsAPI:
         receipts_api: AsyncReceiptsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test create receipt."""
+        """Test create receipt.
+
+        Args:
+            receipts_api: Async receipts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         response_data = {"receipt_id": "receipt_123"}
         cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
             response_data
@@ -76,7 +88,12 @@ class TestAsyncReceiptsAPI:
         receipts_api: AsyncReceiptsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test create receipt with no receipt_id returned."""
+        """Test create receipt with no receipt_id returned.
+
+        Args:
+            receipts_api: Async receipts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         response_data: dict[str, Any] = {}
         cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
             response_data
@@ -104,7 +121,12 @@ class TestAsyncReceiptsAPI:
         receipts_api: AsyncReceiptsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test create receipt with non-string receipt_id."""
+        """Test create receipt with non-string receipt_id.
+
+        Args:
+            receipts_api: Async receipts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         response_data = {"receipt_id": 12345}
         cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
             response_data
@@ -132,7 +154,12 @@ class TestAsyncReceiptsAPI:
         receipts_api: AsyncReceiptsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test retrieve receipt."""
+        """Test retrieve receipt.
+
+        Args:
+            receipts_api: Async receipts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         receipt_data = {
             "external_id": "tx_00008zIcpb1TB4yeIFXMzx",
             "transaction_id": "tx_00008zIcpb1TB4yeIFXMzx",
@@ -167,7 +194,12 @@ class TestAsyncReceiptsAPI:
         receipts_api: AsyncReceiptsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test delete receipt."""
+        """Test delete receipt.
+
+        Args:
+            receipts_api: Async receipts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         await receipts_api.delete("tx_00008zIcpb1TB4yeIFXMzx")
 
         cast(Mock, mock_async_base_client._delete).assert_called_once_with(

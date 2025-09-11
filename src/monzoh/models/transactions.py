@@ -42,7 +42,27 @@ class Merchant(BaseModel):
 
 
 class Transaction(BaseModel):
-    """Represents a transaction."""
+    """Represents a transaction.
+
+    Args:
+        **data: Transaction data fields
+
+    Attributes:
+        id: Unique transaction identifier
+        amount: Amount in minor units of the currency (negative for debits)
+        created: Transaction creation timestamp
+        currency: ISO 4217 currency code (e.g., 'GBP')
+        description: Transaction description from payment processor
+        account_balance: Account balance after transaction in minor units (optional)
+        category: Transaction category (e.g., 'eating_out', 'transport') (optional)
+        is_load: Whether this is a top-up transaction
+        settled: Settlement timestamp when transaction completed (optional)
+        merchant: Merchant ID or expanded merchant object (optional)
+        metadata: Custom key-value metadata
+        notes: User-added notes for the transaction (optional)
+        decline_reason: Reason for transaction decline (optional, declined only)
+        model_config: Pydantic model configuration
+    """
 
     id: str = Field(..., description="Unique transaction identifier")
     amount: int = Field(
@@ -101,20 +121,26 @@ class Transaction(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     def __init__(self, **data: Any) -> None:
-        """Initialize Transaction model.
-
-        Args:
-            **data: Transaction data fields
-        """
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
     def model_post_init(self, __context: Any) -> None:
-        """Post-init hook to set up client if available."""
+        """Post-init hook to set up client if available.
+
+        Args:
+            __context: Pydantic context
+        """
         super().model_post_init(__context)
 
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
-        """Ensure client is available for API calls."""
+        """Ensure client is available for API calls.
+
+        Returns:
+            The client instance
+
+        Raises:
+            RuntimeError: If no client is available
+        """
         if self._client is None:
             raise RuntimeError(
                 "No client available. Transaction must be retrieved from MonzoClient "
@@ -123,7 +149,14 @@ class Transaction(BaseModel):
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Transaction:
-        """Set the client for this transaction instance."""
+        """Set the client for this transaction instance.
+
+        Args:
+            client: The client instance to set
+
+        Returns:
+            The transaction instance with client set
+        """
         self._client = client
         return self
 
@@ -260,6 +293,9 @@ class Transaction(BaseModel):
 
         Returns:
             Updated transaction
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
 
@@ -293,6 +329,9 @@ class Transaction(BaseModel):
 
         Returns:
             Refreshed transaction
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
 
@@ -313,7 +352,14 @@ class Transaction(BaseModel):
     @field_validator("settled", mode="before")
     @classmethod
     def validate_settled(cls, v: str | None) -> str | None:
-        """Convert empty strings to None for settled field."""
+        """Convert empty strings to None for settled field.
+
+        Args:
+            v: The settled field value
+
+        Returns:
+            None if empty string, otherwise returns input unchanged
+        """
         if v == "":
             return None
         return v

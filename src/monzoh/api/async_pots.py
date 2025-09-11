@@ -8,14 +8,13 @@ from ..models.base import convert_amount_to_minor_units
 
 
 class AsyncPotsAPI:
-    """Async pots API client."""
+    """Async pots API client.
+
+    Args:
+        client: Base async API client
+    """
 
     def __init__(self, client: BaseAsyncClient) -> None:
-        """Initialize async pots API.
-
-        Args:
-            client: Base async API client
-        """
         self.client = client
 
     async def list(self, current_account_id: str) -> list[Pot]:

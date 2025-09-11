@@ -17,7 +17,23 @@ if TYPE_CHECKING:
 
 
 class Pot(BaseModel):
-    """Represents a pot."""
+    """Represents a pot.
+
+    Args:
+        **data: Pot data fields
+
+    Attributes:
+        id: Unique pot identifier
+        name: User-defined pot name
+        style: Pot visual style/theme (e.g., 'beach_ball', 'blue')
+        balance: Pot balance in major units of the currency
+        currency: ISO 4217 currency code
+        created: Pot creation timestamp
+        updated: Last pot update timestamp
+        deleted: Whether the pot is deleted
+        account_id: Associated account identifier (optional)
+        model_config: Pydantic model configuration
+    """
 
     id: str = Field(..., description="Unique pot identifier")
     name: str = Field(..., description="User-defined pot name")
@@ -40,11 +56,6 @@ class Pot(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     def __init__(self, **data: Any) -> None:
-        """Initialize Pot model.
-
-        Args:
-            **data: Pot data fields
-        """
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
         self._source_account_id: str | None = None
@@ -171,6 +182,9 @@ class Pot(BaseModel):
 
         Returns:
             Updated pot
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
 
@@ -217,6 +231,9 @@ class Pot(BaseModel):
 
         Returns:
             Updated pot
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
 

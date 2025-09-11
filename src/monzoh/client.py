@@ -19,7 +19,11 @@ from .models import WhoAmI
 
 
 def _load_cached_token() -> str | None:
-    """Load access token from cache, refreshing if expired."""
+    """Load access token from cache, refreshing if expired.
+
+    Returns:
+        Access token if available, None otherwise
+    """
     try:
         from rich.console import Console
 
@@ -65,7 +69,14 @@ def _load_cached_token() -> str | None:
 
 
 class MonzoClient:
-    """Main Monzo API client."""
+    """Main Monzo API client.
+
+    Args:
+        access_token: OAuth access token. If not provided, will attempt to
+            load from cache.
+        http_client: Optional httpx client to use
+        timeout: Request timeout in seconds
+    """
 
     def __init__(
         self,
@@ -73,14 +84,6 @@ class MonzoClient:
         http_client: httpx.Client | None = None,
         timeout: float = 30.0,
     ) -> None:
-        """Initialize Monzo client.
-
-        Args:
-            access_token: OAuth access token. If not provided, will attempt to
-                load from cache.
-            http_client: Optional httpx client to use
-            timeout: Request timeout in seconds
-        """
         effective_token = access_token or _load_cached_token()
 
         self._base_client = BaseSyncClient(
@@ -97,12 +100,22 @@ class MonzoClient:
         self.webhooks = WebhooksAPI(self._base_client)
 
     def __enter__(self) -> "MonzoClient":
-        """Context manager entry."""
+        """Context manager entry.
+
+        Returns:
+            Self instance
+        """
         self._base_client.__enter__()
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Context manager exit."""
+        """Context manager exit.
+
+        Args:
+            exc_type: Exception type
+            exc_val: Exception value
+            exc_tb: Exception traceback
+        """
         self._base_client.__exit__(exc_type, exc_val, exc_tb)
 
     def set_access_token(self, access_token: str) -> None:
@@ -114,7 +127,11 @@ class MonzoClient:
         self._base_client.access_token = access_token
 
     def whoami(self) -> WhoAmI:
-        """Get information about the current access token."""
+        """Get information about the current access token.
+
+        Returns:
+            Information about the current access token
+        """
         return self._base_client.whoami()
 
     @classmethod

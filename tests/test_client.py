@@ -15,13 +15,21 @@ class TestMonzoClient:
     """Test MonzoClient."""
 
     def test_init(self, mock_http_client: Any) -> None:
-        """Test client initialization."""
+        """Test client initialization.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         client = MonzoClient("test_token", http_client=mock_http_client)
         assert client._base_client.access_token == "test_token"
         assert client._base_client._http_client is mock_http_client
 
     def test_context_manager(self, mock_http_client: Any) -> None:
-        """Test sync context manager."""
+        """Test sync context manager.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         with MonzoClient("test_token", http_client=mock_http_client) as client:
             assert isinstance(client, MonzoClient)
 
@@ -31,7 +39,13 @@ class TestMonzoClient:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test whoami endpoint."""
+        """Test whoami endpoint.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(
             json_data={
                 "authenticated": True,
@@ -48,7 +62,11 @@ class TestMonzoClient:
         assert result.user_id == "test_user_id"
 
     def test_create_oauth_client(self, mock_http_client: Any) -> None:
-        """Test OAuth client creation."""
+        """Test OAuth client creation.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoClient.create_oauth_client(
             client_id="test_id",
             client_secret="test_secret",
@@ -66,7 +84,11 @@ class TestOAuthClient:
     """Test OAuth client."""
 
     def test_init(self, mock_http_client: Any) -> None:
-        """Test OAuth client initialization."""
+        """Test OAuth client initialization.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_id",
             client_secret="test_secret",
@@ -79,7 +101,11 @@ class TestOAuthClient:
         assert oauth.redirect_uri == "https://example.com/callback"
 
     def test_get_authorization_url(self, oauth_client: Any) -> None:
-        """Test authorization URL generation."""
+        """Test authorization URL generation.
+
+        Args:
+            oauth_client: OAuth client fixture.
+        """
         url = oauth_client.get_authorization_url(state="test_state")
 
         assert url.startswith("https://auth.monzo.com/?")
@@ -94,7 +120,13 @@ class TestOAuthClient:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test code exchange for token."""
+        """Test code exchange for token.
+
+        Args:
+            oauth_client: OAuth client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(
             json_data={
                 "access_token": "access_token",
@@ -124,7 +156,13 @@ class TestOAuthClient:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test code exchange error handling."""
+        """Test code exchange error handling.
+
+        Args:
+            oauth_client: OAuth client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(status_code=400)
         mock_http_client.post.return_value = mock_response
 
@@ -137,7 +175,13 @@ class TestOAuthClient:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test token refresh."""
+        """Test token refresh.
+
+        Args:
+            oauth_client: OAuth client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(
             json_data={
                 "access_token": "new_access_token",
@@ -161,7 +205,13 @@ class TestOAuthClient:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test logout."""
+        """Test logout.
+
+        Args:
+            oauth_client: OAuth client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response()
         mock_http_client.post.return_value = mock_response
 

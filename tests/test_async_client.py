@@ -15,14 +15,22 @@ class TestAsyncMonzoClient:
     """Test AsyncMonzoClient."""
 
     def test_init(self, mock_async_http_client: Any) -> None:
-        """Test client initialization."""
+        """Test client initialization.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         client = AsyncMonzoClient("test_token", http_client=mock_async_http_client)
         assert client._base_client.access_token == "test_token"
         assert client._base_client._http_client is mock_async_http_client
 
     @pytest.mark.asyncio
     async def test_context_manager(self, mock_async_http_client: Any) -> None:
-        """Test async context manager."""
+        """Test async context manager.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         async with AsyncMonzoClient(
             "test_token", http_client=mock_async_http_client
         ) as client:
@@ -35,7 +43,13 @@ class TestAsyncMonzoClient:
         mock_async_http_client: Any,
         mock_async_response: Any,
     ) -> None:
-        """Test whoami endpoint."""
+        """Test whoami endpoint.
+
+        Args:
+            async_monzo_client: Async Monzo client fixture.
+            mock_async_http_client: Mock async HTTP client fixture.
+            mock_async_response: Mock async response fixture.
+        """
         mock_response = mock_async_response(
             json_data={
                 "authenticated": True,
@@ -52,7 +66,11 @@ class TestAsyncMonzoClient:
         assert result.user_id == "test_user_id"
 
     def test_create_oauth_client(self, mock_async_http_client: Any) -> None:
-        """Test OAuth client creation."""
+        """Test OAuth client creation.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         oauth_client = AsyncMonzoClient.create_oauth_client(
             client_id="test_id",
             client_secret="test_secret",
@@ -66,7 +84,11 @@ class TestAsyncMonzoClient:
 
     @pytest.mark.asyncio
     async def test_token_loading_from_cache(self, mock_async_http_client: Any) -> None:
-        """Test loading token from cache."""
+        """Test loading token from cache.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         with patch("monzoh.async_client._load_cached_token") as mock_load:
             mock_load.return_value = "cached_token"
 
@@ -77,7 +99,11 @@ class TestAsyncMonzoClient:
     async def test_init_without_token_raises_error(
         self, mock_async_http_client: Any
     ) -> None:
-        """Test initialization without token raises error."""
+        """Test initialization without token raises error.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         with patch("monzoh.async_client._load_cached_token") as mock_load:
             mock_load.return_value = None
 
@@ -86,7 +112,11 @@ class TestAsyncMonzoClient:
 
     @pytest.mark.asyncio
     async def test_api_endpoints_initialized(self, mock_async_http_client: Any) -> None:
-        """Test that all API endpoints are initialized."""
+        """Test that all API endpoints are initialized.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         client = AsyncMonzoClient("test_token", http_client=mock_async_http_client)
 
         # Check that all async API endpoints are initialized
@@ -155,7 +185,11 @@ class TestBaseAsyncClient:
 
     @pytest.mark.asyncio
     async def test_network_error_handling(self, mock_async_http_client: Any) -> None:
-        """Test network error handling."""
+        """Test network error handling.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         mock_async_http_client.request.side_effect = httpx.RequestError("Network error")
 
         client = BaseAsyncClient(
@@ -167,7 +201,11 @@ class TestBaseAsyncClient:
 
     @pytest.mark.asyncio
     async def test_http_error_handling(self, mock_async_http_client: Any) -> None:
-        """Test HTTP error handling."""
+        """Test HTTP error handling.
+
+        Args:
+            mock_async_http_client: Mock async HTTP client fixture.
+        """
         error_response = Mock(spec=httpx.Response)
         error_response.status_code = 400
         error_response.text = "Bad request"

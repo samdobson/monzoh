@@ -16,7 +16,14 @@ class TestAccountsAPI:
         mock_response: Any,
         sample_account: dict[str, Any],
     ) -> None:
-        """Test listing accounts."""
+        """Test listing accounts.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_account: Sample account data fixture.
+        """
         mock_response = mock_response(json_data={"accounts": [sample_account]})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -38,7 +45,14 @@ class TestAccountsAPI:
         mock_response: Any,
         sample_account: dict[str, Any],
     ) -> None:
-        """Test listing accounts with account type filter."""
+        """Test listing accounts with account type filter.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_account: Sample account data fixture.
+        """
         mock_response = mock_response(json_data={"accounts": [sample_account]})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -57,7 +71,14 @@ class TestAccountsAPI:
         mock_response: Any,
         sample_balance: dict[str, Any],
     ) -> None:
-        """Test getting account balance."""
+        """Test getting account balance.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_balance: Sample balance data fixture.
+        """
         mock_response = mock_response(json_data=sample_balance)
         monzo_client._base_client._get.return_value = mock_response
 

@@ -5,14 +5,13 @@ from ..models import Webhook, WebhookResponse, WebhooksResponse
 
 
 class AsyncWebhooksAPI:
-    """Async webhooks API client."""
+    """Async webhooks API client.
+
+    Args:
+        client: Base async API client
+    """
 
     def __init__(self, client: BaseAsyncClient) -> None:
-        """Initialize async webhooks API.
-
-        Args:
-            client: Base async API client
-        """
         self.client = client
 
     async def register(self, account_id: str, url: str) -> Webhook:

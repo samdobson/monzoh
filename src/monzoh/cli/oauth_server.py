@@ -65,14 +65,13 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
 
 
 class OAuthCallbackServer(HTTPServer):
-    """HTTP server for handling OAuth callbacks."""
+    """HTTP server for handling OAuth callbacks.
+
+    Args:
+        server_address: Server address tuple (host, port)
+    """
 
     def __init__(self, server_address: tuple) -> None:
-        """Initialize OAuth callback server.
-
-        Args:
-            server_address: Server address tuple (host, port)
-        """
         super().__init__(server_address, OAuthCallbackHandler)
         self.auth_code: str | None = None
         self.state: str | None = None

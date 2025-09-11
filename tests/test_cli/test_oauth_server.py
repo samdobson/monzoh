@@ -24,7 +24,11 @@ class TestOAuthCallbackServer:
 
     @patch("monzoh.cli.oauth_server.HTTPServer.__init__")
     def test_init(self, mock_init: Any) -> None:
-        """Test server initialization."""
+        """Test server initialization.
+
+        Args:
+            mock_init: Mock __init__ method fixture.
+        """
         mock_init.return_value = (
             None  # Mock the parent __init__ to avoid socket binding
         )
@@ -50,7 +54,12 @@ class TestStartCallbackServer:
     def test_start_callback_server(
         self, mock_server_class: Any, mock_thread: Any
     ) -> None:
-        """Test starting callback server."""
+        """Test starting callback server.
+
+        Args:
+            mock_server_class: Mock server class fixture.
+            mock_thread: Mock thread fixture.
+        """
         mock_server = Mock()
         mock_server_class.return_value = mock_server
         mock_thread_instance = Mock()

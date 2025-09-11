@@ -10,7 +10,11 @@ class TestWebhooksAPI:
     """Test WebhooksAPI."""
 
     def test_init(self, monzo_client: Any) -> None:
-        """Test client initialization."""
+        """Test client initialization.
+
+        Args:
+            monzo_client: Monzo client fixture.
+        """
         api = WebhooksAPI(monzo_client._base_client)
         assert api.client is monzo_client._base_client
 
@@ -20,7 +24,13 @@ class TestWebhooksAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test register webhook."""
+        """Test register webhook.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         webhook_data = {
             "id": "webhook_000091yhhOmrXQaVZ1Irsv",
             "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -46,7 +56,13 @@ class TestWebhooksAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test list webhooks."""
+        """Test list webhooks.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         webhook_data = [
             {
                 "id": "webhook_000091yhhOmrXQaVZ1Irsv",
@@ -78,7 +94,13 @@ class TestWebhooksAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test list webhooks with empty result."""
+        """Test list webhooks with empty result.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         response_data: dict[str, Any] = {"webhooks": []}
         mock_response = mock_response(json_data=response_data)
         monzo_client._base_client._get.return_value = mock_response
@@ -95,7 +117,13 @@ class TestWebhooksAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test delete webhook."""
+        """Test delete webhook.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(json_data={})
         monzo_client._base_client._delete.return_value = mock_response
 

@@ -41,7 +41,7 @@ dev = [
     "nox>=2023.4.22",
     "pydocstyle>=6.3.0",
     "interrogate>=1.7.0",
-    "darglint>=1.8.1",
+    "pydoclint>=0.3.0",
 ]
 
 [project.scripts]
@@ -129,8 +129,8 @@ quiet = false
 whitelist-regex = []
 color = true
 
-[tool.darglint]
-docstring_style = "google"
-strictness = "short"
-ignore = "DAR101,DAR201,DAR401,DAR402"
+[tool.pydoclint]
+style = "google"
+arg-type-hints-in-docstring = false
+check-return-types = false
 

@@ -13,7 +13,11 @@ from monzoh.core.async_base import BaseAsyncClient
 
 @pytest.fixture
 def mock_response() -> Callable[..., Mock]:
-    """Create a mock httpx response factory."""
+    """Create a mock httpx response factory.
+
+    Returns:
+        A callable that creates mock httpx Response objects.
+    """
 
     def create_response(
         status_code: int = 200, json_data: dict[str, Any] | None = None
@@ -29,7 +33,14 @@ def mock_response() -> Callable[..., Mock]:
 
 @pytest.fixture
 def mock_http_client(mock_response: Callable[..., Mock]) -> Mock:
-    """Create a mock HTTP client."""
+    """Create a mock HTTP client.
+
+    Args:
+        mock_response: Mock response factory fixture.
+
+    Returns:
+        A mock HTTP client.
+    """
     client = Mock(spec=httpx.Client)
     default_response = mock_response(200, {})
     client.request.return_value = default_response
@@ -46,7 +57,15 @@ def mock_http_client(mock_response: Callable[..., Mock]) -> Mock:
 def monzo_client(
     mock_http_client: Mock, mock_response: Callable[..., Mock]
 ) -> MonzoClient:
-    """Create a Monzo client with mocked HTTP client."""
+    """Create a Monzo client with mocked HTTP client.
+
+    Args:
+        mock_http_client: Mock HTTP client fixture.
+        mock_response: Mock response factory fixture.
+
+    Returns:
+        A MonzoClient instance with mocked dependencies.
+    """
     client = MonzoClient(access_token="test_token", http_client=mock_http_client)
     default_response = mock_response()
 
@@ -61,7 +80,14 @@ def monzo_client(
 
 @pytest.fixture
 def oauth_client(mock_http_client: Mock) -> MonzoOAuth:
-    """Create a Monzo OAuth client with mocked HTTP client."""
+    """Create a Monzo OAuth client with mocked HTTP client.
+
+    Args:
+        mock_http_client: Mock HTTP client fixture.
+
+    Returns:
+        A MonzoOAuth instance with mocked dependencies.
+    """
     return MonzoOAuth(
         client_id="test_client_id",
         client_secret="test_client_secret",
@@ -72,7 +98,11 @@ def oauth_client(mock_http_client: Mock) -> MonzoOAuth:
 
 @pytest.fixture
 def sample_account() -> dict[str, Any]:
-    """Sample account data."""
+    """Sample account data.
+
+    Returns:
+        A dictionary containing sample account data.
+    """
     return {
         "id": "acc_00009237aqC8c5umZmrRdh",
         "description": "Peter Pan's Account",
@@ -82,13 +112,21 @@ def sample_account() -> dict[str, Any]:
 
 @pytest.fixture
 def sample_balance() -> dict[str, Any]:
-    """Sample balance data."""
+    """Sample balance data.
+
+    Returns:
+        A dictionary containing sample balance data.
+    """
     return {"balance": 5000, "total_balance": 6000, "currency": "GBP", "spend_today": 0}
 
 
 @pytest.fixture
 def sample_transaction() -> dict[str, Any]:
-    """Sample transaction data."""
+    """Sample transaction data.
+
+    Returns:
+        A dictionary containing sample transaction data.
+    """
     return {
         "id": "tx_00008zIcpb1TB4yeIFXMzx",
         "amount": -510,
@@ -106,7 +144,11 @@ def sample_transaction() -> dict[str, Any]:
 
 @pytest.fixture
 def sample_pot() -> dict[str, Any]:
-    """Sample pot data."""
+    """Sample pot data.
+
+    Returns:
+        A dictionary containing sample pot data.
+    """
     return {
         "id": "pot_0000778xxfgh4iu8z83nWb",
         "name": "Savings",
@@ -122,7 +164,11 @@ def sample_pot() -> dict[str, Any]:
 # Async fixtures
 @pytest.fixture
 def mock_async_response() -> Callable[..., Mock]:
-    """Create a mock async response factory."""
+    """Create a mock async response factory.
+
+    Returns:
+        A callable that creates mock async response objects.
+    """
 
     def create_response(
         status_code: int = 200, json_data: dict[str, Any] | None = None
@@ -138,7 +184,14 @@ def mock_async_response() -> Callable[..., Mock]:
 
 @pytest.fixture
 def mock_async_http_client(mock_async_response: Callable[..., Mock]) -> Mock:
-    """Create a mock async HTTP client."""
+    """Create a mock async HTTP client.
+
+    Args:
+        mock_async_response: Mock async response factory fixture.
+
+    Returns:
+        A mock async HTTP client.
+    """
     client = Mock(spec=httpx.AsyncClient)
     default_response = mock_async_response(200, {})
 
@@ -155,7 +208,14 @@ def mock_async_http_client(mock_async_response: Callable[..., Mock]) -> Mock:
 
 @pytest.fixture
 def mock_async_base_client(mock_async_response: Callable[..., Mock]) -> Mock:
-    """Create mock async base client."""
+    """Create mock async base client.
+
+    Args:
+        mock_async_response: Mock async response factory fixture.
+
+    Returns:
+        A mock async base client.
+    """
     client = Mock(spec=BaseAsyncClient)
 
     # Set up default response
@@ -177,7 +237,15 @@ def mock_async_base_client(mock_async_response: Callable[..., Mock]) -> Mock:
 def async_monzo_client(
     mock_async_http_client: Mock, mock_async_response: Callable[..., Mock]
 ) -> AsyncMonzoClient:
-    """Create an async Monzo client with mocked HTTP client."""
+    """Create an async Monzo client with mocked HTTP client.
+
+    Args:
+        mock_async_http_client: Mock async HTTP client fixture.
+        mock_async_response: Mock async response factory fixture.
+
+    Returns:
+        An AsyncMonzoClient instance with mocked dependencies.
+    """
     client = AsyncMonzoClient(
         access_token="test_token", http_client=mock_async_http_client
     )

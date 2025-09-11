@@ -16,7 +16,14 @@ class TestAsyncTransactionsAPI:
     def transactions_api(
         self, mock_async_base_client: BaseAsyncClient
     ) -> AsyncTransactionsAPI:
-        """Create async transactions API instance."""
+        """Create async transactions API instance.
+
+        Args:
+            mock_async_base_client: Mock async base client fixture.
+
+        Returns:
+            AsyncTransactionsAPI instance.
+        """
         return AsyncTransactionsAPI(mock_async_base_client)
 
     @pytest.mark.asyncio
@@ -26,7 +33,13 @@ class TestAsyncTransactionsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_transaction: dict[str, Any],
     ) -> None:
-        """Test list transactions."""
+        """Test list transactions.
+
+        Args:
+            transactions_api: Async transactions API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "transactions": [sample_transaction]
         }
@@ -46,7 +59,13 @@ class TestAsyncTransactionsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_transaction: dict[str, Any],
     ) -> None:
-        """Test list transactions with pagination."""
+        """Test list transactions with pagination.
+
+        Args:
+            transactions_api: Async transactions API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "transactions": [sample_transaction]
         }
@@ -73,7 +92,13 @@ class TestAsyncTransactionsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_transaction: dict[str, Any],
     ) -> None:
-        """Test list transactions with expand."""
+        """Test list transactions with expand.
+
+        Args:
+            transactions_api: Async transactions API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "transactions": [sample_transaction]
         }
@@ -96,7 +121,13 @@ class TestAsyncTransactionsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_transaction: dict[str, Any],
     ) -> None:
-        """Test retrieve single transaction."""
+        """Test retrieve single transaction.
+
+        Args:
+            transactions_api: Async transactions API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "transaction": sample_transaction
         }
@@ -116,7 +147,13 @@ class TestAsyncTransactionsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_transaction: dict[str, Any],
     ) -> None:
-        """Test annotate transaction."""
+        """Test annotate transaction.
+
+        Args:
+            transactions_api: Async transactions API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         cast(Mock, mock_async_base_client._patch).return_value.json.return_value = {
             "transaction": sample_transaction
         }
@@ -140,7 +177,13 @@ class TestAsyncTransactionsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_transaction: dict[str, Any],
     ) -> None:
-        """Test annotate transaction with metadata deletion."""
+        """Test annotate transaction with metadata deletion.
+
+        Args:
+            transactions_api: Async transactions API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         cast(Mock, mock_async_base_client._patch).return_value.json.return_value = {
             "transaction": sample_transaction
         }

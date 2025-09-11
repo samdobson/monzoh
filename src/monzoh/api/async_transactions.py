@@ -11,14 +11,13 @@ from ..models import Transaction, TransactionResponse, TransactionsResponse
 
 
 class AsyncTransactionsAPI:
-    """Async transactions API client."""
+    """Async transactions API client.
+
+    Args:
+        client: Base async API client
+    """
 
     def __init__(self, client: BaseAsyncClient) -> None:
-        """Initialize async transactions API.
-
-        Args:
-            client: Base async API client
-        """
         self.client = client
 
     async def list(

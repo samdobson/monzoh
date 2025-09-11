@@ -26,10 +26,6 @@ def read_file_data(file_path: str | Path) -> bytes:
 
     Returns:
         File binary data
-
-    Raises:
-        FileNotFoundError: If the file doesn't exist
-        IOError: If there's an error reading the file
     """
     path = Path(file_path)
     with open(path, "rb") as f:

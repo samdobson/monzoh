@@ -16,7 +16,14 @@ class TestTransactionsAPI:
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
-        """Test listing transactions."""
+        """Test listing transactions.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -39,7 +46,14 @@ class TestTransactionsAPI:
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
-        """Test listing transactions with expand."""
+        """Test listing transactions with expand.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -66,7 +80,14 @@ class TestTransactionsAPI:
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
-        """Test listing transactions with pagination."""
+        """Test listing transactions with pagination.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -92,7 +113,14 @@ class TestTransactionsAPI:
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
-        """Test retrieving a single transaction."""
+        """Test retrieving a single transaction.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         mock_response = mock_response(json_data={"transaction": sample_transaction})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -112,7 +140,14 @@ class TestTransactionsAPI:
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
-        """Test annotating a transaction."""
+        """Test annotating a transaction.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_transaction: Sample transaction data fixture.
+        """
         updated_transaction = sample_transaction.copy()
         updated_transaction["metadata"] = {"foo": "bar"}
 
