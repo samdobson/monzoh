@@ -49,19 +49,19 @@ Represents account balance information.
 
 ```python
 class Balance(BaseModel):
-    balance: int                                    # Current balance in minor currency units (pence)
+    balance: float                                  # Current balance in major currency units (pounds)
     total_balance: int                              # Total balance including pending transactions
     currency: str                                   # ISO 4217 currency code
     local_currency: str                            # Currency for local display
-    spend_today: int                               # Amount spent today in minor currency units
+    spend_today: float                             # Amount spent today in major currency units
     balance_including_flexible_savings: int        # Balance including flexible savings
 ```
 
 **Example**:
 ```python
 balance = client.accounts.get_balance(account_id="acc_123")
-print(f"Balance: £{balance.balance / 100:.2f}")
-print(f"Spent today: £{balance.spend_today / 100:.2f}")
+print(f"Balance: £{balance.balance:.2f}")
+print(f"Spent today: £{balance.spend_today:.2f}")
 print(f"Currency: {balance.currency}")
 ```
 
@@ -74,7 +74,7 @@ class Transaction(BaseModel):
     id: str                          # Unique transaction identifier
     created: str                     # ISO 8601 timestamp
     description: str                 # Transaction description
-    amount: int                      # Amount in minor currency units (negative for spending)
+    amount: float                    # Amount in major currency units (negative for spending)
     currency: str                    # ISO 4217 currency code
     merchant: Optional[Merchant]     # Merchant information (if applicable)
     notes: str                       # User notes
@@ -107,7 +107,7 @@ class Transaction(BaseModel):
 ```python
 transactions = client.transactions.list(account_id="acc_123", limit=5)
 for txn in transactions:
-    amount = txn.amount / 100
+    amount = txn.amount
     emoji = "💸" if amount < 0 else "💰"
     print(f"{emoji} {txn.description}: £{amount:.2f}")
     
@@ -148,9 +148,9 @@ class Pot(BaseModel):
     id: str                          # Unique pot identifier
     name: str                        # Pot name
     style: str                       # Visual style identifier
-    balance: int                     # Current balance in minor currency units
+    balance: float                   # Current balance in major currency units
     currency: str                    # ISO 4217 currency code
-    goal_amount: Optional[int]       # Goal amount in minor currency units
+    goal_amount: Optional[float]     # Goal amount in major currency units
     type: str                        # Pot type
     product_id: str                  # Associated product ID
     current_account_id: str          # Associated current account ID
@@ -173,11 +173,11 @@ for pot in pots:
     if pot.deleted:
         continue
         
-    balance = pot.balance / 100
+    balance = pot.balance
     print(f"🐷 {pot.name}: £{balance:.2f}")
     
     if pot.goal_amount:
-        goal = pot.goal_amount / 100
+        goal = pot.goal_amount
         progress = (balance / goal) * 100
         print(f"   🎯 Goal: £{goal:.2f} ({progress:.1f}% complete)")
     
@@ -210,7 +210,7 @@ class Receipt(BaseModel):
     id: str                          # Unique receipt identifier
     transaction_id: str              # Associated transaction ID
     external_id: str                 # External identifier
-    total: int                       # Total amount in minor currency units
+    total: float                     # Total amount in major currency units
     currency: str                    # ISO 4217 currency code
     merchant_name: str               # Merchant name
     merchant_address: Optional[str]  # Merchant address
@@ -231,9 +231,9 @@ Represents an individual item on a receipt.
 ```python
 class ReceiptItem(BaseModel):
     description: str                 # Item description
-    unit_price: int                  # Unit price in minor currency units
+    unit_price: float                # Unit price in major currency units
     quantity: float                  # Quantity
-    total_price: int                # Total price in minor currency units
+    total_price: float              # Total price in major currency units
     currency: str                    # ISO 4217 currency code
     category: Optional[str]          # Item category
     sub_items: list[dict]            # Sub-items (for bundled items)
@@ -246,7 +246,7 @@ Represents tax information on a receipt.
 ```python
 class ReceiptTax(BaseModel):
     description: str                 # Tax description (e.g., "VAT")
-    amount: int                      # Tax amount in minor currency units
+    amount: float                    # Tax amount in major currency units
     currency: str                    # ISO 4217 currency code
     tax_number: Optional[str]        # Tax identification number
 ```
@@ -331,7 +331,7 @@ print(f"Created: {account.created}")       # ✅ Type: str
 
 # Type-safe balance operations
 balance: Balance = client.accounts.get_balance(account_id=account.id)
-print(f"Balance: £{balance.balance / 100:.2f}")  # ✅ Type: int
+print(f"Balance: £{balance.balance:.2f}")  # ✅ Type: float
 ```
 
 ### Model Serialization
@@ -372,8 +372,8 @@ def analyze_transactions(transactions: list[Transaction]) -> dict:
     spending = [t for t in transactions if t.amount < 0]
     income = [t for t in transactions if t.amount > 0]
     
-    total_spent = sum(abs(t.amount) for t in spending) / 100
-    total_income = sum(t.amount for t in income) / 100
+    total_spent = sum(abs(t.amount) for t in spending)
+    total_income = sum(t.amount for t in income)
     
     # Group by category
     by_category = {}
@@ -393,7 +393,7 @@ def analyze_transactions(transactions: list[Transaction]) -> dict:
         "categories": {
             cat: {
                 "count": len(txns),
-                "total": sum(abs(t.amount) for t in txns) / 100
+                "total": sum(abs(t.amount) for t in txns)
             }
             for cat, txns in by_category.items()
         }
