@@ -1,5 +1,6 @@
 """Tests for async accounts API."""
 
+from decimal import Decimal
 from typing import Any, cast
 from unittest.mock import Mock
 
@@ -73,5 +74,7 @@ class TestAsyncAccountsAPI:
         cast(Mock, mock_async_base_client._get).assert_called_once_with(
             "/balance", params={"account_id": "test_account_id"}
         )
-        assert balance.balance == sample_balance["balance"]
+        assert balance.balance == Decimal(
+            "50.00"
+        )  # 5000 minor units -> 50.00 major units
         assert balance.currency == sample_balance["currency"]

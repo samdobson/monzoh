@@ -1,6 +1,7 @@
 """Tests for async object-oriented interface."""
 
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -64,10 +65,10 @@ class TestAsyncAccountOOInterface:
         balance = await account.aget_balance()
 
         assert isinstance(balance, Balance)
-        assert balance.balance == 5000
-        assert balance.total_balance == 6000
+        assert balance.balance == Decimal("50.00")
+        assert balance.total_balance == Decimal("60.00")
         assert balance.currency == "GBP"
-        assert balance.spend_today == 100
+        assert balance.spend_today == Decimal("1.00")
 
         # Verify API call
         mock_client._get.assert_called_once_with(
@@ -200,10 +201,10 @@ class TestAsyncPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test adeposit
-        updated_pot = await pot.adeposit(1000)
+        updated_pot = await pot.adeposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
-        assert updated_pot.balance == 11000
+        assert updated_pot.balance == Decimal("110.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
@@ -240,7 +241,7 @@ class TestAsyncPotOOInterface:
         with pytest.raises(
             RuntimeError, match="Async method called on pot with sync client"
         ):
-            await pot.adeposit(1000)
+            await pot.adeposit(10.00)
 
 
 class TestAsyncTransactionOOInterface:

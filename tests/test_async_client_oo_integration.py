@@ -1,6 +1,7 @@
 """Integration tests for AsyncMonzoClient with OO interface."""
 
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
 import pytest
@@ -55,7 +56,7 @@ class TestAsyncClientOOIntegration:
         mock_base_client._get = AsyncMock(return_value=mock_balance_response)
 
         balance = await account.aget_balance()
-        assert balance.balance == 5000
+        assert balance.balance == Decimal("50.00")
 
     @pytest.mark.asyncio
     async def test_client_pots_list_sets_client_and_account(self) -> None:
@@ -109,7 +110,7 @@ class TestAsyncClientOOIntegration:
         mock_base_client._put = AsyncMock(return_value=mock_deposit_response)
 
         updated_pot = await pot.adeposit(1000)
-        assert updated_pot.balance == 11000
+        assert updated_pot.balance == Decimal("110.00")
 
     @pytest.mark.asyncio
     async def test_client_transactions_list_sets_client(self) -> None:

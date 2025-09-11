@@ -68,9 +68,9 @@ account = accounts[0]
 # Get balance
 balance = client.accounts.get_balance(account_id=account.id)
 
-print(f"Current balance: £{balance.balance / 100:.2f}")
-print(f"Total balance: £{balance.total_balance / 100:.2f}")
-print(f"Spent today: £{balance.spend_today / 100:.2f}")
+print(f"Current balance: £{balance.balance:.2f}")
+print(f"Total balance: £{balance.total_balance:.2f}")
+print(f"Spent today: £{balance.spend_today:.2f}")
 print(f"Currency: {balance.currency}")
 print(f"Local currency: {balance.local_currency}")
 ```
@@ -107,15 +107,15 @@ Represents account balance information.
 
 ```python
 class Balance(BaseModel):
-    balance: int               # Current balance in pence
-    total_balance: int         # Total balance including pending transactions  
+    balance: float             # Current balance in pounds
+    total_balance: float       # Total balance including pending transactions  
     currency: str              # Account currency (e.g., "GBP")
     local_currency: str        # Local currency for display
-    spend_today: int           # Amount spent today in pence
+    spend_today: float         # Amount spent today in pounds
     balance_including_flexible_savings: int  # Balance including flexible savings
 ```
 
-**Note**: All monetary amounts are in the account's base currency unit (pence for GBP).
+**Note**: All monetary amounts are in the account's base currency unit (pounds for GBP).
 
 ## Usage Examples
 
@@ -142,7 +142,7 @@ for i, account in enumerate(accounts, 1):
     
     # Get balance for this account
     balance = client.accounts.get_balance(account_id=account.id)
-    print(f"   Balance: £{balance.balance / 100:.2f}")
+    print(f"   Balance: £{balance.balance:.2f}")
 ```
 
 ### Account Type Filtering
@@ -175,13 +175,13 @@ for account in accounts:
     
     print(f"\n{account.description}")
     print("-" * len(account.description))
-    print(f"Current Balance: £{balance.balance / 100:.2f}")
-    print(f"Total Balance: £{balance.total_balance / 100:.2f}")
-    print(f"Spent Today: £{balance.spend_today / 100:.2f}")
+    print(f"Current Balance: £{balance.balance:.2f}")
+    print(f"Total Balance: £{balance.total_balance:.2f}")
+    print(f"Spent Today: £{balance.spend_today:.2f}")
     
     # Calculate available spending money
-    available = balance.balance / 100
-    spent_today = balance.spend_today / 100
+    available = balance.balance
+    spent_today = balance.spend_today
     
     print(f"Available: £{available:.2f}")
     
@@ -211,8 +211,8 @@ def create_account_summary():
             
         balance = client.accounts.get_balance(account_id=account.id)
         
-        balance_gbp = balance.balance / 100
-        spent_today_gbp = balance.spend_today / 100
+        balance_gbp = balance.balance
+        spent_today_gbp = balance.spend_today
         
         total_balance += balance_gbp
         total_spent_today += spent_today_gbp
@@ -259,7 +259,7 @@ try:
     for account in accounts:
         try:
             balance = client.accounts.get_balance(account_id=account.id)
-            print(f"{account.description}: £{balance.balance / 100:.2f}")
+            print(f"{account.description}: £{balance.balance:.2f}")
             
         except MonzoNotFoundError:
             print(f"Account {account.id} not found or inaccessible")

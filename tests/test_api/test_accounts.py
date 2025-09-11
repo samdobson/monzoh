@@ -1,5 +1,6 @@
 """Tests for accounts API."""
 
+from decimal import Decimal
 from typing import Any
 
 from monzoh.models import Account, Balance
@@ -63,10 +64,16 @@ class TestAccountsAPI:
         balance = monzo_client.accounts.get_balance("acc_123")
 
         assert isinstance(balance, Balance)
-        assert balance.balance == sample_balance["balance"]
-        assert balance.total_balance == sample_balance["total_balance"]
+        assert balance.balance == Decimal(
+            "50.00"
+        )  # 5000 minor units -> 50.00 major units
+        assert balance.total_balance == Decimal(
+            "60.00"
+        )  # 6000 minor units -> 60.00 major units
         assert balance.currency == sample_balance["currency"]
-        assert balance.spend_today == sample_balance["spend_today"]
+        assert balance.spend_today == Decimal(
+            "0.00"
+        )  # 0 minor units -> 0.00 major units
 
         monzo_client._base_client._get.assert_called_once()
         call_args = monzo_client._base_client._get.call_args

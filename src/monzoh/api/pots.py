@@ -1,9 +1,11 @@
 """Pots API endpoints."""
 
 import uuid
+from decimal import Decimal
 
 from ..core import BaseSyncClient
 from ..models import Pot, PotsResponse
+from ..models.base import convert_amount_to_minor_units
 
 
 class PotsAPI:
@@ -42,7 +44,7 @@ class PotsAPI:
         self,
         pot_id: str,
         source_account_id: str,
-        amount: int,
+        amount: int | float | Decimal | str,
         dedupe_id: str | None = None,
     ) -> Pot:
         """Deposit money into a pot.
@@ -50,19 +52,22 @@ class PotsAPI:
         Args:
             pot_id: Pot ID
             source_account_id: Source account ID
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate deposits
                 (auto-generated if not provided)
 
         Returns:
             Updated pot with client attached
         """
+
+        amount_minor = convert_amount_to_minor_units(amount)
+
         if dedupe_id is None:
             dedupe_id = str(uuid.uuid4())
 
         data = {
             "source_account_id": source_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 
@@ -76,7 +81,7 @@ class PotsAPI:
         self,
         pot_id: str,
         destination_account_id: str,
-        amount: int,
+        amount: int | float | Decimal | str,
         dedupe_id: str | None = None,
     ) -> Pot:
         """Withdraw money from a pot.
@@ -84,19 +89,22 @@ class PotsAPI:
         Args:
             pot_id: Pot ID
             destination_account_id: Destination account ID
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate withdrawals
                 (auto-generated if not provided)
 
         Returns:
             Updated pot with client attached
         """
+
+        amount_minor = convert_amount_to_minor_units(amount)
+
         if dedupe_id is None:
             dedupe_id = str(uuid.uuid4())
 
         data = {
             "destination_account_id": destination_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 

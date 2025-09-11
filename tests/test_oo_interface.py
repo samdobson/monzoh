@@ -1,6 +1,7 @@
 """Tests for object-oriented interface."""
 
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -63,10 +64,10 @@ class TestAccountOOInterface:
         balance = account.get_balance()
 
         assert isinstance(balance, Balance)
-        assert balance.balance == 5000
-        assert balance.total_balance == 6000
+        assert balance.balance == Decimal("50.00")
+        assert balance.total_balance == Decimal("60.00")
         assert balance.currency == "GBP"
-        assert balance.spend_today == 100
+        assert balance.spend_today == Decimal("1.00")
 
         # Verify API call
         mock_client._get.assert_called_once_with(
@@ -287,10 +288,10 @@ class TestPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test deposit
-        updated_pot = pot.deposit(1000)
+        updated_pot = pot.deposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
-        assert updated_pot.balance == 11000
+        assert updated_pot.balance == Decimal("110.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
@@ -334,7 +335,7 @@ class TestPotOOInterface:
 
         # Test deposit with custom dedupe_id
         custom_dedupe_id = str(uuid4())
-        pot.deposit(1000, dedupe_id=custom_dedupe_id)
+        pot.deposit(10.00, dedupe_id=custom_dedupe_id)  # £10.00 in major units
 
         # Verify API call used custom dedupe_id
         call_args = mock_client._put.call_args
@@ -372,10 +373,10 @@ class TestPotOOInterface:
         pot._source_account_id = "acc_123"
 
         # Test withdraw
-        updated_pot = pot.withdraw(500)
+        updated_pot = pot.withdraw(5.00)  # £5.00 in major units
 
         assert isinstance(updated_pot, Pot)
-        assert updated_pot.balance == 9500
+        assert updated_pot.balance == Decimal("95.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
@@ -401,10 +402,10 @@ class TestPotOOInterface:
         pot._set_client(mock_client)
 
         with pytest.raises(RuntimeError, match="No source account ID available"):
-            pot.deposit(1000)
+            pot.deposit(10.00)
 
         with pytest.raises(RuntimeError, match="No source account ID available"):
-            pot.withdraw(500)
+            pot.withdraw(5.00)
 
 
 class TestTransactionOOInterface:

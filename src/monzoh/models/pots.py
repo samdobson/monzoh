@@ -3,10 +3,13 @@
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from .base import convert_amount_from_minor_units, convert_amount_to_minor_units
 
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
@@ -21,11 +24,11 @@ class Pot(BaseModel):
     style: str = Field(
         ..., description="Pot visual style/theme (e.g., 'beach_ball', 'blue')"
     )
-    balance: int = Field(
+    balance: Decimal = Field(
         ...,
         description=(
-            "Pot balance in minor units of the currency, "
-            "eg. pennies for GBP, or cents for EUR and USD"
+            "Pot balance in major units of the currency, "
+            "eg. pounds for GBP, or euros/dollars for EUR and USD"
         ),
     )
     currency: str = Field(..., description="ISO 4217 currency code")
@@ -44,6 +47,12 @@ class Pot(BaseModel):
     def model_post_init(self, __context: Any) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
+
+    @field_validator("balance", mode="before")
+    @classmethod
+    def convert_balance_minor_to_major_units(cls, v: int) -> Decimal:
+        """Convert balance from minor units (API response) to major units."""
+        return convert_amount_from_minor_units(v)
 
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
         """Ensure client is available for API calls."""
@@ -69,11 +78,13 @@ class Pot(BaseModel):
             "No source account ID available. Cannot perform pot operations."
         )
 
-    def deposit(self, amount: int, dedupe_id: str | None = None) -> Pot:
+    def deposit(
+        self, amount: int | float | Decimal | str, dedupe_id: str | None = None
+    ) -> Pot:
         """Deposit money into this pot.
 
         Args:
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate deposits
                 (auto-generated if not provided)
 
@@ -86,9 +97,12 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
+        # Convert amount from major units to minor units
+        amount_minor = convert_amount_to_minor_units(amount)
+
         data = {
             "source_account_id": source_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 
@@ -100,14 +114,14 @@ class Pot(BaseModel):
 
     def withdraw(
         self,
-        amount: int,
+        amount: int | float | Decimal | str,
         destination_account_id: str | None = None,
         dedupe_id: str | None = None,
     ) -> Pot:
         """Withdraw money from this pot.
 
         Args:
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             destination_account_id: Destination account ID
                 (uses source account if not provided)
             dedupe_id: Unique ID to prevent duplicate withdrawals
@@ -124,9 +138,12 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
+        # Convert amount from major units to minor units
+        amount_minor = convert_amount_to_minor_units(amount)
+
         data = {
             "destination_account_id": destination_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 
@@ -137,11 +154,13 @@ class Pot(BaseModel):
         return updated_pot
 
     # Async methods
-    async def adeposit(self, amount: int, dedupe_id: str | None = None) -> Pot:
+    async def adeposit(
+        self, amount: int | float | Decimal | str, dedupe_id: str | None = None
+    ) -> Pot:
         """Deposit money into this pot (async version).
 
         Args:
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate deposits
                 (auto-generated if not provided)
 
@@ -161,9 +180,12 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
+        # Convert amount from major units to minor units
+        amount_minor = convert_amount_to_minor_units(amount)
+
         data = {
             "source_account_id": source_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 
@@ -175,14 +197,14 @@ class Pot(BaseModel):
 
     async def awithdraw(
         self,
-        amount: int,
+        amount: int | float | Decimal | str,
         destination_account_id: str | None = None,
         dedupe_id: str | None = None,
     ) -> Pot:
         """Withdraw money from this pot (async version).
 
         Args:
-            amount: Amount in minor units (e.g., pennies)
+            amount: Amount in major units (e.g., 1.50 for £1.50)
             destination_account_id: Destination account ID
                 (uses source account if not provided)
             dedupe_id: Unique ID to prevent duplicate withdrawals
@@ -206,9 +228,12 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
+        # Convert amount from major units to minor units
+        amount_minor = convert_amount_to_minor_units(amount)
+
         data = {
             "destination_account_id": destination_account_id,
-            "amount": str(amount),
+            "amount": str(amount_minor),
             "dedupe_id": dedupe_id,
         }
 

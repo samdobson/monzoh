@@ -1,6 +1,7 @@
 """Integration tests for MonzoClient with OO interface."""
 
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 
 from monzoh.client import MonzoClient
@@ -52,7 +53,7 @@ class TestClientOOIntegration:
         mock_base_client._get.return_value = mock_balance_response
 
         balance = account.get_balance()
-        assert balance.balance == 5000
+        assert balance.balance == Decimal("50.00")
 
     def test_client_pots_list_sets_client_and_account(self) -> None:
         """Test that client.pots.list() returns pots with client and account set."""
@@ -105,7 +106,7 @@ class TestClientOOIntegration:
         mock_base_client._put.return_value = mock_deposit_response
 
         updated_pot = pot.deposit(1000)
-        assert updated_pot.balance == 11000
+        assert updated_pot.balance == Decimal("110.00")
 
     def test_client_transactions_list_sets_client(self) -> None:
         """Test that client.transactions.list() returns transactions with client set."""
