@@ -43,9 +43,9 @@ class TestAsyncWebhooksAPI:
             "url": "http://example.com/webhook",
         }
         response_data = {"webhook": webhook_data}
-        cast(Mock, mock_async_base_client._post).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._post
+        ).return_value.json.return_value = response_data
 
         result = await webhooks_api.register(
             "acc_00009237aqC8c5umZmrRdh", "http://example.com/webhook"
@@ -88,9 +88,9 @@ class TestAsyncWebhooksAPI:
             },
         ]
         response_data = {"webhooks": webhook_data}
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._get
+        ).return_value.json.return_value = response_data
 
         result = await webhooks_api.list("acc_00009237aqC8c5umZmrRdh")
 
@@ -116,9 +116,9 @@ class TestAsyncWebhooksAPI:
             mock_async_base_client: Mock async base client fixture.
         """
         response_data: dict[str, Any] = {"webhooks": []}
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._get
+        ).return_value.json.return_value = response_data
 
         result = await webhooks_api.list("acc_00009237aqC8c5umZmrRdh")
 

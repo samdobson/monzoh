@@ -74,9 +74,9 @@ class TestAsyncPotsAPI:
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 150000  # Increased balance
 
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            updated_pot
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = updated_pot
 
         pot = await pots_api.deposit(
             pot_id="pot_123",
@@ -113,9 +113,9 @@ class TestAsyncPotsAPI:
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 120000  # Decreased balance
 
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            updated_pot
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = updated_pot
 
         pot = await pots_api.withdraw(
             pot_id="pot_123",

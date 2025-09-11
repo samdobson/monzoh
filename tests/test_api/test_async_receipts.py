@@ -38,9 +38,9 @@ class TestAsyncReceiptsAPI:
             mock_async_base_client: Mock async base client fixture.
         """
         response_data = {"receipt_id": "receipt_123"}
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = response_data
 
         receipt = Receipt(
             id=None,
@@ -95,9 +95,9 @@ class TestAsyncReceiptsAPI:
             mock_async_base_client: Mock async base client fixture.
         """
         response_data: dict[str, Any] = {}
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = response_data
 
         receipt = Receipt(
             id=None,
@@ -128,9 +128,9 @@ class TestAsyncReceiptsAPI:
             mock_async_base_client: Mock async base client fixture.
         """
         response_data = {"receipt_id": 12345}
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = response_data
 
         receipt = Receipt(
             id=None,
@@ -175,9 +175,9 @@ class TestAsyncReceiptsAPI:
             ],
         }
         response_data = {"receipt": receipt_data}
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = (
-            response_data
-        )
+        cast(
+            Mock, mock_async_base_client._get
+        ).return_value.json.return_value = response_data
 
         result = await receipts_api.retrieve("tx_00008zIcpb1TB4yeIFXMzx")
 

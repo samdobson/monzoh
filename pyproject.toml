@@ -72,6 +72,7 @@ pydocstyle.convention = "google"
 [tool.mypy]
 python_version = "3.10"
 plugins = ["pydantic.mypy"]
+mypy_path = "src"
 
 [tool.pytest.ini_options]
 minversion = "7.0"

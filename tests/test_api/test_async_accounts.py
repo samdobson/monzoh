@@ -90,9 +90,9 @@ class TestAsyncAccountsAPI:
             mock_async_base_client: Mock async base client fixture.
             sample_balance: Sample balance data fixture.
         """
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = (
-            sample_balance
-        )
+        cast(
+            Mock, mock_async_base_client._get
+        ).return_value.json.return_value = sample_balance
 
         balance = await accounts_api.get_balance("test_account_id")
 
