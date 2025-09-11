@@ -65,9 +65,9 @@ class TestAsyncAttachmentsAPI:
 
         # Mock httpx async client for file upload
         mock_client = Mock()
-        mock_client.put = (
-            AsyncMock()
-        )  # Changed from post to put to match implementation
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_client.put = AsyncMock(return_value=mock_response)
         mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
 
         file_data = b"test file content"
@@ -142,9 +142,9 @@ class TestAsyncAttachmentsAPI:
 
             # Mock httpx async client for file upload
             mock_client = Mock()
-            mock_client.put = (
-                AsyncMock()
-            )  # Changed from post to put to match implementation
+            mock_response = Mock()
+            mock_response.raise_for_status = Mock()
+            mock_client.put = AsyncMock(return_value=mock_response)
             mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
 
             result = await attachments_api.upload(
