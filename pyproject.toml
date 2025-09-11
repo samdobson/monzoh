@@ -34,7 +34,6 @@ dev = [
     "pytest>=7.0.0",
     "pytest-asyncio>=0.21.0",
     "pytest-cov>=4.0.0",
-    "black>=23.0.0",
     "ruff>=0.1.0",
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
@@ -53,9 +52,6 @@ Issues = "https://github.com/samdobson/monzoh/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/monzoh"]
-
-[tool.black]
-target-version = ['py310']
 
 [tool.ruff]
 target-version = "py310"

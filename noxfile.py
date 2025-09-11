@@ -26,7 +26,7 @@ def lint(session: Session) -> None:
     """
     session.install(".[dev]")
     session.run("ruff", "check", ".")
-    session.run("black", "--check", ".")
+    session.run("ruff", "format", "--check", ".")
 
 
 @nox.session(python="3.10")
@@ -42,13 +42,13 @@ def mypy(session: Session) -> None:
 
 @nox.session(python="3.10")
 def format(session: Session) -> None:
-    """Format code with black and ruff.
+    """Format code with ruff.
 
     Args:
         session: The nox session object.
     """
     session.install(".[dev]")
-    session.run("black", ".")
+    session.run("ruff", "format", ".")
     session.run("ruff", "check", "--fix", ".")
 
 

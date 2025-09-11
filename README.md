@@ -1,7 +1,7 @@
 ![Package version](https://img.shields.io/pypi/v/monzoh)
 ![Python versions](https://img.shields.io/pypi/pyversions/monzoh.svg)
 ![License](https://img.shields.io/pypi/l/monzoh)
-![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 ![py.typed](https://img.shields.io/badge/py-typed-FFD43B)
 [![Coverage Status](https://coveralls.io/repos/github/samdobson/monzoh/badge.svg?branch=main)](https://coveralls.io/github/samdobson/monzoh?branch=main)
 
