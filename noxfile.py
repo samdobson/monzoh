@@ -1,3 +1,5 @@
+"""Nox configuration for running tests, linting, and documentation checks."""
+
 import nox
 from nox import Session
 

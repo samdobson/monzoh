@@ -167,9 +167,7 @@ class TestAsyncClientOOIntegration:
 
     @pytest.mark.asyncio
     async def test_account_alist_transactions_sets_client_on_transactions(self) -> None:
-        """
-        Test that account.alist_transactions() sets client on returned transactions.
-        """
+        """Test that alist_transactions() sets client on transactions."""
         # Mock the base client
         mock_base_client = Mock(spec=BaseAsyncClient)
         mock_base_client._prepare_pagination_params.return_value = {}

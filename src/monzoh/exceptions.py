@@ -80,12 +80,7 @@ class MonzoAuthenticationError(MonzoError):
                 "Access forbidden: Your access token doesn't have the required "
                 "permissions. You may need to approve access in the Monzo app."
             )
-        elif "unauthorized" in self.original_message.lower():
-            return (
-                "Authentication failed: Your access token is invalid or expired. "
-                "Please run 'monzoh-auth' to authenticate again."
-            )
-        elif self.status_code == 401:
+        elif "unauthorized" in self.original_message.lower() or self.status_code == 401:
             return (
                 "Authentication failed: Your access token is invalid or expired. "
                 "Please run 'monzoh-auth' to authenticate again."

@@ -56,29 +56,26 @@ Issues = "https://github.com/samdobson/monzoh/issues"
 packages = ["src/monzoh"]
 
 [tool.black]
-line-length = 88
 target-version = ['py310']
 
 [tool.ruff]
-line-length = 88
 target-version = "py310"
-lint.select = ["E", "F", "I", "N", "W", "UP"]
+
+[tool.ruff.lint]
+ignore = ["D107"]
+select = [
+    "D",   # pydocstyle
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # Pyflakes
+    "I",   # isort
+    "N",   # pep8-naming
+    "UP",  # pyupgrade
+]
+pydocstyle.convention = "google"
 
 [tool.mypy]
 python_version = "3.10"
-warn_return_any = true
-warn_unused_configs = true
-disallow_untyped_defs = true
-disallow_incomplete_defs = true
-check_untyped_defs = true
-disallow_untyped_decorators = true
-no_implicit_optional = true
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_no_return = true
-warn_unreachable = true
-strict_equality = true
-mypy_path = "src"
 plugins = ["pydantic.mypy"]
 
 [tool.pytest.ini_options]
@@ -105,29 +102,6 @@ exclude_lines = [
     "class .*\\(Protocol\\):",
     "@(abc\\\\.)?abstractmethod",
 ]
-
-[tool.pydocstyle]
-convention = "google"
-add-ignore = "D401"
-
-[tool.interrogate]
-ignore-init-method = true
-ignore-init-module = false
-ignore-magic = false
-ignore-semiprivate = false
-ignore-private = false
-ignore-property-decorators = false
-ignore-module = false
-ignore-nested-functions = false
-ignore-nested-classes = false
-ignore-setters = false
-fail-under = 95
-exclude = ["setup.py", "docs", "build"]
-ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
-verbose = 0
-quiet = false
-whitelist-regex = []
-color = true
 
 [tool.pydoclint]
 style = "google"
