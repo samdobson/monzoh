@@ -14,6 +14,7 @@ from monzoh.models import (
     Transaction,
     WhoAmI,
 )
+from monzoh.models.feed import FeedItemParams
 
 
 class TestModels:
@@ -132,3 +133,59 @@ class TestModels:
         assert whoami.authenticated is True
         assert whoami.client_id == "client_123"
         assert whoami.user_id == "user_123"
+
+    def test_feed_item_params_model_minimal(self) -> None:
+        """Test FeedItemParams model with minimal required fields."""
+        data: dict[str, Any] = {
+            "title": "Test Feed Item",
+            "image_url": "https://example.com/image.jpg",
+        }
+        params = FeedItemParams(**data)
+
+        assert params.title == "Test Feed Item"
+        assert params.image_url == "https://example.com/image.jpg"
+        assert params.body is None
+        assert params.url is None
+        assert params.background_color is None
+        assert params.title_color is None
+        assert params.body_color is None
+
+    def test_feed_item_params_model_full(self) -> None:
+        """Test FeedItemParams model with all fields."""
+        data: dict[str, Any] = {
+            "title": "Test Feed Item",
+            "image_url": "https://example.com/image.jpg",
+            "body": "Test body text",
+            "url": "https://example.com/redirect",
+            "background_color": "#FF0000",
+            "title_color": "#000000",
+            "body_color": "#333333",
+        }
+        params = FeedItemParams(**data)
+
+        assert params.title == "Test Feed Item"
+        assert params.image_url == "https://example.com/image.jpg"
+        assert params.body == "Test body text"
+        assert params.url == "https://example.com/redirect"
+        assert params.background_color == "#FF0000"
+        assert params.title_color == "#000000"
+        assert params.body_color == "#333333"
+
+    def test_feed_item_params_model_dump_exclude_none(self) -> None:
+        """Test FeedItemParams model_dump excludes None values."""
+        data: dict[str, Any] = {
+            "title": "Test Feed Item",
+            "image_url": "https://example.com/image.jpg",
+            "body": "Test body text",
+        }
+        params = FeedItemParams(**data)
+
+        dumped = params.model_dump(exclude_none=True)
+
+        assert "title" in dumped
+        assert "image_url" in dumped
+        assert "body" in dumped
+        assert "url" not in dumped
+        assert "background_color" not in dumped
+        assert "title_color" not in dumped
+        assert "body_color" not in dumped

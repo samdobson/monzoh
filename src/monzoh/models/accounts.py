@@ -14,6 +14,7 @@ from .base import convert_amount_from_minor_units
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
     from ..core.async_base import BaseAsyncClient
+    from .feed import FeedItemParams
     from .pots import Pot
     from .transactions import Transaction
 
@@ -127,6 +128,36 @@ class Account(BaseModel):
 
         return pots_response.pots
 
+    def create_feed_item(
+        self,
+        params: FeedItemParams,
+    ) -> None:
+        """Create a feed item for this account.
+
+        Args:
+            params: Feed item parameters
+
+        Returns:
+            None
+        """
+        client = cast("BaseSyncClient", self._ensure_client())
+        data = {
+            "account_id": self.id,
+            "type": "basic",
+        }
+
+        params_dict = params.model_dump(exclude_none=True)
+
+        # Extract url as top-level field
+        if "url" in params_dict:
+            data["url"] = params_dict.pop("url")
+
+        # Add remaining params with params[] prefix
+        for key, value in params_dict.items():
+            data[f"params[{key}]"] = value
+
+        client._post("/feed", data=data)
+
     # Async methods
     async def aget_balance(self) -> Balance:
         """Get balance information for this account (async version).
@@ -224,6 +255,44 @@ class Account(BaseModel):
             pot._source_account_id = self.id
 
         return pots_response.pots
+
+    async def acreate_feed_item(
+        self,
+        params: FeedItemParams,
+    ) -> None:
+        """Create a feed item for this account (async version).
+
+        Args:
+            params: Feed item parameters
+
+        Returns:
+            None
+        """
+        from ..core.async_base import BaseAsyncClient
+
+        client = self._ensure_client()
+        if not isinstance(client, BaseAsyncClient):
+            raise RuntimeError(
+                "Async method called on account with sync client. "
+                "Use create_feed_item() instead or retrieve account from "
+                "AsyncMonzoClient."
+            )
+        data = {
+            "account_id": self.id,
+            "type": "basic",
+        }
+
+        params_dict = params.model_dump(exclude_none=True)
+
+        # Extract url as top-level field
+        if "url" in params_dict:
+            data["url"] = params_dict.pop("url")
+
+        # Add remaining params with params[] prefix
+        for key, value in params_dict.items():
+            data[f"params[{key}]"] = value
+
+        await client._post("/feed", data=data)
 
 
 class AccountType(BaseModel):

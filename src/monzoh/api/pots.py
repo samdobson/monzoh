@@ -1,6 +1,7 @@
 """Pots API endpoints."""
 
 from decimal import Decimal
+import uuid
 
 from ..core import BaseSyncClient
 from ..models import Pot, PotsResponse
@@ -44,7 +45,7 @@ class PotsAPI:
         pot_id: str,
         source_account_id: str,
         amount: int | float | Decimal | str,
-        dedupe_id: str,
+        dedupe_id: str | None = None,
     ) -> Pot:
         """Deposit money into a pot.
 
@@ -53,12 +54,16 @@ class PotsAPI:
             source_account_id: Source account ID
             amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate deposits
+                (auto-generated if not provided)
 
         Returns:
             Updated pot with client attached
         """
-        # Convert amount from major units to minor units
+
         amount_minor = convert_amount_to_minor_units(amount)
+    
+        if dedupe_id is None:
+            dedupe_id = str(uuid.uuid4())
 
         data = {
             "source_account_id": source_account_id,
@@ -77,7 +82,7 @@ class PotsAPI:
         pot_id: str,
         destination_account_id: str,
         amount: int | float | Decimal | str,
-        dedupe_id: str,
+        dedupe_id: str | None = None,
     ) -> Pot:
         """Withdraw money from a pot.
 
@@ -86,12 +91,16 @@ class PotsAPI:
             destination_account_id: Destination account ID
             amount: Amount in major units (e.g., 1.50 for £1.50)
             dedupe_id: Unique ID to prevent duplicate withdrawals
+                (auto-generated if not provided)
 
         Returns:
             Updated pot with client attached
         """
-        # Convert amount from major units to minor units
+
         amount_minor = convert_amount_to_minor_units(amount)
+
+        if dedupe_id is None:
+            dedupe_id = str(uuid.uuid4())
 
         data = {
             "destination_account_id": destination_account_id,

@@ -1,6 +1,7 @@
 """Feed Items API endpoints."""
 
 from ..core import BaseSyncClient
+from ..models.feed import FeedItemParams
 
 
 class FeedAPI:
@@ -14,28 +15,16 @@ class FeedAPI:
         """
         self.client = client
 
-    def create_basic_item(
+    def create_item(
         self,
         account_id: str,
-        title: str,
-        image_url: str,
-        body: str | None = None,
-        url: str | None = None,
-        background_color: str | None = None,
-        title_color: str | None = None,
-        body_color: str | None = None,
+        params: FeedItemParams,
     ) -> None:
-        """Create a basic feed item.
+        """Create a feed item.
 
         Args:
             account_id: Account ID
-            title: Feed item title
-            image_url: Image URL
-            body: Optional body text
-            url: Optional URL to open when tapped
-            background_color: Background color in hex (#RRGGBB)
-            title_color: Title text color in hex (#RRGGBB)
-            body_color: Body text color in hex (#RRGGBB)
+            params: Feed item parameters
 
         Returns:
             None
@@ -43,19 +32,16 @@ class FeedAPI:
         data = {
             "account_id": account_id,
             "type": "basic",
-            "params[title]": title,
-            "params[image_url]": image_url,
         }
 
-        if body:
-            data["params[body]"] = body
-        if url:
-            data["url"] = url
-        if background_color:
-            data["params[background_color]"] = background_color
-        if title_color:
-            data["params[title_color]"] = title_color
-        if body_color:
-            data["params[body_color]"] = body_color
+        params_dict = params.model_dump(exclude_none=True)
+
+        # Extract url as top-level field
+        if "url" in params_dict:
+            data["url"] = params_dict.pop("url")
+
+        # Add remaining params with params[] prefix
+        for key, value in params_dict.items():
+            data[f"params[{key}]"] = value
 
         self.client._post("/feed", data=data)

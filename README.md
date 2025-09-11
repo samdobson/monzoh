@@ -85,3 +85,70 @@ async def main():
 
 asyncio.run(main())
 ```
+
+## Why not call the API directly?
+
+It's much simpler with Monzoh! As an example, here's what uploading an attachment looks like, compared with using the API directly:
+
+### With monzoh
+
+```python
+from monzoh import MonzoClient
+
+client = MonzoClient()
+account = client.accounts.list()[0]
+transaction = account.list_transactions(limit=1)[0]
+attachment = transaction.upload_attachment("receipt.jpg")
+```
+
+### Without monzoh
+
+```python
+import requests
+from pathlib import Path
+
+accounts_response = requests.get(
+    "https://api.monzo.com/accounts",
+    headers={"Authorization": f"Bearer {access_token}"}
+)
+account_id = accounts_response.json()["accounts"][0]["id"]
+
+transactions_response = requests.get(
+    "https://api.monzo.com/transactions",
+    headers={"Authorization": f"Bearer {access_token}"},
+    params={"account_id": account_id, "limit": 1}
+)
+transaction_id = transactions_response.json()["transactions"][0]["id"]
+
+response = requests.post(
+    "https://api.monzo.com/attachment/upload",
+    headers={"Authorization": f"Bearer {access_token}"},
+    data={
+        "file_name": "receipt.jpg",
+        "file_type": "image/jpeg",
+        "content_length": str(len(Path("receipt.jpg").read_bytes()))
+    }
+)
+upload_info = response.json()
+
+file_data = Path("receipt.jpg").read_bytes()
+requests.put(
+    upload_info["upload_url"], 
+    data=file_data,
+    headers={
+        "Content-Type": "image/jpeg",
+        "Content-Length": str(len(file_data))
+    }
+)
+
+requests.post(
+    "https://api.monzo.com/attachment/register",
+    headers={"Authorization": f"Bearer {access_token}"},
+    data={
+        "external_id": transaction_id,
+        "file_url": upload_info["file_url"],
+        "file_type": "image/jpeg"
+    }
+)
+```
+
