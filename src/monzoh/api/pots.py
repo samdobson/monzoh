@@ -1,7 +1,7 @@
 """Pots API endpoints."""
 
-from decimal import Decimal
 import uuid
+from decimal import Decimal
 
 from ..core import BaseSyncClient
 from ..models import Pot, PotsResponse
@@ -61,7 +61,7 @@ class PotsAPI:
         """
 
         amount_minor = convert_amount_to_minor_units(amount)
-    
+
         if dedupe_id is None:
             dedupe_id = str(uuid.uuid4())
 
