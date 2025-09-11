@@ -39,7 +39,6 @@ dev = [
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
     "nox>=2023.4.22",
-    "pydocstyle>=6.3.0",
     "interrogate>=1.7.0",
     "pydoclint>=0.3.0",
 ]

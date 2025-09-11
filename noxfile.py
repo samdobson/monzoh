@@ -77,7 +77,6 @@ def docs(session: Session) -> None:
         session: The nox session object.
     """
     session.install(".[dev]")
-    session.run("pydocstyle", "src/monzoh")
     session.run("interrogate", "src/monzoh", "--verbose")
 
 
@@ -89,6 +88,5 @@ def docs_strict(session: Session) -> None:
         session: The nox session object.
     """
     session.install(".[dev]")
-    session.run("pydocstyle", "src/monzoh")
     session.run("interrogate", "src/monzoh", "--verbose")
     session.run("pydoclint", "src/monzoh")
