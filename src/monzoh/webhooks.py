@@ -62,7 +62,6 @@ def parse_webhook_payload(
             )
         ```
     """
-
     # Parse JSON payload
     try:
         if isinstance(body, bytes):

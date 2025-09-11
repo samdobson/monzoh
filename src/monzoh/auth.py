@@ -38,13 +38,21 @@ class MonzoOAuth:
 
     @property
     def http_client(self) -> httpx.Client:
-        """Get or create HTTP client."""
+        """Get or create HTTP client.
+
+        Returns:
+            HTTP client instance
+        """
         if self._http_client is None:
             self._http_client = httpx.Client()
         return self._http_client
 
     def __enter__(self) -> "MonzoOAuth":
-        """Context manager entry."""
+        """Context manager entry.
+
+        Returns:
+            Self instance
+        """
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:

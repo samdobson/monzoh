@@ -1,7 +1,7 @@
 import nox
 from nox import Session
 
-nox.options.sessions = ["tests", "lint", "mypy"]
+nox.options.sessions = ["tests", "lint", "mypy", "docs"]
 
 
 @nox.session(python=["3.10", "3.11", "3.12", "3.13"])
@@ -45,3 +45,20 @@ def coverage(session: Session) -> None:
         "--cov-report=term",
         "--cov-report=lcov",
     )
+
+
+@nox.session(python="3.10")
+def docs(session: Session) -> None:
+    """Check docstring quality and coverage."""
+    session.install(".[dev]")
+    session.run("pydocstyle", "src/monzoh")
+    session.run("interrogate", "src/monzoh", "--verbose")
+
+
+@nox.session(python="3.10")
+def docs_strict(session: Session) -> None:
+    """Check docstring quality with strict argument checking."""
+    session.install(".[dev]")
+    session.run("pydocstyle", "src/monzoh")
+    session.run("interrogate", "src/monzoh", "--verbose")
+    session.run("darglint", "src/monzoh")

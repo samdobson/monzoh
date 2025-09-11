@@ -20,6 +20,12 @@ class AsyncMockResponse:
     """Async mock HTTP response for testing purposes."""
 
     def __init__(self, json_data: dict[str, Any], status_code: int = 200):
+        """Initialize AsyncMockResponse.
+
+        Args:
+            json_data: JSON data to return
+            status_code: HTTP status code to simulate
+        """
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
@@ -30,6 +36,11 @@ class AsyncMockResponse:
         self.request = None
 
     def json(self) -> dict[str, Any]:
+        """Return JSON data from the response.
+
+        Returns:
+            JSON data as dictionary
+        """
         return self._json_data
 
     def raise_for_status(self) -> None:

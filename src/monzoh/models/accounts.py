@@ -30,6 +30,11 @@ class Account(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     def __init__(self, **data: Any) -> None:
+        """Initialize Account model.
+
+        Args:
+            **data: Account data fields
+        """
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 

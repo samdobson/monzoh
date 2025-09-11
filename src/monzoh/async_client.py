@@ -54,7 +54,6 @@ class AsyncMonzoClient:
             MonzoAuthenticationError: If no access token is provided and none can
                 be loaded from cache
         """
-
         if access_token is None:
             access_token = _load_cached_token()
             if access_token is None:

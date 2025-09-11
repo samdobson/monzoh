@@ -40,6 +40,11 @@ class Pot(BaseModel):
     model_config = {"arbitrary_types_allowed": True}
 
     def __init__(self, **data: Any) -> None:
+        """Initialize Pot model.
+
+        Args:
+            **data: Pot data fields
+        """
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
         self._source_account_id: str | None = None

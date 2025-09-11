@@ -39,6 +39,9 @@ dev = [
     "mypy>=1.0.0",
     "pre-commit>=3.0.0",
     "nox>=2023.4.22",
+    "pydocstyle>=6.3.0",
+    "interrogate>=1.7.0",
+    "darglint>=1.8.1",
 ]
 
 [project.scripts]
@@ -102,4 +105,32 @@ exclude_lines = [
     "class .*\\(Protocol\\):",
     "@(abc\\\\.)?abstractmethod",
 ]
+
+[tool.pydocstyle]
+convention = "google"
+add-ignore = "D401"
+
+[tool.interrogate]
+ignore-init-method = true
+ignore-init-module = false
+ignore-magic = false
+ignore-semiprivate = false
+ignore-private = false
+ignore-property-decorators = false
+ignore-module = false
+ignore-nested-functions = false
+ignore-nested-classes = false
+ignore-setters = false
+fail-under = 95
+exclude = ["setup.py", "docs", "build"]
+ignore-regex = ["^get$", "^mock_.*", ".*BaseClass.*"]
+verbose = 0
+quiet = false
+whitelist-regex = []
+color = true
+
+[tool.darglint]
+docstring_style = "google"
+strictness = "short"
+ignore = "DAR101,DAR201,DAR401,DAR402"
 

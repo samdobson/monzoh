@@ -12,6 +12,13 @@ class MonzoError(Exception):
         status_code: int | None = None,
         response_data: dict[str, Any] | None = None,
     ) -> None:
+        """Initialize MonzoError.
+
+        Args:
+            message: Error message
+            status_code: HTTP status code if available
+            response_data: API response data if available
+        """
         self.original_message = message
         self.status_code = status_code
         self.response_data = response_data or {}

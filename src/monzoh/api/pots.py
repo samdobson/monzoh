@@ -59,7 +59,6 @@ class PotsAPI:
         Returns:
             Updated pot with client attached
         """
-
         amount_minor = convert_amount_to_minor_units(amount)
 
         if dedupe_id is None:
@@ -96,7 +95,6 @@ class PotsAPI:
         Returns:
             Updated pot with client attached
         """
-
         amount_minor = convert_amount_to_minor_units(amount)
 
         if dedupe_id is None:
