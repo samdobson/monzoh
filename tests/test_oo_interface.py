@@ -1,6 +1,7 @@
 """Tests for object-oriented interface."""
 
 from datetime import datetime
+from decimal import Decimal
 from unittest.mock import Mock
 from uuid import uuid4
 
@@ -55,10 +56,10 @@ class TestAccountOOInterface:
         balance = account.get_balance()
 
         assert isinstance(balance, Balance)
-        assert balance.balance == 5000
-        assert balance.total_balance == 6000
+        assert balance.balance == Decimal("50.00")
+        assert balance.total_balance == Decimal("60.00")
         assert balance.currency == "GBP"
-        assert balance.spend_today == 100
+        assert balance.spend_today == Decimal("1.00")
 
         # Verify API call
         mock_client._get.assert_called_once_with(
@@ -201,7 +202,7 @@ class TestPotOOInterface:
         updated_pot = pot.deposit(10.00)  # £10.00 in major units
 
         assert isinstance(updated_pot, Pot)
-        assert updated_pot.balance == 11000
+        assert updated_pot.balance == Decimal("110.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
@@ -286,7 +287,7 @@ class TestPotOOInterface:
         updated_pot = pot.withdraw(5.00)  # £5.00 in major units
 
         assert isinstance(updated_pot, Pot)
-        assert updated_pot.balance == 9500
+        assert updated_pot.balance == Decimal("95.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 

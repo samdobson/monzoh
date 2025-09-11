@@ -39,24 +39,23 @@ You can now use the API:
 ```python
 from monzoh import MonzoClient
 
-client = MonzoClient() # No access token needed!
+client = MonzoClient() # Uses cached access token and handles refresh
 
 account = client.accounts.list()[0]
-
 balance = account.get_balance()
-print(f"Total Balance (incl. pots): £{balance.total_balance / 100:.2f}")
+print(f"Balance: £{balance.balance}")
 
 transactions = account.list_transactions(limit=10)
 for transaction in transactions:
-    if transaction.amount < -5000:  # Transactions over £50
-        transaction.annotate({"category": "large_expense"})
+    if transaction.amount < -50:  # Transactions over £50
+        transaction.annotate({"notes": "#large_expense"})
 
 transactions[0].upload_attachment("image.jpg")
 
 pots = account.list_pots()
 for pot in pots:
     if pot.name == "Savings":
-        pot.deposit(10.00)  # Deposit £10.00
+        pot.deposit(10.00)
         break
 ```
 
@@ -71,17 +70,17 @@ async def main():
         account = (await client.accounts.list())[0]
         
         balance = await account.aget_balance()
-        print(f"Total Balance (incl. pots): £{balance.total_balance / 100:.2f}")
+        print(f"Balance: £{balance.balance}")
         
         transactions = await account.alist_transactions(limit=10)
         for transaction in transactions:
-            if transaction.amount < -5000:  # Transactions over £50
-                await transaction.aannotate({"category": "large_expense"})
+            if transaction.amount < -50:
+                await transaction.aannotate({"notes": "#large_expense"})
         
         pots = await account.alist_pots()
         for pot in pots:
             if pot.name == "Savings":
-                await pot.adeposit(10.00)  # Deposit £10.00
+                await pot.adeposit(10.00)
                 break
 
 asyncio.run(main())

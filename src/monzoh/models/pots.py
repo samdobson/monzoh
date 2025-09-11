@@ -7,9 +7,9 @@ from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
-from .base import convert_amount_to_minor_units
+from .base import convert_amount_from_minor_units, convert_amount_to_minor_units
 
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
@@ -24,11 +24,11 @@ class Pot(BaseModel):
     style: str = Field(
         ..., description="Pot visual style/theme (e.g., 'beach_ball', 'blue')"
     )
-    balance: int = Field(
+    balance: Decimal = Field(
         ...,
         description=(
-            "Pot balance in minor units of the currency, "
-            "eg. pennies for GBP, or cents for EUR and USD"
+            "Pot balance in major units of the currency, "
+            "eg. pounds for GBP, or euros/dollars for EUR and USD"
         ),
     )
     currency: str = Field(..., description="ISO 4217 currency code")
@@ -47,6 +47,12 @@ class Pot(BaseModel):
     def model_post_init(self, __context: Any) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
+
+    @field_validator("balance", mode="before")
+    @classmethod
+    def convert_balance_minor_to_major_units(cls, v: int) -> Decimal:
+        """Convert balance from minor units (API response) to major units."""
+        return convert_amount_from_minor_units(v)
 
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
         """Ensure client is available for API calls."""

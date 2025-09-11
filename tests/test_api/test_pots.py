@@ -1,5 +1,6 @@
 """Tests for pots API."""
 
+from decimal import Decimal
 from typing import Any
 
 from monzoh.models import Pot
@@ -25,7 +26,9 @@ class TestPotsAPI:
         assert isinstance(pots[0], Pot)
         assert pots[0].id == sample_pot["id"]
         assert pots[0].name == sample_pot["name"]
-        assert pots[0].balance == sample_pot["balance"]
+        assert pots[0].balance == Decimal(
+            "1337.00"
+        )  # 133700 minor units -> 1337.00 major units
 
         monzo_client._base_client._get.assert_called_once()
         call_args = monzo_client._base_client._get.call_args
@@ -54,7 +57,7 @@ class TestPotsAPI:
         )
 
         assert isinstance(pot, Pot)
-        assert pot.balance == 150000
+        assert pot.balance == Decimal("1500.00")
 
         monzo_client._base_client._put.assert_called_once()
         call_args = monzo_client._base_client._put.call_args
@@ -85,7 +88,7 @@ class TestPotsAPI:
         )
 
         assert isinstance(pot, Pot)
-        assert pot.balance == 120000
+        assert pot.balance == Decimal("1200.00")
 
         monzo_client._base_client._put.assert_called_once()
         call_args = monzo_client._base_client._put.call_args

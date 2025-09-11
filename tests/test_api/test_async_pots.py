@@ -1,5 +1,6 @@
 """Tests for async pots API."""
 
+from decimal import Decimal
 from typing import Any, cast
 from unittest.mock import Mock
 
@@ -39,7 +40,9 @@ class TestAsyncPotsAPI:
         assert isinstance(pots[0], Pot)
         assert pots[0].id == sample_pot["id"]
         assert pots[0].name == sample_pot["name"]
-        assert pots[0].balance == sample_pot["balance"]
+        assert pots[0].balance == Decimal(
+            "1337.00"
+        )  # 133700 minor units -> 1337.00 major units
 
     @pytest.mark.asyncio
     async def test_deposit(
@@ -72,7 +75,7 @@ class TestAsyncPotsAPI:
             },
         )
         assert isinstance(pot, Pot)
-        assert pot.balance == 150000
+        assert pot.balance == Decimal("1500.00")
 
     @pytest.mark.asyncio
     async def test_withdraw(
@@ -105,4 +108,4 @@ class TestAsyncPotsAPI:
             },
         )
         assert isinstance(pot, Pot)
-        assert pot.balance == 120000
+        assert pot.balance == Decimal("1200.00")

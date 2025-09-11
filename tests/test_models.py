@@ -1,6 +1,7 @@
 """Tests for Pydantic models."""
 
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from monzoh.models import (
@@ -41,10 +42,10 @@ class TestModels:
         }
         balance = Balance(**data)
 
-        assert balance.balance == 5000
-        assert balance.total_balance == 6000
+        assert balance.balance == Decimal("50.00")
+        assert balance.total_balance == Decimal("60.00")
         assert balance.currency == "GBP"
-        assert balance.spend_today == 100
+        assert balance.spend_today == Decimal("1.00")
 
     def test_transaction_model(self) -> None:
         """Test Transaction model."""
@@ -79,7 +80,7 @@ class TestModels:
 
         assert pot.id == "pot_123"
         assert pot.name == "Savings"
-        assert pot.balance == 10000
+        assert pot.balance == Decimal("100.00")
         assert pot.deleted is False
 
     def test_receipt_model(self) -> None:

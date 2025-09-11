@@ -4,9 +4,12 @@ from __future__ import annotations
 
 import builtins
 from datetime import datetime
+from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Literal, cast
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+from .base import convert_amount_from_minor_units
 
 if TYPE_CHECKING:
     from ..core import BaseSyncClient
@@ -234,28 +237,34 @@ class AccountType(BaseModel):
 class Balance(BaseModel):
     """Account balance information."""
 
-    balance: int = Field(
+    balance: Decimal = Field(
         ...,
         description=(
-            "Available balance in minor units of the currency, "
-            "eg. pennies for GBP, or cents for EUR and USD"
+            "Available balance in major units of the currency, "
+            "eg. pounds for GBP, or euros/dollars for EUR and USD"
         ),
     )
-    total_balance: int = Field(
+    total_balance: Decimal = Field(
         ...,
         description=(
-            "Total balance including pots in minor units of the currency, "
-            "eg. pennies for GBP, or cents for EUR and USD"
+            "Total balance including pots in major units of the currency, "
+            "eg. pounds for GBP, or euros/dollars for EUR and USD"
         ),
     )
     currency: str = Field(..., description="ISO 4217 currency code")
-    spend_today: int = Field(
+    spend_today: Decimal = Field(
         ...,
         description=(
-            "Amount spent today in minor units of the currency, "
-            "eg. pennies for GBP, or cents for EUR and USD"
+            "Amount spent today in major units of the currency, "
+            "eg. pounds for GBP, or euros/dollars for EUR and USD"
         ),
     )
+
+    @field_validator("balance", "total_balance", "spend_today", mode="before")
+    @classmethod
+    def convert_minor_to_major_units(cls, v: int) -> Decimal:
+        """Convert balance from minor units (API response) to major units."""
+        return convert_amount_from_minor_units(v)
 
 
 # Response containers
