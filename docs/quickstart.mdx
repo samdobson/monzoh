@@ -90,8 +90,8 @@ for account in accounts:
 # Get the first account
 account = accounts[0]
 
-# Get current balance
-balance = client.accounts.get_balance(account_id=account.id)
+# Get current balance using OO-style method
+balance = account.get_balance()
 print(f"Balance: £{balance.balance:.2f}")
 print(f"Spend today: £{balance.spend_today:.2f}")
 ```
@@ -99,11 +99,8 @@ print(f"Spend today: £{balance.spend_today:.2f}")
 ### List Recent Transactions
 
 ```python
-# Get recent transactions
-transactions = client.transactions.list(
-    account_id=account.id,
-    limit=10
-)
+# Get recent transactions using OO-style method
+transactions = account.list_transactions(limit=10)
 
 print("Recent transactions:")
 for transaction in transactions:
@@ -114,22 +111,18 @@ for transaction in transactions:
 ### Manage Pots
 
 ```python
-# List savings pots
-pots = client.pots.list()
+# List savings pots using OO-style method
+pots = account.list_pots()
 print(f"Found {len(pots)} pots:")
 
 for pot in pots:
     balance = pot.balance
     print(f"  {pot.name}: £{balance:.2f}")
 
-# Deposit money into a pot
+# Deposit money into a pot using OO-style method
 if pots:
     pot = pots[0]
-    client.pots.deposit(
-        pot_id=pot.id,
-        account_id=account.id,
-        amount=10.00  # £10.00
-    )
+    pot.deposit(10.00)  # £10.00
     print(f"Deposited £10.00 into {pot.name}")
 ```
 
@@ -149,6 +142,10 @@ client = MonzoClient()
 
 try:
     accounts = client.accounts.list()
+    # Use OO-style methods on account objects
+    account = accounts[0]
+    balance = account.get_balance()
+    transactions = account.list_transactions(limit=5)
 except MonzoAuthenticationError:
     print("Authentication failed - please run 'monzoh-auth'")
 except MonzoRateLimitError:

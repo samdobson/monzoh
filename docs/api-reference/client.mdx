@@ -18,7 +18,6 @@ class MonzoClient:
         access_token: Optional[str] = None,
         http_client: Optional[httpx.Client] = None,
         timeout: float = 30.0,
-        async_mode: bool = False,  # No longer supported
     ) -> None:
 ```
 
@@ -43,7 +42,6 @@ client = MonzoClient(access_token="your_access_token_here")
 | `access_token` | `Optional[str]` | `None` | OAuth2 access token. If not provided, loads from cache |
 | `http_client` | `Optional[httpx.Client]` | `None` | Custom httpx client instance |
 | `timeout` | `float` | `30.0` | Request timeout in seconds |
-| `async_mode` | `bool` | `False` | **Deprecated**: Raises ValueError if True |
 
 ### Authentication
 
@@ -186,7 +184,7 @@ The client supports context manager protocol for automatic resource cleanup:
 with MonzoClient() as client:
     accounts = client.accounts.list()
     for account in accounts:
-        balance = client.accounts.get_balance(account.id)
+        balance = account.get_balance()
         print(f"{account.description}: £{balance.balance / 100:.2f}")
 # Resources automatically cleaned up
 ```
@@ -243,22 +241,19 @@ def main():
             print(f"   Type: {account.type}")
             
             # Get balance
-            balance = client.accounts.get_balance(account.id)
+            balance = account.get_balance()
             print(f"   Balance: £{balance.balance / 100:.2f}")
             print(f"   Spent today: £{balance.spend_today / 100:.2f}")
             
             # Get recent transactions
-            transactions = client.transactions.list(
-                account_id=account.id,
-                limit=5
-            )
+            transactions = account.list_transactions(limit=5)
             print(f"   Recent transactions: {len(transactions)}")
             
             for transaction in transactions:
                 amount = transaction.amount / 100
                 print(f"     • {transaction.description}: £{amount:.2f}")
         
-        # Get pots
+        # Get pots - note: pots are user-level, not account-specific
         pots = client.pots.list()
         if pots:
             print(f"\n🐷 Found {len(pots)} savings pots")
@@ -370,14 +365,3 @@ for t in threads:
     t.join()
 ```
 
-<Warning>
-The `async_mode` parameter is deprecated and will raise a `ValueError` if set to `True`. Use the synchronous client with `asyncio.to_thread()` for async operations instead.
-</Warning>
-
-## Migration Notes
-
-### From v0.0.x to v0.1.x
-
-- `async_mode` parameter is no longer supported
-- Use `asyncio.to_thread()` for async operations
-- Token loading is now automatic by default
