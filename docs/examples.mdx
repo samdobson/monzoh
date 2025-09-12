@@ -43,9 +43,9 @@ def create_dashboard():
             print("-" * len(f"{i}. {account.description}"))
             
             # Get balance
-            balance = client.accounts.get_balance(account_id=account.id)
-            balance_gbp = balance.balance / 100
-            spent_today_gbp = balance.spend_today / 100
+            balance = account.get_balance()
+            balance_gbp = balance.balance
+            spent_today_gbp = balance.spend_today
             
             total_balance += balance_gbp
             total_spent_today += spent_today_gbp
@@ -64,10 +64,7 @@ def create_dashboard():
             print(f"   Account Type: {account.type}")
             
             # Get recent transactions
-            transactions = client.transactions.list(
-                account_id=account.id, 
-                limit=3
-            )
+            transactions = account.list_transactions(limit=3)
             
             if transactions:
                 print("   Recent Transactions:")
@@ -123,8 +120,7 @@ def analyze_spending(days=30):
     
     # Get transactions
     since = datetime.now() - timedelta(days=days)
-    transactions = client.transactions.list(
-        account_id=current_account.id,
+    transactions = current_account.list_transactions(
         since=since.isoformat(),
         limit=200
     )
@@ -226,10 +222,7 @@ class SavingsAutomator:
         print("🔄 Analyzing transactions for round-up savings...")
         
         # Get recent transactions
-        transactions = self.client.transactions.list(
-            account_id=self.current_account.id,
-            limit=50
-        )
+        transactions = self.current_account.list_transactions(limit=50)
         
         # Calculate round-ups for spending transactions
         total_roundup = 0
@@ -271,10 +264,7 @@ class SavingsAutomator:
         print(f"📈 Implementing {percentage}% savings rule...")
         
         # Get recent income transactions (positive amounts)
-        transactions = self.client.transactions.list(
-            account_id=self.current_account.id,
-            limit=20
-        )
+        transactions = self.current_account.list_transactions(limit=20)
         
         income_transactions = [t for t in transactions if t.amount > 0]
         
@@ -314,19 +304,13 @@ class SavingsAutomator:
         amount_pence = int(amount_pounds * 100)
         
         try:
-            result = self.client.pots.deposit(
-                pot_id=target_pot.id,
-                account_id=self.current_account.id,
-                amount=amount_pence
-            )
+            result = target_pot.deposit(amount=amount_pence)
             
             print(f"✅ Transferred £{amount_pounds:.2f} to '{target_pot.name}'")
             print(f"📝 Reason: {reason}")
             
             # Show updated balance
-            updated_balance = self.client.accounts.get_balance(
-                account_id=self.current_account.id
-            )
+            updated_balance = self.current_account.get_balance()
             print(f"💳 New account balance: £{updated_balance.balance / 100:.2f}")
             
             return True
@@ -418,36 +402,18 @@ Set up webhook handling for real-time transaction notifications:
 ```python
 from fastapi import FastAPI, Request, HTTPException
 from monzoh import MonzoClient
-import hmac
-import hashlib
 import json
 from datetime import datetime
 
 app = FastAPI(title="Monzo Webhook Handler")
 
-# Your webhook secret (from Monzo Developer Portal)
-WEBHOOK_SECRET = "your_webhook_secret_here"
 
 @app.post("/monzo/webhook")
 async def handle_monzo_webhook(request: Request):
     """Handle incoming Monzo webhook events."""
     
-    # Get the raw body and signature
+    # Get the raw body
     body = await request.body()
-    signature = request.headers.get("X-Monzo-Signature")
-    
-    if not signature:
-        raise HTTPException(status_code=400, detail="Missing signature")
-    
-    # Verify webhook signature
-    expected_signature = hmac.new(
-        WEBHOOK_SECRET.encode(),
-        body,
-        hashlib.sha1
-    ).hexdigest()
-    
-    if not hmac.compare_digest(signature, expected_signature):
-        raise HTTPException(status_code=403, detail="Invalid signature")
     
     # Parse the webhook data
     try:
@@ -546,21 +512,18 @@ class ReceiptManager:
     def __init__(self):
         self.client = MonzoClient()
     
-    def add_receipt_to_transaction(self, transaction_id, receipt_data):
-        """Add detailed receipt information to a transaction."""
+    def add_receipt_to_transaction(self, transaction, receipt_data):
+        """Add detailed receipt information to a transaction using OO-style method."""
         try:
-            receipt = self.client.receipts.create(
-                transaction_id=transaction_id,
-                **receipt_data
-            )
-            print(f"✅ Receipt added to transaction {transaction_id}")
+            receipt = transaction.create_receipt(**receipt_data)
+            print(f"✅ Receipt added to transaction {transaction.id}")
             return receipt
         except MonzoError as e:
             print(f"❌ Failed to add receipt: {e}")
             return None
     
-    def upload_receipt_image(self, transaction_id, image_path):
-        """Upload a receipt image and attach it to a transaction."""
+    def upload_receipt_image(self, transaction, image_path):
+        """Upload a receipt image and attach it to a transaction using OO-style method."""
         image_file = Path(image_path)
         
         if not image_file.exists():
@@ -574,11 +537,10 @@ class ReceiptManager:
             return None
         
         try:
-            # Upload the attachment
+            # Upload the attachment using OO-style method
             with open(image_file, 'rb') as f:
-                attachment = self.client.attachments.upload(
-                    transaction_id=transaction_id,
-                    file_name=image_file.name,
+                attachment = transaction.upload_attachment(
+                    image_file.name,
                     file_type=content_type,
                     file_data=f.read()
                 )
@@ -593,8 +555,8 @@ class ReceiptManager:
             print(f"❌ Failed to upload receipt: {e}")
             return None
     
-    def create_detailed_receipt(self, transaction_id, receipt_info):
-        """Create a detailed receipt with line items."""
+    def create_detailed_receipt(self, transaction, receipt_info):
+        """Create a detailed receipt with line items using OO-style method."""
         
         # Example receipt structure
         receipt_data = {
@@ -609,10 +571,10 @@ class ReceiptManager:
             "taxes": receipt_info.get("taxes", [])
         }
         
-        return self.add_receipt_to_transaction(transaction_id, receipt_data)
+        return self.add_receipt_to_transaction(transaction, receipt_data)
     
-    def process_grocery_receipt(self, transaction_id, items_with_prices):
-        """Process a grocery receipt with multiple items."""
+    def process_grocery_receipt(self, transaction, items_with_prices):
+        """Process a grocery receipt with multiple items using OO-style method."""
         
         # Calculate totals
         subtotal = sum(item['price'] for item in items_with_prices)
@@ -642,7 +604,7 @@ class ReceiptManager:
             ]
         }
         
-        return self.create_detailed_receipt(transaction_id, receipt_info)
+        return self.create_detailed_receipt(transaction, receipt_info)
     
     def find_transactions_without_receipts(self, days=7):
         """Find recent transactions that don't have receipts."""
@@ -653,8 +615,7 @@ class ReceiptManager:
         from datetime import timedelta
         since = datetime.now() - timedelta(days=days)
         
-        transactions = self.client.transactions.list(
-            account_id=current_account.id,
+        transactions = current_account.list_transactions(
             since=since.isoformat(),
             limit=50
         )
@@ -768,8 +729,7 @@ class BudgetTracker:
         now = datetime.now()
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
-        transactions = self.client.transactions.list(
-            account_id=current_account.id,
+        transactions = current_account.list_transactions(
             since=start_of_month.isoformat(),
             limit=500
         )
@@ -889,8 +849,7 @@ class BudgetTracker:
         # Get last 7 days of transactions
         since = datetime.now() - timedelta(days=7)
         
-        transactions = self.client.transactions.list(
-            account_id=current_account.id,
+        transactions = current_account.list_transactions(
             since=since.isoformat(),
             limit=100
         )

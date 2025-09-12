@@ -27,7 +27,8 @@ from monzoh import MonzoClient
 client = MonzoClient()
 
 # Get all pots
-pots = client.pots.list()
+account = client.accounts.list()[0]  # Get first account
+pots = account.list_pots()
 print(f"Found {len(pots)} pots")
 
 for pot in pots:
@@ -36,6 +37,9 @@ for pot in pots:
         
     balance = pot.balance / 100
     print(f"🐷 {pot.name}: £{balance:.2f}")
+    
+# Alternative: client-style method gets all user pots
+# pots = client.pots.list()
     
     if pot.goal_amount:
         goal = pot.goal_amount / 100
@@ -71,17 +75,13 @@ def deposit(
 ```python
 # Get accounts and pots
 accounts = client.accounts.list()
-pots = client.pots.list()
-
 current_account = accounts[0]
+pots = current_account.list_pots()
+
 savings_pot = next(pot for pot in pots if not pot.deleted)
 
 # Deposit £25.00 into the pot
-result = client.pots.deposit(
-    pot_id=savings_pot.id,
-    account_id=current_account.id,
-    amount=25.00
-)
+result = savings_pot.deposit(amount=25.00)
 
 print(f"✅ Deposited £25.00 into {savings_pot.name}")
 ```
@@ -110,11 +110,7 @@ def withdraw(
 **Example**:
 ```python
 # Withdraw £10.00 from the pot
-result = client.pots.withdraw(
-    pot_id=savings_pot.id,
-    account_id=current_account.id,
-    amount=10.00
-)
+result = savings_pot.withdraw(amount=10.00)
 
 print(f"✅ Withdrew £10.00 from {savings_pot.name}")
 ```
@@ -175,11 +171,7 @@ class AutoSavings:
             savings_pot = self.active_pots[0]
             
             try:
-                result = self.client.pots.deposit(
-                    pot_id=savings_pot.id,
-                    account_id=self.current_account.id,
-                    amount=float(total_roundup)
-                )
+                result = savings_pot.deposit(amount=float(total_roundup))
                 
                 print(f"✅ Deposited £{total_roundup:.2f} into {savings_pot.name}")
                 return True
@@ -223,11 +215,7 @@ class AutoSavings:
                 
                 if weekly_contribution >= 1:  # Minimum £1
                     try:
-                        result = self.client.pots.deposit(
-                            pot_id=pot.id,
-                            account_id=self.current_account.id,
-                            amount=weekly_contribution
-                        )
+                        result = pot.deposit(amount=weekly_contribution)
                         
                         new_balance = balance + weekly_contribution
                         progress = (new_balance / goal) * 100
@@ -551,11 +539,7 @@ class SmartPotAllocator:
                 
                 # Perform the transfer
                 try:
-                    result = self.client.pots.deposit(
-                        pot_id=pot.id,
-                        account_id=self.current_account.id,
-                        amount=allocation_amount
-                    )
+                    result = pot.deposit(amount=allocation_amount)
                     
                     remaining_surplus -= allocation_amount
                     print(f"   ✅ Transferred successfully")

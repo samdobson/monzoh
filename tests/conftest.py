@@ -117,7 +117,16 @@ def sample_balance() -> dict[str, Any]:
     Returns:
         A dictionary containing sample balance data.
     """
-    return {"balance": 5000, "total_balance": 6000, "currency": "GBP", "spend_today": 0}
+    return {
+        "balance": 5000,
+        "total_balance": 6000,
+        "currency": "GBP",
+        "spend_today": 0,
+        "balance_including_flexible_savings": False,
+        "local_currency": "GBP",
+        "local_exchange_rate": 100,
+        "local_spend": 0,
+    }
 
 
 @pytest.fixture
