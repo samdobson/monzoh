@@ -15,7 +15,14 @@ class TestAsyncAccountsAPI:
 
     @pytest.fixture
     def accounts_api(self, mock_async_base_client: BaseAsyncClient) -> AsyncAccountsAPI:
-        """Create async accounts API instance."""
+        """Create async accounts API instance.
+
+        Args:
+            mock_async_base_client: Mock async base client fixture.
+
+        Returns:
+            AsyncAccountsAPI instance.
+        """
         return AsyncAccountsAPI(mock_async_base_client)
 
     @pytest.mark.asyncio
@@ -25,7 +32,13 @@ class TestAsyncAccountsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_account: dict[str, Any],
     ) -> None:
-        """Test list accounts."""
+        """Test list accounts.
+
+        Args:
+            accounts_api: Async accounts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_account: Sample account data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "accounts": [sample_account]
         }
@@ -45,7 +58,13 @@ class TestAsyncAccountsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_account: dict[str, Any],
     ) -> None:
-        """Test list accounts with type filter."""
+        """Test list accounts with type filter.
+
+        Args:
+            accounts_api: Async accounts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_account: Sample account data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "accounts": [sample_account]
         }
@@ -64,10 +83,16 @@ class TestAsyncAccountsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_balance: dict[str, Any],
     ) -> None:
-        """Test get account balance."""
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = (
-            sample_balance
-        )
+        """Test get account balance.
+
+        Args:
+            accounts_api: Async accounts API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_balance: Sample balance data fixture.
+        """
+        cast(
+            Mock, mock_async_base_client._get
+        ).return_value.json.return_value = sample_balance
 
         balance = await accounts_api.get_balance("test_account_id")
 

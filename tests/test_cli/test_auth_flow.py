@@ -14,7 +14,12 @@ class TestAuthenticate:
     def test_authenticate_with_valid_cached_token(
         self, mock_load_cache: Mock, mock_client_class: Mock
     ) -> None:
-        """Test authentication with valid cached token."""
+        """Test authentication with valid cached token.
+
+        Args:
+            mock_load_cache: Mock load cache fixture.
+            mock_client_class: Mock client class fixture.
+        """
         # Mock cached token
         cached_token = {"access_token": "cached_token", "user_id": "user123"}
         mock_load_cache.return_value = cached_token
@@ -40,7 +45,11 @@ class TestAuthenticate:
 
     @patch("monzoh.cli.auth_flow.load_token_from_cache")
     def test_authenticate_no_cached_token(self, mock_load_cache: Mock) -> None:
-        """Test authentication without cached token."""
+        """Test authentication without cached token.
+
+        Args:
+            mock_load_cache: Mock load cache fixture.
+        """
         mock_load_cache.return_value = None
 
         with (
@@ -105,7 +114,11 @@ class TestAuthenticate:
 
     @patch("monzoh.cli.auth_flow.load_token_from_cache")
     def test_authenticate_keyboard_interrupt(self, mock_load_cache: Mock) -> None:
-        """Test authentication cancelled by keyboard interrupt."""
+        """Test authentication cancelled by keyboard interrupt.
+
+        Args:
+            mock_load_cache: Mock load cache fixture.
+        """
         mock_load_cache.side_effect = KeyboardInterrupt()
 
         result = authenticate()
@@ -113,7 +126,11 @@ class TestAuthenticate:
 
     @patch("monzoh.cli.auth_flow.load_token_from_cache")
     def test_authenticate_timeout(self, mock_load_cache: Mock) -> None:
-        """Test authentication timeout."""
+        """Test authentication timeout.
+
+        Args:
+            mock_load_cache: Mock load cache fixture.
+        """
         mock_load_cache.return_value = None
 
         with (

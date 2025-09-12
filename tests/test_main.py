@@ -24,7 +24,11 @@ class TestMonzoClient:
     """Tests for MonzoClient main functionality."""
 
     def test_init_with_token(self, mock_http_client: Any) -> None:
-        """Test initialization with provided token."""
+        """Test initialization with provided token.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         client = MonzoClient("test_token", http_client=mock_http_client)
 
         assert client._base_client.access_token == "test_token"
@@ -40,7 +44,12 @@ class TestMonzoClient:
     def test_init_without_token_cached_available(
         self, mock_load_token: Any, mock_http_client: Any
     ) -> None:
-        """Test initialization without token when cached token is available."""
+        """Test initialization without token when cached token is available.
+
+        Args:
+            mock_load_token: Mock load token function fixture.
+            mock_http_client: Mock HTTP client fixture.
+        """
         mock_load_token.return_value = "cached_token"
 
         client = MonzoClient(http_client=mock_http_client)
@@ -52,7 +61,12 @@ class TestMonzoClient:
     def test_init_without_token_no_cache(
         self, mock_load_token: Any, mock_http_client: Any
     ) -> None:
-        """Test initialization without token when no cached token is available."""
+        """Test initialization without token when no cached token is available.
+
+        Args:
+            mock_load_token: Mock load token function fixture.
+            mock_http_client: Mock HTTP client fixture.
+        """
         mock_load_token.return_value = None
 
         # Should not raise error during initialization anymore
@@ -69,7 +83,12 @@ class TestMonzoClient:
     def test_set_access_token(
         self, mock_load_token: Any, mock_http_client: Any
     ) -> None:
-        """Test setting access token after client creation."""
+        """Test setting access token after client creation.
+
+        Args:
+            mock_load_token: Mock load token function fixture.
+            mock_http_client: Mock HTTP client fixture.
+        """
         mock_load_token.return_value = None
 
         # Create client without token
@@ -81,13 +100,21 @@ class TestMonzoClient:
         assert client._base_client.access_token == "new_token"
 
     def test_init_with_custom_timeout(self, mock_http_client: Any) -> None:
-        """Test initialization with custom timeout."""
+        """Test initialization with custom timeout.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         client = MonzoClient("test_token", http_client=mock_http_client, timeout=60.0)
 
         assert client._base_client._timeout == 60.0
 
     def test_context_manager(self, mock_http_client: Any) -> None:
-        """Test context manager functionality."""
+        """Test context manager functionality.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         client = MonzoClient("test_token", http_client=mock_http_client)
 
         with (
@@ -101,7 +128,11 @@ class TestMonzoClient:
             mock_exit.assert_called_once()
 
     def test_whoami(self, mock_http_client: Any) -> None:
-        """Test whoami method."""
+        """Test whoami method.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         client = MonzoClient("test_token", http_client=mock_http_client)
 
         mock_whoami_result = Mock()
@@ -148,7 +179,11 @@ class TestMonzoClient:
         assert oauth_client._http_client is None
 
     def test_api_endpoints_initialization(self, mock_http_client: Any) -> None:
-        """Test that all API endpoints are properly initialized."""
+        """Test that all API endpoints are properly initialized.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         from monzoh.api.accounts import AccountsAPI
         from monzoh.api.attachments import AttachmentsAPI
         from monzoh.api.feed import FeedAPI

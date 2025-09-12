@@ -15,7 +15,11 @@ class TestMonzoOAuth:
     """Test MonzoOAuth."""
 
     def test_init(self, mock_http_client: Any) -> None:
-        """Test OAuth client initialization."""
+        """Test OAuth client initialization.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -42,7 +46,11 @@ class TestMonzoOAuth:
         assert oauth._own_client is True
 
     def test_http_client_property(self, mock_http_client: Any) -> None:
-        """Test http_client property."""
+        """Test http_client property.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -66,7 +74,11 @@ class TestMonzoOAuth:
         assert client1 is client2
 
     def test_context_manager(self, mock_http_client: Any) -> None:
-        """Test sync context manager."""
+        """Test sync context manager.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -77,7 +89,11 @@ class TestMonzoOAuth:
             assert client is oauth
 
     def test_get_authorization_url(self, mock_http_client: Any) -> None:
-        """Test get_authorization_url method."""
+        """Test get_authorization_url method.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -93,7 +109,11 @@ class TestMonzoOAuth:
         assert "response_type=code" in url
 
     def test_get_authorization_url_with_state(self, mock_http_client: Any) -> None:
-        """Test get_authorization_url method with state."""
+        """Test get_authorization_url method with state.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -108,7 +128,12 @@ class TestMonzoOAuth:
     def test_exchange_code_for_token(
         self, mock_http_client: Any, mock_response: Any
     ) -> None:
-        """Test exchange_code_for_token method."""
+        """Test exchange_code_for_token method.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -135,7 +160,12 @@ class TestMonzoOAuth:
         assert token.user_id == "user_123"
 
     def test_refresh_token(self, mock_http_client: Any, mock_response: Any) -> None:
-        """Test refresh_token method."""
+        """Test refresh_token method.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -183,7 +213,11 @@ class TestMonzoOAuth:
     def test_context_manager_doesnt_close_provided_client(
         self, mock_http_client: Any
     ) -> None:
-        """Test context manager doesn't close provided HTTP client."""
+        """Test context manager doesn't close provided HTTP client.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -200,7 +234,12 @@ class TestMonzoOAuth:
     def test_exchange_code_for_token_http_error(
         self, mock_http_client: Any, mock_response: Any
     ) -> None:
-        """Test exchange_code_for_token with HTTP error."""
+        """Test exchange_code_for_token with HTTP error.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -220,7 +259,12 @@ class TestMonzoOAuth:
     def test_exchange_code_for_token_http_error_no_json(
         self, mock_http_client: Any, mock_response: Any
     ) -> None:
-        """Test exchange_code_for_token with HTTP error and invalid JSON."""
+        """Test exchange_code_for_token with HTTP error and invalid JSON.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -239,7 +283,11 @@ class TestMonzoOAuth:
             oauth.exchange_code_for_token("test_code")
 
     def test_exchange_code_for_token_network_error(self, mock_http_client: Any) -> None:
-        """Test exchange_code_for_token with network error."""
+        """Test exchange_code_for_token with network error.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -259,7 +307,12 @@ class TestMonzoOAuth:
     def test_refresh_token_http_error(
         self, mock_http_client: Any, mock_response: Any
     ) -> None:
-        """Test refresh_token with HTTP error."""
+        """Test refresh_token with HTTP error.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -282,7 +335,12 @@ class TestMonzoOAuth:
     def test_refresh_token_http_error_no_json(
         self, mock_http_client: Any, mock_response: Any
     ) -> None:
-        """Test refresh_token with HTTP error and invalid JSON."""
+        """Test refresh_token with HTTP error and invalid JSON.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -301,7 +359,11 @@ class TestMonzoOAuth:
             oauth.refresh_token("test_refresh_token")
 
     def test_refresh_token_network_error(self, mock_http_client: Any) -> None:
-        """Test refresh_token with network error."""
+        """Test refresh_token with network error.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -319,7 +381,12 @@ class TestMonzoOAuth:
         )
 
     def test_logout_success(self, mock_http_client: Any, mock_response: Any) -> None:
-        """Test successful logout."""
+        """Test successful logout.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -339,7 +406,12 @@ class TestMonzoOAuth:
         assert call_args[1]["headers"]["Authorization"] == "Bearer test_access_token"
 
     def test_logout_http_error(self, mock_http_client: Any, mock_response: Any) -> None:
-        """Test logout with HTTP error."""
+        """Test logout with HTTP error.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -364,7 +436,12 @@ class TestMonzoOAuth:
     def test_logout_http_error_no_json(
         self, mock_http_client: Any, mock_response: Any
     ) -> None:
-        """Test logout with HTTP error and invalid JSON."""
+        """Test logout with HTTP error and invalid JSON.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",
@@ -383,7 +460,11 @@ class TestMonzoOAuth:
             oauth.logout("test_token")
 
     def test_logout_network_error(self, mock_http_client: Any) -> None:
-        """Test logout with network error."""
+        """Test logout with network error.
+
+        Args:
+            mock_http_client: Mock HTTP client fixture.
+        """
         oauth = MonzoOAuth(
             client_id="test_client_id",
             client_secret="test_client_secret",

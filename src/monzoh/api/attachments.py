@@ -8,14 +8,13 @@ from ..utils import infer_file_type, read_file_data
 
 
 class AttachmentsAPI:
-    """Attachments API client."""
+    """Attachments API client.
+
+    Args:
+        client: Base API client
+    """
 
     def __init__(self, client: BaseSyncClient) -> None:
-        """Initialize attachments API.
-
-        Args:
-            client: Base API client
-        """
         self.client = client
 
     def upload(
@@ -148,9 +147,6 @@ class AttachmentsAPI:
 
         Returns:
             None
-
-        Raises:
-            RuntimeError: If the upload to the external URL fails
         """
         import httpx
 

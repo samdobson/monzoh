@@ -18,7 +18,14 @@ class TestPotsAPI:
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test listing pots."""
+        """Test listing pots.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_pot: Sample pot data fixture.
+        """
         mock_response = mock_response(json_data={"pots": [sample_pot]})
         monzo_client._base_client._get.return_value = mock_response
 
@@ -44,7 +51,14 @@ class TestPotsAPI:
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test depositing into a pot."""
+        """Test depositing into a pot.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_pot: Sample pot data fixture.
+        """
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 150000  # Increased balance
 
@@ -75,7 +89,14 @@ class TestPotsAPI:
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test withdrawing from a pot."""
+        """Test withdrawing from a pot.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_pot: Sample pot data fixture.
+        """
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 120000  # Decreased balance
 
@@ -106,7 +127,14 @@ class TestPotsAPI:
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test depositing into a pot with auto-generated dedupe_id."""
+        """Test depositing into a pot with auto-generated dedupe_id.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_pot: Sample pot data fixture.
+        """
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 150000
 
@@ -141,7 +169,14 @@ class TestPotsAPI:
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test withdrawing from a pot with auto-generated dedupe_id."""
+        """Test withdrawing from a pot with auto-generated dedupe_id.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+            sample_pot: Sample pot data fixture.
+        """
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 120000
 

@@ -161,9 +161,7 @@ class TestClientOOIntegration:
         assert updated_transaction.metadata == {"category": "food"}
 
     def test_account_list_transactions_sets_client_on_transactions(self) -> None:
-        """
-        Test that account.list_transactions() sets client on returned transactions.
-        """
+        """Test that list_transactions() sets client on transactions."""
         # Mock the base client
         mock_base_client = Mock(spec=BaseSyncClient)
         mock_base_client._prepare_pagination_params.return_value = {}

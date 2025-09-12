@@ -43,7 +43,12 @@ class TestLoadEnvCredentials:
     def test_load_with_dotenv_file(
         self, mock_exists: Mock, mock_load_dotenv: Mock
     ) -> None:
-        """Test loading with .env file."""
+        """Test loading with .env file.
+
+        Args:
+            mock_exists: Mock for pathlib.Path.exists fixture.
+            mock_load_dotenv: Mock for load_dotenv fixture.
+        """
         mock_exists.return_value = True
 
         with patch.dict(os.environ, {"MONZO_CLIENT_ID": "from_env"}):
@@ -73,7 +78,11 @@ class TestGetCredentialsInteractively:
 
     @patch("monzoh.cli.credentials.Prompt.ask")
     def test_with_missing_credentials(self, mock_prompt: Mock) -> None:
-        """Test when credentials need to be prompted."""
+        """Test when credentials need to be prompted.
+
+        Args:
+            mock_prompt: Mock prompt fixture.
+        """
         console = Console()
         existing_creds: dict[str, str | None] = {
             "client_id": None,

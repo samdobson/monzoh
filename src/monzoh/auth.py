@@ -10,7 +10,18 @@ from .models import OAuthToken
 
 
 class MonzoOAuth:
-    """OAuth2 client for Monzo API authentication."""
+    """OAuth2 client for Monzo API authentication.
+
+    Args:
+        client_id: OAuth client ID
+        client_secret: OAuth client secret
+        redirect_uri: OAuth redirect URI
+        http_client: Optional httpx client to use
+
+    Attributes:
+        BASE_URL: Base URL for Monzo API endpoints
+        AUTH_URL: Base URL for Monzo OAuth authorization endpoints
+    """
 
     BASE_URL = "https://api.monzo.com"
     AUTH_URL = "https://auth.monzo.com"
@@ -22,14 +33,6 @@ class MonzoOAuth:
         redirect_uri: str,
         http_client: httpx.Client | None = None,
     ) -> None:
-        """Initialize OAuth client.
-
-        Args:
-            client_id: OAuth client ID
-            client_secret: OAuth client secret
-            redirect_uri: OAuth redirect URI
-            http_client: Optional httpx client to use
-        """
         self.client_id = client_id
         self.client_secret = client_secret
         self.redirect_uri = redirect_uri
@@ -38,17 +41,31 @@ class MonzoOAuth:
 
     @property
     def http_client(self) -> httpx.Client:
-        """Get or create HTTP client."""
+        """Get or create HTTP client.
+
+        Returns:
+            HTTP client instance
+        """
         if self._http_client is None:
             self._http_client = httpx.Client()
         return self._http_client
 
     def __enter__(self) -> "MonzoOAuth":
-        """Context manager entry."""
+        """Context manager entry.
+
+        Returns:
+            Self instance
+        """
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Context manager exit."""
+        """Context manager exit.
+
+        Args:
+            exc_type: Exception type
+            exc_val: Exception value
+            exc_tb: Exception traceback
+        """
         if self._own_client and self._http_client:
             self._http_client.close()
 
@@ -82,6 +99,7 @@ class MonzoOAuth:
 
         Raises:
             MonzoAuthenticationError: If token exchange fails
+            create_error_from_response: If API returns an error response
         """
         data = {
             "grant_type": "authorization_code",
@@ -122,6 +140,7 @@ class MonzoOAuth:
 
         Raises:
             MonzoAuthenticationError: If token refresh fails
+            create_error_from_response: If API returns an error response
         """
         data = {
             "grant_type": "refresh_token",
@@ -158,6 +177,7 @@ class MonzoOAuth:
 
         Raises:
             MonzoAuthenticationError: If logout fails
+            create_error_from_response: If API returns an error response
         """
         headers = {"Authorization": f"Bearer {access_token}"}
 

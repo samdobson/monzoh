@@ -73,6 +73,9 @@ def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | Non
 
     Args:
         include_expired: If True, return expired tokens (useful for refresh)
+
+    Returns:
+        Cached token data if available and valid, None otherwise
     """
     try:
         cache_path = get_token_cache_path()

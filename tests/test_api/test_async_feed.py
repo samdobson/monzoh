@@ -15,7 +15,14 @@ class TestAsyncFeedAPI:
 
     @pytest.fixture
     def feed_api(self, mock_async_base_client: BaseAsyncClient) -> AsyncFeedAPI:
-        """Create async feed API instance."""
+        """Create async feed API instance.
+
+        Args:
+            mock_async_base_client: Mock async base client fixture.
+
+        Returns:
+            AsyncFeedAPI instance.
+        """
         return AsyncFeedAPI(mock_async_base_client)
 
     @pytest.mark.asyncio
@@ -24,7 +31,12 @@ class TestAsyncFeedAPI:
         feed_api: AsyncFeedAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test create item with minimal parameters."""
+        """Test create item with minimal parameters.
+
+        Args:
+            feed_api: Async feed API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         params = FeedItemParams(
             title="Test Title", image_url="https://example.com/image.jpg"
         )
@@ -46,7 +58,12 @@ class TestAsyncFeedAPI:
         feed_api: AsyncFeedAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test create item with all parameters."""
+        """Test create item with all parameters.
+
+        Args:
+            feed_api: Async feed API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         params = FeedItemParams(
             title="Test Title",
             image_url="https://example.com/image.jpg",
@@ -79,7 +96,12 @@ class TestAsyncFeedAPI:
         feed_api: AsyncFeedAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
-        """Test create item with some optional parameters."""
+        """Test create item with some optional parameters.
+
+        Args:
+            feed_api: Async feed API fixture.
+            mock_async_base_client: Mock async base client fixture.
+        """
         params = FeedItemParams(
             title="Test Title",
             image_url="https://example.com/image.jpg",

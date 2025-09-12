@@ -16,7 +16,14 @@ class TestAsyncPotsAPI:
 
     @pytest.fixture
     def pots_api(self, mock_async_base_client: BaseAsyncClient) -> AsyncPotsAPI:
-        """Create async pots API instance."""
+        """Create async pots API instance.
+
+        Args:
+            mock_async_base_client: Mock async base client fixture.
+
+        Returns:
+            AsyncPotsAPI instance.
+        """
         return AsyncPotsAPI(mock_async_base_client)
 
     @pytest.mark.asyncio
@@ -26,7 +33,13 @@ class TestAsyncPotsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test listing pots."""
+        """Test listing pots.
+
+        Args:
+            pots_api: Async pots API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_pot: Sample pot data fixture.
+        """
         cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
             "pots": [sample_pot]
         }
@@ -51,13 +64,19 @@ class TestAsyncPotsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test depositing into a pot."""
+        """Test depositing into a pot.
+
+        Args:
+            pots_api: Async pots API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_pot: Sample pot data fixture.
+        """
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 150000  # Increased balance
 
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            updated_pot
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = updated_pot
 
         pot = await pots_api.deposit(
             pot_id="pot_123",
@@ -84,13 +103,19 @@ class TestAsyncPotsAPI:
         mock_async_base_client: BaseAsyncClient,
         sample_pot: dict[str, Any],
     ) -> None:
-        """Test withdrawing from a pot."""
+        """Test withdrawing from a pot.
+
+        Args:
+            pots_api: Async pots API fixture.
+            mock_async_base_client: Mock async base client fixture.
+            sample_pot: Sample pot data fixture.
+        """
         updated_pot = sample_pot.copy()
         updated_pot["balance"] = 120000  # Decreased balance
 
-        cast(Mock, mock_async_base_client._put).return_value.json.return_value = (
-            updated_pot
-        )
+        cast(
+            Mock, mock_async_base_client._put
+        ).return_value.json.return_value = updated_pot
 
         pot = await pots_api.withdraw(
             pot_id="pot_123",

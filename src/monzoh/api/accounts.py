@@ -5,14 +5,13 @@ from ..models import Account, AccountsResponse, Balance
 
 
 class AccountsAPI:
-    """Accounts API client."""
+    """Accounts API client.
+
+    Args:
+        client: Base API client
+    """
 
     def __init__(self, client: BaseSyncClient) -> None:
-        """Initialize accounts API.
-
-        Args:
-            client: Base API client
-        """
         self.client = client
 
     def list(self, account_type: str | None = None) -> list[Account]:

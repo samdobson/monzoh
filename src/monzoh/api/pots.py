@@ -9,14 +9,13 @@ from ..models.base import convert_amount_to_minor_units
 
 
 class PotsAPI:
-    """Pots API client."""
+    """Pots API client.
+
+    Args:
+        client: Base API client
+    """
 
     def __init__(self, client: BaseSyncClient) -> None:
-        """Initialize pots API.
-
-        Args:
-            client: Base API client
-        """
         self.client = client
 
     def list(self, current_account_id: str) -> list[Pot]:
@@ -59,7 +58,6 @@ class PotsAPI:
         Returns:
             Updated pot with client attached
         """
-
         amount_minor = convert_amount_to_minor_units(amount)
 
         if dedupe_id is None:
@@ -96,7 +94,6 @@ class PotsAPI:
         Returns:
             Updated pot with client attached
         """
-
         amount_minor = convert_amount_to_minor_units(amount)
 
         if dedupe_id is None:

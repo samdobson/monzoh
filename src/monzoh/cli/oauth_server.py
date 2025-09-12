@@ -65,7 +65,11 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
 
 
 class OAuthCallbackServer(HTTPServer):
-    """HTTP server for handling OAuth callbacks."""
+    """HTTP server for handling OAuth callbacks.
+
+    Args:
+        server_address: Server address tuple (host, port)
+    """
 
     def __init__(self, server_address: tuple) -> None:
         super().__init__(server_address, OAuthCallbackHandler)
@@ -76,10 +80,18 @@ class OAuthCallbackServer(HTTPServer):
 
 
 def start_callback_server(port: int = 8080) -> OAuthCallbackServer:
-    """Start the OAuth callback server."""
+    """Start the OAuth callback server.
+
+    Args:
+        port: Port number for the callback server. Defaults to 8080.
+
+    Returns:
+        OAuthCallbackServer: The running OAuth callback server instance.
+    """
     server = OAuthCallbackServer(("localhost", port))
 
     def run_server() -> None:
+        """Run the OAuth callback server indefinitely."""
         server.serve_forever()
 
     # Start server in background thread

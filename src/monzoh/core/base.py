@@ -21,7 +21,12 @@ QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
 
 
 class MockResponse:
-    """Mock HTTP response for testing purposes."""
+    """Mock HTTP response for testing purposes.
+
+    Args:
+        json_data: JSON data to return
+        status_code: HTTP status code to simulate
+    """
 
     def __init__(self, json_data: dict[str, Any], status_code: int = 200):
         self._json_data = json_data
@@ -34,16 +39,34 @@ class MockResponse:
         self.request = None
 
     def json(self) -> dict[str, Any]:
+        """Return JSON data from the response.
+
+        Returns:
+            JSON data as dictionary
+        """
         return self._json_data
 
     def raise_for_status(self) -> None:
-        """Mock implementation of raise_for_status."""
+        """Mock implementation of raise_for_status.
+
+        Raises:
+            Exception: If status code indicates an error (>= 400)
+        """
         if self.status_code >= 400:
             raise Exception(f"HTTP {self.status_code} error")
 
 
 class BaseSyncClient:
-    """Synchronous base HTTP client for Monzo API operations."""
+    """Synchronous base HTTP client for Monzo API operations.
+
+    Args:
+        access_token: OAuth access token
+        http_client: Optional httpx sync client to use
+        timeout: Request timeout in seconds
+
+    Attributes:
+        BASE_URL: Base URL for Monzo API endpoints
+    """
 
     BASE_URL = "https://api.monzo.com"
 
@@ -53,13 +76,6 @@ class BaseSyncClient:
         http_client: httpx.Client | None = None,
         timeout: float = 30.0,
     ) -> None:
-        """Initialize base sync client.
-
-        Args:
-            access_token: OAuth access token
-            http_client: Optional httpx sync client to use
-            timeout: Request timeout in seconds
-        """
         self.access_token = access_token
         self._http_client = http_client
         self._own_client = http_client is None
@@ -67,7 +83,11 @@ class BaseSyncClient:
 
     @property
     def http_client(self) -> httpx.Client:
-        """Get or create HTTP client."""
+        """Get or create HTTP client.
+
+        Returns:
+            The httpx client instance
+        """
         if self._http_client is None:
             self._http_client = httpx.Client(
                 timeout=self._timeout, headers={"User-Agent": "monzoh-python-client"}
@@ -76,22 +96,43 @@ class BaseSyncClient:
 
     @property
     def auth_headers(self) -> dict[str, str]:
-        """Get authorization headers."""
+        """Get authorization headers.
+
+        Returns:
+            Dictionary containing authorization headers
+
+        Raises:
+            MonzoAuthenticationError: If access token is not set
+        """
         if not self.access_token:
             raise MonzoAuthenticationError("Access token is not set.")
         return {"Authorization": f"Bearer {self.access_token}"}
 
     @property
     def is_mock_mode(self) -> bool:
-        """Check if client is in mock mode (using 'test' as access token)."""
+        """Check if client is in mock mode (using 'test' as access token).
+
+        Returns:
+            True if client is in mock mode, False otherwise
+        """
         return self.access_token == "test"
 
     def __enter__(self) -> BaseSyncClient:
-        """Context manager entry."""
+        """Context manager entry.
+
+        Returns:
+            The client instance
+        """
         return self
 
     def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Context manager exit."""
+        """Context manager exit.
+
+        Args:
+            exc_type: Exception type
+            exc_val: Exception value
+            exc_tb: Exception traceback
+        """
         if self._own_client and self._http_client:
             self._http_client.close()
 
@@ -120,7 +161,8 @@ class BaseSyncClient:
             HTTP response
 
         Raises:
-            MonzoError: If request fails
+            MonzoNetworkError: If network request fails
+            create_error_from_response: If API returns an error response
         """
         # Return mock data if using test token
         if self.is_mock_mode:
@@ -172,7 +214,16 @@ class BaseSyncClient:
         params: QueryParamsType = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
-        """Make GET request."""
+        """Make GET request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            params: URL parameters
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return self._request("GET", endpoint, params=params, headers=headers)
 
     def _post(
@@ -183,7 +234,18 @@ class BaseSyncClient:
         files: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
-        """Make POST request."""
+        """Make POST request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            data: Form data
+            json_data: JSON data
+            files: File uploads
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return self._request(
             "POST",
             endpoint,
@@ -200,7 +262,17 @@ class BaseSyncClient:
         json_data: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
-        """Make PUT request."""
+        """Make PUT request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            data: Form data
+            json_data: JSON data
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return self._request(
             "PUT", endpoint, data=data, json_data=json_data, headers=headers
         )
@@ -211,7 +283,16 @@ class BaseSyncClient:
         data: dict[str, Any] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
-        """Make PATCH request."""
+        """Make PATCH request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            data: Form data
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return self._request("PATCH", endpoint, data=data, headers=headers)
 
     def _delete(
@@ -220,7 +301,16 @@ class BaseSyncClient:
         params: QueryParamsType = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
-        """Make DELETE request."""
+        """Make DELETE request.
+
+        Args:
+            endpoint: API endpoint (without base URL)
+            params: URL parameters
+            headers: Additional headers
+
+        Returns:
+            HTTP response or mock response
+        """
         return self._request("DELETE", endpoint, params=params, headers=headers)
 
     def whoami(self) -> WhoAmI:

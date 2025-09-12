@@ -13,7 +13,11 @@ class TestAttachmentsAPI:
     """Test AttachmentsAPI."""
 
     def test_init(self, monzo_client: Any) -> None:
-        """Test client initialization."""
+        """Test client initialization.
+
+        Args:
+            monzo_client: Monzo client fixture.
+        """
         api = AttachmentsAPI(monzo_client._base_client)
         assert api.client is monzo_client._base_client
 
@@ -25,7 +29,14 @@ class TestAttachmentsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test simplified upload process."""
+        """Test simplified upload process.
+
+        Args:
+            mock_httpx_client_class: Mock httpx client class fixture.
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         # Mock the upload URL response
         upload_data = {
             "upload_url": "https://s3.amazonaws.com/upload",
@@ -86,7 +97,14 @@ class TestAttachmentsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test upload with file path."""
+        """Test upload with file path.
+
+        Args:
+            mock_httpx_client_class: Mock httpx client class fixture.
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         # Create a temporary test file
         with tempfile.NamedTemporaryFile(
             mode="wb", suffix=".jpg", delete=False
@@ -160,7 +178,11 @@ class TestAttachmentsAPI:
             Path(tmp_file_path).unlink()
 
     def test_upload_validation_error(self, monzo_client: Any) -> None:
-        """Test upload validation when neither file_path nor required args provided."""
+        """Test upload validation when neither file_path nor required args provided.
+
+        Args:
+            monzo_client: Monzo client fixture.
+        """
         api = AttachmentsAPI(monzo_client._base_client)
 
         try:
@@ -175,7 +197,13 @@ class TestAttachmentsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test private register method."""
+        """Test private register method.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         attachment_data = {
             "id": "attach_00009238aOZ8rp29FlJDQc",
             "user_id": "user_00009237aqC8c5umZmrRdh",
@@ -205,7 +233,13 @@ class TestAttachmentsAPI:
         mock_http_client: Any,
         mock_response: Any,
     ) -> None:
-        """Test deregister."""
+        """Test deregister.
+
+        Args:
+            monzo_client: Monzo client fixture.
+            mock_http_client: Mock HTTP client fixture.
+            mock_response: Mock response fixture.
+        """
         mock_response = mock_response(json_data={})
         monzo_client._base_client._post.return_value = mock_response
 
@@ -216,7 +250,12 @@ class TestAttachmentsAPI:
     def test_private_upload_file_to_url(
         self, mock_httpx_client_class: Any, monzo_client: Any
     ) -> None:
-        """Test private file upload to URL method."""
+        """Test private file upload to URL method.
+
+        Args:
+            mock_httpx_client_class: Mock httpx client class fixture.
+            monzo_client: Monzo client fixture.
+        """
         mock_client = Mock()
         mock_httpx_client_class.return_value.__enter__.return_value = mock_client
 

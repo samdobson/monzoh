@@ -150,9 +150,9 @@ def get_mock_response(
         return MOCK_WHOAMI
     elif endpoint == "/accounts":
         return MOCK_ACCOUNTS
-    elif endpoint == "/balance":
-        return MOCK_BALANCE
-    elif endpoint.startswith("/accounts/") and endpoint.endswith("/balance"):
+    elif endpoint == "/balance" or (
+        endpoint.startswith("/accounts/") and endpoint.endswith("/balance")
+    ):
         return MOCK_BALANCE
     elif endpoint == "/transactions" or (
         endpoint.startswith("/accounts/") and "transactions" in endpoint

@@ -18,7 +18,11 @@ from .models import WhoAmI
 
 
 def _load_cached_token() -> str | None:
-    """Load access token from cache."""
+    """Load access token from cache.
+
+    Returns:
+        Access token if available, None otherwise
+    """
     try:
         from .cli import load_token_from_cache
 
@@ -34,7 +38,18 @@ def _load_cached_token() -> str | None:
 
 
 class AsyncMonzoClient:
-    """Async Monzo API client."""
+    """Async Monzo API client.
+
+    Args:
+        access_token: OAuth access token. If not provided, will attempt to
+            load from cache.
+        http_client: Optional httpx async client to use
+        timeout: Request timeout in seconds
+
+    Raises:
+        MonzoAuthenticationError: If no access token is provided and none can
+            be loaded from cache
+    """
 
     def __init__(
         self,
@@ -42,19 +57,6 @@ class AsyncMonzoClient:
         http_client: httpx.AsyncClient | None = None,
         timeout: float = 30.0,
     ) -> None:
-        """Initialize async Monzo client.
-
-        Args:
-            access_token: OAuth access token. If not provided, will attempt to
-                load from cache.
-            http_client: Optional httpx async client to use
-            timeout: Request timeout in seconds
-
-        Raises:
-            MonzoAuthenticationError: If no access token is provided and none can
-                be loaded from cache
-        """
-
         if access_token is None:
             access_token = _load_cached_token()
             if access_token is None:
@@ -77,16 +79,30 @@ class AsyncMonzoClient:
         self.webhooks = AsyncWebhooksAPI(self._base_client)
 
     async def __aenter__(self) -> "AsyncMonzoClient":
-        """Async context manager entry."""
+        """Async context manager entry.
+
+        Returns:
+            Self instance
+        """
         await self._base_client.__aenter__()
         return self
 
     async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
-        """Async context manager exit."""
+        """Async context manager exit.
+
+        Args:
+            exc_type: Exception type
+            exc_val: Exception value
+            exc_tb: Exception traceback
+        """
         await self._base_client.__aexit__(exc_type, exc_val, exc_tb)
 
     async def whoami(self) -> WhoAmI:
-        """Get information about the current access token."""
+        """Get information about the current access token.
+
+        Returns:
+            Information about the current access token
+        """
         return await self._base_client.whoami()
 
     @classmethod

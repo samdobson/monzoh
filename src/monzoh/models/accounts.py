@@ -20,7 +20,18 @@ if TYPE_CHECKING:
 
 
 class Account(BaseModel):
-    """Represents a Monzo account."""
+    """Represents a Monzo account.
+
+    Args:
+        **data: Account data fields
+
+    Attributes:
+        id: Unique account identifier
+        description: Human-readable account description
+        created: Account creation timestamp
+        closed: Whether the account is closed
+        model_config: Pydantic model configuration
+    """
 
     id: str = Field(..., description="Unique account identifier")
     description: str = Field(..., description="Human-readable account description")
@@ -34,11 +45,22 @@ class Account(BaseModel):
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
     def model_post_init(self, __context: Any) -> None:
-        """Post-init hook to set up client if available."""
+        """Post-init hook to set up client if available.
+
+        Args:
+            __context: Pydantic context
+        """
         super().model_post_init(__context)
 
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
-        """Ensure client is available for API calls."""
+        """Ensure client is available for API calls.
+
+        Returns:
+            The client instance
+
+        Raises:
+            RuntimeError: If no client is available
+        """
         if self._client is None:
             raise RuntimeError(
                 "No client available. Account must be retrieved from MonzoClient "
@@ -47,7 +69,14 @@ class Account(BaseModel):
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Account:
-        """Set the client for this account instance."""
+        """Set the client for this account instance.
+
+        Args:
+            client: The client instance to set
+
+        Returns:
+            The account instance with client set
+        """
         self._client = client
         return self
 
@@ -136,9 +165,6 @@ class Account(BaseModel):
 
         Args:
             params: Feed item parameters
-
-        Returns:
-            None
         """
         client = cast("BaseSyncClient", self._ensure_client())
         data = {
@@ -164,6 +190,9 @@ class Account(BaseModel):
 
         Returns:
             Account balance information
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
 
@@ -194,6 +223,9 @@ class Account(BaseModel):
 
         Returns:
             List of transactions
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
         from .transactions import TransactionsResponse
@@ -234,6 +266,9 @@ class Account(BaseModel):
 
         Returns:
             List of pots
+
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
         from .pots import PotsResponse
@@ -265,8 +300,8 @@ class Account(BaseModel):
         Args:
             params: Feed item parameters
 
-        Returns:
-            None
+        Raises:
+            RuntimeError: If no client is available or wrong client type
         """
         from ..core.async_base import BaseAsyncClient
 
@@ -332,7 +367,14 @@ class Balance(BaseModel):
     @field_validator("balance", "total_balance", "spend_today", mode="before")
     @classmethod
     def convert_minor_to_major_units(cls, v: int) -> Decimal:
-        """Convert balance from minor units (API response) to major units."""
+        """Convert balance from minor units (API response) to major units.
+
+        Args:
+            v: Amount in minor units
+
+        Returns:
+            Amount in major units as Decimal
+        """
         return convert_amount_from_minor_units(v)
 
 
