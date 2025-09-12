@@ -32,6 +32,18 @@ class Pot(BaseModel):
         updated: Last pot update timestamp
         deleted: Whether the pot is deleted
         account_id: Associated account identifier (optional)
+        goal_amount: Pot goal amount in major units (optional)
+        type: Pot type (optional)
+        product_id: Product ID (optional)
+        current_account_id: Current account ID (optional)
+        cover_image_url: Cover image URL (optional)
+        isa_wrapper: ISA wrapper (optional)
+        round_up: Whether to use transfer money from rounding up transactions (optional)
+        round_up_multiplier: Rounding up multiplier (optional)
+        is_tax_pot: Whether the pot is taxed (optional)
+        locked: Whether the pot is locked (optional)
+        available_for_bills: Whether the pot is available for bills (optional)
+        has_virtual_cards: Whether the pot has linked virtual cards (optional)
         model_config: Pydantic model configuration
     """
 
@@ -52,6 +64,34 @@ class Pot(BaseModel):
     updated: datetime = Field(..., description="Last pot update timestamp")
     deleted: bool = Field(False, description="Whether the pot is deleted")
     account_id: str | None = Field(None, description="Associated account identifier")
+    goal_amount: Decimal | None = Field(
+        None,
+        description=(
+            "Pot goal amount in major units of the currency, "
+            "eg. pounds for GBP, or euros/dollars for EUR and USD"
+        ),
+    )
+    type: str | None = Field(None, description="Pot type")
+    product_id: str | None = Field(None, description="Product ID")
+    current_account_id: str | None = Field(None, description="Current account ID")
+    cover_image_url: str | None = Field(None, description="Cover image URL")
+    isa_wrapper: str | None = Field(None, description="ISA wrapper")
+    round_up: bool | None = Field(
+        None,
+        description=(
+            "Whether to use transfer money from rounding up transactions to the pot. "
+            "You can only switch on round ups for one pot at a time"
+        ),
+    )
+    round_up_multiplier: int | None = Field(None, description="Rounding up multiplier")
+    is_tax_pot: bool | None = Field(None, description="Whether the pot is taxed")
+    locked: bool | None = Field(None, description="Whether the pot is locked")
+    available_for_bills: bool | None = Field(
+        None, description="Whether the pot is available for bills"
+    )
+    has_virtual_cards: bool | None = Field(
+        None, description="Whether the pot has linked virtual cards"
+    )
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -68,6 +108,14 @@ class Pot(BaseModel):
     @classmethod
     def convert_balance_minor_to_major_units(cls, v: int) -> Decimal:
         """Convert balance from minor units (API response) to major units."""
+        return convert_amount_from_minor_units(v)
+
+    @field_validator("goal_amount", mode="before")
+    @classmethod
+    def convert_goal_amount_minor_to_major_units(cls, v: int | None) -> Decimal | None:
+        """Convert goal_amount from minor units (API response) to major units."""
+        if v is None:
+            return None
         return convert_amount_from_minor_units(v)
 
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
