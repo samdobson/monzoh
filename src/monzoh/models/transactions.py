@@ -24,6 +24,10 @@ class Address(BaseModel):
     longitude: float = Field(..., description="Geographic longitude coordinate")
     postcode: str = Field(..., description="Postal code")
     region: str = Field(..., description="Region or county name")
+    formatted: str | None = Field(None, description="Formatted address")
+    short_formatted: str | None = Field(None, description="Short formatted address")
+    zoom_level: int | None = Field(None, description="Map zoom level")
+    approximate: bool | None = Field(None, description="Whether address is approximate")
 
 
 class Merchant(BaseModel):
@@ -39,6 +43,23 @@ class Merchant(BaseModel):
     logo: str | None = Field(None, description="URL to merchant logo image")
     emoji: str | None = Field(None, description="Emoji representing the merchant")
     address: Address | None = Field(None, description="Merchant address information")
+    online: bool | None = Field(None, description="Whether merchant is online")
+    atm: bool | None = Field(None, description="Whether merchant is an ATM")
+    disable_feedback: bool | None = Field(
+        None, description="Whether feedback is disabled"
+    )
+    metadata: dict[str, Any] | None = Field(None, description="Merchant metadata")
+    suggested_tags: list[str] | None = Field(None, description="Suggested tags")
+
+
+class Counterparty(BaseModel):
+    """Counterparty information."""
+
+    user_id: str | None = Field(None, description="User identifier")
+    name: str | None = Field(None, description="Counterparty name")
+    preferred_name: str | None = Field(None, description="Preferred name")
+    sort_code: str | None = Field(None, description="Sort code")
+    account_number: str | None = Field(None, description="Account number")
 
 
 class Transaction(BaseModel):
@@ -87,7 +108,8 @@ class Transaction(BaseModel):
     category: str | None = Field(
         None,
         description=(
-            "Transaction category (e.g., 'eating_out', 'transport', 'groceries')"
+            "Transaction category (e.g., 'eating_out', 'transport', 'groceries', "
+            "'income', 'savings', 'transfers')"
         ),
     )
     is_load: bool = Field(False, description="Whether this is a top-up transaction")
@@ -109,6 +131,12 @@ class Transaction(BaseModel):
             "INVALID_CVC",
             "OTHER",
             "STRONG_CUSTOMER_AUTHENTICATION_REQUIRED",
+            "CARD_CLOSED",
+            "CARD_EXPIRED",
+            "INVALID_EXPIRY_DATE",
+            "INVALID_PIN",
+            "SCA_NOT_AUTHENTICATED_CARD_NOT_PRESENT",
+            "AUTHENTICATION_REJECTED_BY_CARDHOLDER",
         ]
         | None
     ) = Field(
@@ -116,6 +144,9 @@ class Transaction(BaseModel):
         description=(
             "Reason for transaction decline (only present on declined transactions)"
         ),
+    )
+    counterparty: Counterparty | None = Field(
+        None, description="Transaction counterparty"
     )
 
     model_config = {"arbitrary_types_allowed": True}
