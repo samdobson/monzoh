@@ -3,24 +3,23 @@
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Event, Thread
-from typing import Any
+from typing import Any, cast
 
 
 class OAuthCallbackHandler(BaseHTTPRequestHandler):
     """HTTP handler for OAuth callback."""
-
-    server: "OAuthCallbackServer"
 
     def do_GET(self) -> None:
         """Handle GET request for OAuth callback."""
         parsed = urllib.parse.urlparse(self.path)
         query_params = urllib.parse.parse_qs(parsed.query)
 
-        self.server.auth_code = query_params.get("code", [None])[0]
-        self.server.state = query_params.get("state", [None])[0]
-        self.server.error = query_params.get("error", [None])[0]
+        server = cast("OAuthCallbackServer", self.server)
+        server.auth_code = query_params.get("code", [None])[0]
+        server.state = query_params.get("state", [None])[0]
+        server.error = query_params.get("error", [None])[0]
 
-        if self.server.auth_code:
+        if server.auth_code:
             self.send_response(200)
             self.send_header("Content-type", "text/html")
             self.end_headers()
@@ -40,7 +39,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
             self.send_response(400)
             self.send_header("Content-type", "text/html")
             self.end_headers()
-            error_msg = self.server.error or "Unknown error"
+            error_msg = server.error or "Unknown error"
             self.wfile.write(
                 f"""
                 <html>
@@ -54,7 +53,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
             """.encode()
             )
 
-        self.server.callback_received.set()
+        server.callback_received.set()
 
     def log_message(self, format: str, *args: Any) -> None:
         """Override to suppress request logging."""

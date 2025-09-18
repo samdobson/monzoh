@@ -31,7 +31,7 @@ class PaginationParams(BaseModel):
     """Pagination parameters."""
 
     limit: int | None = Field(
-        None, ge=1, le=100, description="Number of results per page (1-100, default 30)"
+        default=None, description="Number of results per page (1-100, default 30)"
     )
     since: datetime | str | None = Field(
         None, description="Start time (RFC3339 timestamp) or object ID"

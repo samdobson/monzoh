@@ -3,7 +3,7 @@
 import nox
 from nox import Session
 
-nox.options.sessions = ["tests", "lint", "mypy", "docs"]
+nox.options.sessions = ["tests", "lint", "pyrefly", "docs"]
 
 
 @nox.session(python=["3.10", "3.11", "3.12", "3.13"])
@@ -30,14 +30,14 @@ def lint(session: Session) -> None:
 
 
 @nox.session(python="3.10")
-def mypy(session: Session) -> None:
-    """Run mypy.
+def pyrefly(session: Session) -> None:
+    """Run pyrefly.
 
     Args:
         session: The nox session object.
     """
     session.install(".[dev]")
-    session.run("mypy", "src/monzoh")
+    session.run("pyrefly", "check", "src/monzoh")
 
 
 @nox.session(python="3.10")
