@@ -85,16 +85,10 @@ class TestAccountsAPI:
         balance = monzo_client.accounts.get_balance("acc_123")
 
         assert isinstance(balance, Balance)
-        assert balance.balance == Decimal(
-            "50.00"
-        )  # 5000 minor units -> 50.00 major units
-        assert balance.total_balance == Decimal(
-            "60.00"
-        )  # 6000 minor units -> 60.00 major units
+        assert balance.balance == Decimal("50.00")
+        assert balance.total_balance == Decimal("60.00")
         assert balance.currency == sample_balance["currency"]
-        assert balance.spend_today == Decimal(
-            "0.00"
-        )  # 0 minor units -> 0.00 major units
+        assert balance.spend_today == Decimal("0.00")
 
         monzo_client._base_client._get.assert_called_once()
         call_args = monzo_client._base_client._get.call_args

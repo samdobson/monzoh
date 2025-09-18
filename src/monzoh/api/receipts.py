@@ -23,7 +23,6 @@ class ReceiptsAPI:
         Returns:
             Receipt ID
         """
-        # Convert receipt to dict, excluding None values
         receipt_dict = receipt.model_dump(exclude_none=True)
 
         response = self.client._put(
@@ -32,7 +31,6 @@ class ReceiptsAPI:
             headers={"Content-Type": "application/json"},
         )
 
-        # The API returns the receipt with an ID
         response_data = response.json()
         receipt_id = response_data.get("receipt_id")
         return receipt_id if isinstance(receipt_id, str) else ""

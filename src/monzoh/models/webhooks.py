@@ -20,7 +20,6 @@ class WebhookEvent(BaseModel):
     data: dict[str, Any] = Field(..., description="Event data payload")
 
 
-# Response containers
 class WebhooksResponse(BaseModel):
     """Webhooks list response."""
 

@@ -33,7 +33,6 @@ class Attachment(BaseModel):
     created: datetime = Field(..., description="Attachment creation timestamp")
 
 
-# Response containers
 class AttachmentResponse(BaseModel):
     """Attachment response."""
 

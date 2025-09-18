@@ -82,7 +82,6 @@ class TestTokenCache:
             patch.object(console, "print") as mock_print,
         ):
             save_token_to_cache(token, console)
-            # Should print warning but not raise
             mock_print.assert_called()
 
     def test_load_token_from_cache_valid(self) -> None:
@@ -90,7 +89,6 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            # Create cache with future expiry
             expires_at = datetime.now() + timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
@@ -116,7 +114,6 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            # Create cache with past expiry
             expires_at = datetime.now() - timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
@@ -141,7 +138,6 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            # Create cache with past expiry
             expires_at = datetime.now() - timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
@@ -196,7 +192,6 @@ class TestTokenCache:
             with patch(
                 "monzoh.cli.token_cache.get_token_cache_path", return_value=cache_path
             ):
-                # Should not raise exception
                 clear_token_cache()
 
 

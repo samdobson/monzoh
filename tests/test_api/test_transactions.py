@@ -65,10 +65,8 @@ class TestTransactionsAPI:
 
         monzo_client._base_client._get.assert_called_once()
         call_args = monzo_client._base_client._get.call_args
-        # When expand parameters are used, params becomes a list of tuples
         params = call_args[1]["params"]
         if isinstance(params, list):
-            # Check that expand[] = merchant is in the list of tuples
             assert ("expand[]", "merchant") in params
         else:
             assert params["expand[]"] == "merchant"
@@ -100,7 +98,6 @@ class TestTransactionsAPI:
 
         monzo_client._base_client._get.assert_called_once()
         call_args = monzo_client._base_client._get.call_args
-        # When no expand parameters are used, params should be a dict
         params = call_args[1]["params"]
         assert isinstance(params, dict)
         assert params["limit"] == "50"

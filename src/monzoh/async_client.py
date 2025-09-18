@@ -69,7 +69,6 @@ class AsyncMonzoClient:
             access_token=access_token, http_client=http_client, timeout=timeout
         )
 
-        # Initialize async API endpoints
         self.accounts = AsyncAccountsAPI(self._base_client)
         self.transactions = AsyncTransactionsAPI(self._base_client)
         self.pots = AsyncPotsAPI(self._base_client)
@@ -130,11 +129,8 @@ class AsyncMonzoClient:
             even when an async client is provided. This may be updated
             in a future version.
         """
-        # For now, OAuth uses sync client - could be made async in future
         sync_http_client = None
         if http_client:
-            # We'd need to convert or create a sync client, but for simplicity
-            # we'll let MonzoOAuth create its own sync client
             pass
 
         return MonzoOAuth(

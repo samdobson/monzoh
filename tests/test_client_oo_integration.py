@@ -13,7 +13,6 @@ class TestClientOOIntegration:
 
     def test_client_accounts_list_sets_client(self) -> None:
         """Test that client.accounts.list() returns accounts with client set."""
-        # Mock the base client
         mock_base_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -28,21 +27,17 @@ class TestClientOOIntegration:
         }
         mock_base_client._get.return_value = mock_response
 
-        # Create client and replace base client
         client = MonzoClient(access_token="test_token")
         client._base_client = mock_base_client
         client.accounts.client = mock_base_client
 
-        # Test accounts.list()
         accounts = client.accounts.list()
 
         assert len(accounts) == 1
         account = accounts[0]
         assert account.id == "acc_123"
-        # Verify client is set
         assert account._client == mock_base_client
 
-        # Test that account methods work
         mock_balance_response = Mock()
         mock_balance_response.json.return_value = {
             "balance": 5000,
@@ -57,7 +52,6 @@ class TestClientOOIntegration:
 
     def test_client_pots_list_sets_client_and_account(self) -> None:
         """Test that client.pots.list() returns pots with client and account set."""
-        # Mock the base client
         mock_base_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -76,28 +70,24 @@ class TestClientOOIntegration:
         }
         mock_base_client._get.return_value = mock_response
 
-        # Create client and replace base client
         client = MonzoClient(access_token="test_token")
         client._base_client = mock_base_client
         client.pots.client = mock_base_client
 
-        # Test pots.list()
         pots = client.pots.list("acc_123")
 
         assert len(pots) == 1
         pot = pots[0]
         assert pot.id == "pot_123"
-        # Verify client and source account are set
         assert pot._client == mock_base_client
         assert pot._source_account_id == "acc_123"
 
-        # Test that pot methods work
         mock_deposit_response = Mock()
         mock_deposit_response.json.return_value = {
             "id": "pot_123",
             "name": "Savings",
             "style": "beach_ball",
-            "balance": 11000,  # Updated balance
+            "balance": 11000,
             "currency": "GBP",
             "created": datetime.now().isoformat(),
             "updated": datetime.now().isoformat(),
@@ -110,7 +100,6 @@ class TestClientOOIntegration:
 
     def test_client_transactions_list_sets_client(self) -> None:
         """Test that client.transactions.list() returns transactions with client set."""
-        # Mock the base client
         mock_base_client = Mock(spec=BaseSyncClient)
         mock_base_client._prepare_pagination_params.return_value = {}
         mock_base_client._prepare_expand_params.return_value = []
@@ -129,21 +118,17 @@ class TestClientOOIntegration:
         }
         mock_base_client._get.return_value = mock_response
 
-        # Create client and replace base client
         client = MonzoClient(access_token="test_token")
         client._base_client = mock_base_client
         client.transactions.client = mock_base_client
 
-        # Test transactions.list()
         transactions = client.transactions.list("acc_123")
 
         assert len(transactions) == 1
         transaction = transactions[0]
         assert transaction.id == "tx_123"
-        # Verify client is set
         assert transaction._client == mock_base_client
 
-        # Test that transaction methods work
         mock_annotate_response = Mock()
         mock_annotate_response.json.return_value = {
             "transaction": {
@@ -162,12 +147,10 @@ class TestClientOOIntegration:
 
     def test_account_list_transactions_sets_client_on_transactions(self) -> None:
         """Test that list_transactions() sets client on transactions."""
-        # Mock the base client
         mock_base_client = Mock(spec=BaseSyncClient)
         mock_base_client._prepare_pagination_params.return_value = {}
         mock_base_client._prepare_expand_params.return_value = []
 
-        # Mock response for account.list_transactions()
         mock_response = Mock()
         mock_response.json.return_value = {
             "transactions": [
@@ -183,7 +166,6 @@ class TestClientOOIntegration:
         }
         mock_base_client._get.return_value = mock_response
 
-        # Create account with client set
         from monzoh.models import Account
 
         account = Account(
@@ -193,21 +175,17 @@ class TestClientOOIntegration:
         )
         account._set_client(mock_base_client)
 
-        # Test account.list_transactions()
         transactions = account.list_transactions()
 
         assert len(transactions) == 1
         transaction = transactions[0]
         assert transaction.id == "tx_123"
-        # Verify client is set on the transaction
         assert transaction._client == mock_base_client
 
     def test_account_list_pots_sets_client_on_pots(self) -> None:
         """Test that account.list_pots() sets client and account on returned pots."""
-        # Mock the base client
         mock_base_client = Mock(spec=BaseSyncClient)
 
-        # Mock response for account.list_pots()
         mock_response = Mock()
         mock_response.json.return_value = {
             "pots": [
@@ -225,7 +203,6 @@ class TestClientOOIntegration:
         }
         mock_base_client._get.return_value = mock_response
 
-        # Create account with client set
         from monzoh.models import Account
 
         account = Account(
@@ -235,12 +212,10 @@ class TestClientOOIntegration:
         )
         account._set_client(mock_base_client)
 
-        # Test account.list_pots()
         pots = account.list_pots()
 
         assert len(pots) == 1
         pot = pots[0]
         assert pot.id == "pot_123"
-        # Verify client and source account are set on the pot
         assert pot._client == mock_base_client
         assert pot._source_account_id == "acc_123"

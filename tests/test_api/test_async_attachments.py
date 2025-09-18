@@ -44,12 +44,10 @@ class TestAsyncAttachmentsAPI:
             attachments_api: Async attachments API fixture.
             mock_async_base_client: Mock async base client fixture.
         """
-        # Mock the upload URL response
         upload_data = {
             "upload_url": "https://s3.amazonaws.com/upload",
             "file_url": "https://s3.amazonaws.com/file",
         }
-        # Mock the register response
         attachment_data = {
             "id": "attach_00009238aOZ8rp29FlJDQc",
             "user_id": "user_00009237aqC8c5umZmrRdh",
@@ -60,13 +58,11 @@ class TestAsyncAttachmentsAPI:
         }
         register_response_data = {"attachment": attachment_data}
 
-        # Setup mock responses for the two API calls
         upload_response = Mock()
         upload_response.json.return_value = upload_data
         register_response = Mock()
         register_response.json.return_value = register_response_data
 
-        # Create async mocks that return the responses when awaited
         async def mock_post_side_effect(*args: Any, **kwargs: Any) -> Mock:
             if args[0] == "/attachment/upload":
                 return upload_response
@@ -76,7 +72,6 @@ class TestAsyncAttachmentsAPI:
 
         cast(Mock, mock_async_base_client._post).side_effect = mock_post_side_effect
 
-        # Mock httpx async client for file upload
         mock_client = Mock()
         mock_response = Mock()
         mock_response.raise_for_status = Mock()
@@ -91,12 +86,10 @@ class TestAsyncAttachmentsAPI:
             file_data=file_data,
         )
 
-        # Verify the result is an attachment
         assert isinstance(result, Attachment)
         assert result.id == attachment_data["id"]
         assert result.external_id == attachment_data["external_id"]
 
-        # Verify file upload was called
         mock_client.put.assert_called_once_with(
             "https://s3.amazonaws.com/upload",
             content=file_data,
@@ -118,7 +111,6 @@ class TestAsyncAttachmentsAPI:
             attachments_api: Async attachments API fixture.
             mock_async_base_client: Mock async base client fixture.
         """
-        # Create a temporary test file
         with tempfile.NamedTemporaryFile(
             mode="wb", suffix=".jpg", delete=False
         ) as tmp_file:
@@ -127,12 +119,10 @@ class TestAsyncAttachmentsAPI:
             tmp_file_path = tmp_file.name
 
         try:
-            # Mock the upload URL response
             upload_data = {
                 "upload_url": "https://s3.amazonaws.com/upload",
                 "file_url": "https://s3.amazonaws.com/file",
             }
-            # Mock the register response
             attachment_data = {
                 "id": "attach_00009238aOZ8rp29FlJDQc",
                 "user_id": "user_00009237aqC8c5umZmrRdh",
@@ -143,13 +133,11 @@ class TestAsyncAttachmentsAPI:
             }
             register_response_data = {"attachment": attachment_data}
 
-            # Setup mock responses for the two API calls
             upload_response = Mock()
             upload_response.json.return_value = upload_data
             register_response = Mock()
             register_response.json.return_value = register_response_data
 
-            # Create async mocks that return the responses when awaited
             async def mock_post_side_effect(*args: Any, **kwargs: Any) -> Mock:
                 if args[0] == "/attachment/upload":
                     return upload_response
@@ -159,7 +147,6 @@ class TestAsyncAttachmentsAPI:
 
             cast(Mock, mock_async_base_client._post).side_effect = mock_post_side_effect
 
-            # Mock httpx async client for file upload
             mock_client = Mock()
             mock_response = Mock()
             mock_response.raise_for_status = Mock()
@@ -170,22 +157,18 @@ class TestAsyncAttachmentsAPI:
                 transaction_id="tx_00008zIcpb1TB4yeIFXMzx", file_path=tmp_file_path
             )
 
-            # Verify the result is an attachment
             assert isinstance(result, Attachment)
             assert result.id == attachment_data["id"]
             assert result.external_id == attachment_data["external_id"]
 
-            # Verify file upload was called with correct content
             mock_client.put.assert_called_once_with(
                 "https://s3.amazonaws.com/upload",
                 content=test_content,
                 headers={"Content-Type": "image/jpeg", "Content-Length": "18"},
             )
 
-            # Verify the API calls were made with inferred values
             expected_file_name = Path(tmp_file_path).name
 
-            # Check the first call (upload URL request)
             actual_calls = cast(Mock, mock_async_base_client._post).call_args_list
             assert len(actual_calls) >= 1
             assert actual_calls[0][0] == ("/attachment/upload",)
@@ -193,7 +176,6 @@ class TestAsyncAttachmentsAPI:
             assert actual_calls[0][1]["data"]["file_type"] == "image/jpeg"
 
         finally:
-            # Clean up temporary file
             Path(tmp_file_path).unlink()
 
     @pytest.mark.asyncio
@@ -206,9 +188,7 @@ class TestAsyncAttachmentsAPI:
             attachments_api: Async attachments API fixture.
         """
         with pytest.raises(ValueError, match="Either file_path must be provided"):
-            await attachments_api.upload(
-                transaction_id="tx_123"
-            )  # Missing required args
+            await attachments_api.upload(transaction_id="tx_123")
 
     @pytest.mark.asyncio
     async def test_private_register(
@@ -234,7 +214,6 @@ class TestAsyncAttachmentsAPI:
         response_mock = Mock()
         response_mock.json.return_value = response_data
 
-        # Create async mock that returns the response when awaited
         async def mock_post(*args: Any, **kwargs: Any) -> Mock:
             return response_mock
 

@@ -42,7 +42,6 @@ class TestAsyncAccountOOInterface:
     @pytest.mark.asyncio
     async def test_account_aget_balance(self) -> None:
         """Test Account.aget_balance() method."""
-        # Mock async client
         mock_client = Mock(spec=BaseAsyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -53,7 +52,6 @@ class TestAsyncAccountOOInterface:
         }
         mock_client._get = AsyncMock(return_value=mock_response)
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -61,7 +59,6 @@ class TestAsyncAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test aget_balance
         balance = await account.aget_balance()
 
         assert isinstance(balance, Balance)
@@ -70,7 +67,6 @@ class TestAsyncAccountOOInterface:
         assert balance.currency == "GBP"
         assert balance.spend_today == Decimal("1.00")
 
-        # Verify API call
         mock_client._get.assert_called_once_with(
             "/balance", params={"account_id": "acc_123"}
         )
@@ -80,10 +76,8 @@ class TestAsyncAccountOOInterface:
         """Test that async methods raise error when sync client is set."""
         from monzoh.core import BaseSyncClient
 
-        # Mock sync client
         mock_sync_client = Mock(spec=BaseSyncClient)
 
-        # Create account and set sync client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -91,7 +85,6 @@ class TestAsyncAccountOOInterface:
         )
         account._set_client(mock_sync_client)
 
-        # Test that async methods raise error
         with pytest.raises(
             RuntimeError, match="Async method called on account with sync client"
         ):
@@ -102,13 +95,11 @@ class TestAsyncAccountOOInterface:
         """Test Account.acreate_feed_item() method."""
         from monzoh.models.feed import FeedItemParams
 
-        # Mock async client
         mock_client = Mock(spec=BaseAsyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {}
         mock_client._post = AsyncMock(return_value=mock_response)
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -116,7 +107,6 @@ class TestAsyncAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test acreate_feed_item
         params = FeedItemParams(
             title="Test Feed Item",
             image_url="https://example.com/image.jpg",
@@ -125,7 +115,6 @@ class TestAsyncAccountOOInterface:
         )
         await account.acreate_feed_item(params)
 
-        # Verify API call
         mock_client._post.assert_called_once_with(
             "/feed",
             data={
@@ -146,10 +135,8 @@ class TestAsyncAccountOOInterface:
         from monzoh.core import BaseSyncClient
         from monzoh.models.feed import FeedItemParams
 
-        # Mock sync client
         mock_sync_client = Mock(spec=BaseSyncClient)
 
-        # Create account and set sync client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -157,7 +144,6 @@ class TestAsyncAccountOOInterface:
         )
         account._set_client(mock_sync_client)
 
-        # Test that async method raises error
         params = FeedItemParams(title="Test", image_url="https://example.com/image.jpg")
         with pytest.raises(
             RuntimeError, match="Async method called on account with sync client"
@@ -171,14 +157,13 @@ class TestAsyncPotOOInterface:
     @pytest.mark.asyncio
     async def test_pot_adeposit(self) -> None:
         """Test Pot.adeposit() method."""
-        # Mock async client
         mock_client = Mock(spec=BaseAsyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
             "id": "pot_123",
             "name": "Savings",
             "style": "beach_ball",
-            "balance": 11000,  # Updated balance
+            "balance": 11000,
             "currency": "GBP",
             "created": datetime.now().isoformat(),
             "updated": datetime.now().isoformat(),
@@ -186,7 +171,6 @@ class TestAsyncPotOOInterface:
         }
         mock_client._put = AsyncMock(return_value=mock_response)
 
-        # Create pot and set client
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -200,15 +184,13 @@ class TestAsyncPotOOInterface:
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
 
-        # Test adeposit
-        updated_pot = await pot.adeposit(10.00)  # £10.00 in major units
+        updated_pot = await pot.adeposit(10.00)
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == Decimal("110.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
-        # Verify API call
         mock_client._put.assert_called_once()
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/deposit"
@@ -220,10 +202,8 @@ class TestAsyncPotOOInterface:
         """Test that async methods raise error when sync client is set."""
         from monzoh.core import BaseSyncClient
 
-        # Mock sync client
         mock_sync_client = Mock(spec=BaseSyncClient)
 
-        # Create pot and set sync client
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -237,7 +217,6 @@ class TestAsyncPotOOInterface:
         pot._set_client(mock_sync_client)
         pot._source_account_id = "acc_123"
 
-        # Test that async methods raise error
         with pytest.raises(
             RuntimeError, match="Async method called on pot with sync client"
         ):
@@ -250,7 +229,6 @@ class TestAsyncTransactionOOInterface:
     @pytest.mark.asyncio
     async def test_transaction_aannotate(self) -> None:
         """Test Transaction.aannotate() method."""
-        # Mock async client
         mock_client = Mock(spec=BaseAsyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -265,7 +243,6 @@ class TestAsyncTransactionOOInterface:
         }
         mock_client._patch = AsyncMock(return_value=mock_response)
 
-        # Create transaction and set client
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -275,14 +252,12 @@ class TestAsyncTransactionOOInterface:
         )
         transaction._set_client(mock_client)
 
-        # Test aannotate
         updated_transaction = await transaction.aannotate({"category": "food"})
 
         assert isinstance(updated_transaction, Transaction)
         assert updated_transaction.metadata == {"category": "food"}
         assert updated_transaction._client == mock_client
 
-        # Verify API call
         mock_client._patch.assert_called_once()
         call_args = mock_client._patch.call_args
         assert call_args[0][0] == "/transactions/tx_123"
@@ -293,10 +268,8 @@ class TestAsyncTransactionOOInterface:
         """Test that async methods raise error when sync client is set."""
         from monzoh.core import BaseSyncClient
 
-        # Mock sync client
         mock_sync_client = Mock(spec=BaseSyncClient)
 
-        # Create transaction and set sync client
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -306,7 +279,6 @@ class TestAsyncTransactionOOInterface:
         )
         transaction._set_client(mock_sync_client)
 
-        # Test that async methods raise error
         with pytest.raises(
             RuntimeError, match="Async method called on transaction with sync client"
         ):

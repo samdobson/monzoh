@@ -163,31 +163,25 @@ class TestGetMockResponse:
 
     def test_transactions_endpoint_excludes_single_transaction(self) -> None:
         """Test that transactions endpoint correctly excludes single transaction."""
-        # This should return transactions list
         result = get_mock_response("/accounts/acc_123/transactions", "GET")
         assert result == MOCK_TRANSACTIONS
 
-        # This should return single transaction
         result = get_mock_response("/transactions/tx_123", "GET")
         assert "transaction" in result
 
     def test_pots_endpoint_excludes_single_pot(self) -> None:
         """Test that pots endpoint logic correctly excludes single pot paths."""
-        # This should return pots list
         result = get_mock_response("/pots", "GET")
         assert result == MOCK_POTS
 
-        # This should return single pot
         result = get_mock_response("/pots/pot_123", "GET")
         assert "pot" in result
 
     def test_webhooks_endpoint_excludes_single_webhook(self) -> None:
         """Test that webhooks endpoint logic correctly excludes single webhook paths."""
-        # This should return webhooks list
         result = get_mock_response("/webhooks", "GET")
         assert result == MOCK_WEBHOOKS
 
-        # This should return single webhook
         result = get_mock_response("/webhooks/webhook_123", "GET")
         assert "webhook" in result
 
@@ -200,12 +194,10 @@ class TestGetMockResponse:
             data={"data": "value"},
             json_data={"json": "value"},
         )
-        # Should still return whoami data regardless of extra kwargs
         assert result == MOCK_WHOAMI
 
     def test_method_parameter_ignored(self) -> None:
         """Test that HTTP method parameter doesn't affect response."""
-        # Same endpoint with different methods should return same data
         get_result = get_mock_response("/ping/whoami", "GET")
         post_result = get_mock_response("/ping/whoami", "POST")
         put_result = get_mock_response("/ping/whoami", "PUT")

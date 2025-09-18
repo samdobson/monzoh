@@ -11,7 +11,6 @@ from rich.prompt import Confirm, Prompt
 
 def load_env_credentials() -> dict[str, str | None]:
     """Load credentials from environment variables and .env file."""
-    # Load .env file if it exists
     env_path = Path(".env")
     if env_path.exists():
         load_dotenv(env_path)
@@ -43,10 +42,9 @@ def get_credentials_interactively(
         )
     )
 
-    # Client ID
     if existing_creds.get("client_id"):
         client_id = existing_creds["client_id"]
-        assert client_id is not None  # mypy: safe due to if condition
+        assert client_id is not None
         console.print(f"✓ Found Client ID: [green]{client_id[:8]}...[/green]")
         creds["client_id"] = client_id
     else:
@@ -54,10 +52,9 @@ def get_credentials_interactively(
             "[bold]Enter your Monzo Client ID[/bold]", console=console
         ).strip()
 
-    # Client Secret
     if existing_creds.get("client_secret"):
         client_secret = existing_creds["client_secret"]
-        assert client_secret is not None  # mypy: safe due to if condition
+        assert client_secret is not None
         console.print(f"✓ Found Client Secret: [green]{'*' * 8}[/green]")
         creds["client_secret"] = client_secret
     else:
@@ -67,7 +64,6 @@ def get_credentials_interactively(
             console=console,
         ).strip()
 
-    # Redirect URI
     default_redirect: str = (
         existing_creds.get("redirect_uri", "http://localhost:8080/callback")
         or "http://localhost:8080/callback"
@@ -94,7 +90,6 @@ def save_credentials_to_env(creds: dict[str, str], console: Console) -> None:
             with open(env_path) as f:
                 env_content = f.readlines()
 
-        # Remove existing Monzo credentials
         env_content = [
             line
             for line in env_content
@@ -103,7 +98,6 @@ def save_credentials_to_env(creds: dict[str, str], console: Console) -> None:
             )
         ]
 
-        # Add new credentials
         env_content.extend(
             [
                 f"MONZO_CLIENT_ID={creds['client_id']}\n",

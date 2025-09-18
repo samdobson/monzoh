@@ -119,7 +119,6 @@ class TestAsyncMonzoClient:
         """
         client = AsyncMonzoClient("test_token", http_client=mock_async_http_client)
 
-        # Check that all async API endpoints are initialized
         assert hasattr(client, "accounts")
         assert hasattr(client, "transactions")
         assert hasattr(client, "pots")
@@ -128,7 +127,6 @@ class TestAsyncMonzoClient:
         assert hasattr(client, "receipts")
         assert hasattr(client, "webhooks")
 
-        # Verify they are the async versions
         assert client.accounts.__class__.__name__ == "AsyncAccountsAPI"
         assert client.transactions.__class__.__name__ == "AsyncTransactionsAPI"
         assert client.pots.__class__.__name__ == "AsyncPotsAPI"
@@ -234,6 +232,5 @@ class TestBaseAsyncClient:
         params = client._prepare_expand_params(["merchant", "category"])
         assert params == [("expand[]", "merchant"), ("expand[]", "category")]
 
-        # Test empty expand
         params = client._prepare_expand_params(None)
         assert params is None

@@ -30,7 +30,6 @@ class AsyncAccountsAPI:
         response = await self.client._get("/accounts", params=params)
         accounts_response = AccountsResponse(**response.json())
 
-        # Set client on all account objects
         for account in accounts_response.accounts:
             account._set_client(self.client)
 

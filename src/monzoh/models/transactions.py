@@ -207,14 +207,10 @@ class Transaction(BaseModel):
         Returns:
             Updated transaction
         """
-        # TransactionResponse is defined in this file
-
         client = cast("BaseSyncClient", self._ensure_client())
 
-        # Prepare form data for metadata
         data = {}
         for key, value in metadata.items():
-            # Handle the special case of deleting metadata
             if value == "":
                 data[f"metadata[{key}]"] = ""
             else:
@@ -235,8 +231,6 @@ class Transaction(BaseModel):
         Returns:
             Refreshed transaction
         """
-        # TransactionResponse is defined in this file
-
         client = cast("BaseSyncClient", self._ensure_client())
         expand_params = client._prepare_expand_params(expand)
 
@@ -246,7 +240,6 @@ class Transaction(BaseModel):
         updated_transaction._set_client(client)
         return updated_transaction
 
-    # Async methods
     async def aupload_attachment(
         self,
         file_path: str | Path,
@@ -306,10 +299,8 @@ class Transaction(BaseModel):
                 "Use annotate() instead or retrieve transaction from AsyncMonzoClient."
             )
 
-        # Prepare form data for metadata
         data = {}
         for key, value in metadata.items():
-            # Handle the special case of deleting metadata
             if value == "":
                 data[f"metadata[{key}]"] = ""
             else:
@@ -365,7 +356,6 @@ class Transaction(BaseModel):
         return v
 
 
-# Response containers
 class TransactionsResponse(BaseModel):
     """Transactions list response."""
 

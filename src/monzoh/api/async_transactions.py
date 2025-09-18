@@ -42,23 +42,19 @@ class AsyncTransactionsAPI:
         """
         params = {"account_id": account_id}
 
-        # Add pagination parameters to main params dict
         pagination_params = self.client._prepare_pagination_params(
             limit=limit, since=since, before=before
         )
         params.update(pagination_params)
 
-        # Add expand parameters - convert to list of tuples for httpx
         expand_params = self.client._prepare_expand_params(expand)
         if expand_params:
-            # Convert params dict to list of tuples and extend with expand params
             params_list = list(params.items()) + expand_params
             response = await self.client._get("/transactions", params=params_list)
         else:
             response = await self.client._get("/transactions", params=params)
         transactions_response = TransactionsResponse(**response.json())
 
-        # Set client on all transaction objects
         for transaction in transactions_response.transactions:
             transaction._set_client(self.client)
 
@@ -97,10 +93,8 @@ class AsyncTransactionsAPI:
         Returns:
             Updated transaction
         """
-        # Prepare form data for metadata
         data = {}
         for key, value in metadata.items():
-            # Handle the special case of deleting metadata
             if value == "":
                 data[f"metadata[{key}]"] = ""
             else:

@@ -35,11 +35,9 @@ class AsyncFeedAPI:
 
         params_dict = params.model_dump(exclude_none=True)
 
-        # Extract url as top-level field
         if "url" in params_dict:
             data["url"] = params_dict.pop("url")
 
-        # Add remaining params with params[] prefix
         for key, value in params_dict.items():
             data[f"params[{key}]"] = value
 

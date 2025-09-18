@@ -114,13 +114,11 @@ class Account(BaseModel):
         client = cast("BaseSyncClient", self._ensure_client())
         params = {"account_id": self.id}
 
-        # Add pagination parameters
         pagination_params = client._prepare_pagination_params(
             limit=limit, since=since, before=before
         )
         params.update(pagination_params)
 
-        # Add expand parameters
         expand_params = client._prepare_expand_params(expand)
         if expand_params:
             params_list = list(params.items()) + expand_params
@@ -130,7 +128,6 @@ class Account(BaseModel):
 
         transactions_response = TransactionsResponse(**response.json())
 
-        # Set client on all transaction objects
         for transaction in transactions_response.transactions:
             transaction._set_client(client)
 
@@ -150,7 +147,6 @@ class Account(BaseModel):
         response = client._get("/pots", params=params)
         pots_response = PotsResponse(**response.json())
 
-        # Set client and source account on all pot objects
         for pot in pots_response.pots:
             pot._set_client(client)
             pot._source_account_id = self.id
@@ -174,17 +170,14 @@ class Account(BaseModel):
 
         params_dict = params.model_dump(exclude_none=True)
 
-        # Extract url as top-level field
         if "url" in params_dict:
             data["url"] = params_dict.pop("url")
 
-        # Add remaining params with params[] prefix
         for key, value in params_dict.items():
             data[f"params[{key}]"] = value
 
         client._post("/feed", data=data)
 
-    # Async methods
     async def aget_balance(self) -> Balance:
         """Get balance information for this account (async version).
 
@@ -239,13 +232,11 @@ class Account(BaseModel):
             )
         params = {"account_id": self.id}
 
-        # Add pagination parameters
         pagination_params = client._prepare_pagination_params(
             limit=limit, since=since, before=before
         )
         params.update(pagination_params)
 
-        # Add expand parameters
         expand_params = client._prepare_expand_params(expand)
         if expand_params:
             params_list = list(params.items()) + expand_params
@@ -255,7 +246,6 @@ class Account(BaseModel):
 
         transactions_response = TransactionsResponse(**response.json())
 
-        # Set client on all transaction objects
         for transaction in transactions_response.transactions:
             transaction._set_client(client)
 
@@ -284,7 +274,6 @@ class Account(BaseModel):
         response = await client._get("/pots", params=params)
         pots_response = PotsResponse(**response.json())
 
-        # Set client and source account on all pot objects
         for pot in pots_response.pots:
             pot._set_client(client)
             pot._source_account_id = self.id
@@ -319,11 +308,9 @@ class Account(BaseModel):
 
         params_dict = params.model_dump(exclude_none=True)
 
-        # Extract url as top-level field
         if "url" in params_dict:
             data["url"] = params_dict.pop("url")
 
-        # Add remaining params with params[] prefix
         for key, value in params_dict.items():
             data[f"params[{key}]"] = value
 
@@ -378,7 +365,6 @@ class Balance(BaseModel):
         return convert_amount_from_minor_units(v)
 
 
-# Response containers
 class AccountsResponse(BaseModel):
     """Accounts list response."""
 

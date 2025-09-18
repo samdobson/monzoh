@@ -3,7 +3,6 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-# Mock data for realistic API responses
 MOCK_WHOAMI = {
     "authenticated": True,
     "client_id": "test_client_id",
@@ -26,17 +25,17 @@ MOCK_ACCOUNTS = {
 }
 
 MOCK_BALANCE = {
-    "balance": 285043,  # £2,850.43
-    "total_balance": 295043,  # £2,950.43
+    "balance": 285043,
+    "total_balance": 295043,
     "currency": "GBP",
-    "spend_today": 1250,  # £12.50
+    "spend_today": 1250,
 }
 
 MOCK_TRANSACTIONS = {
     "transactions": [
         {
             "id": "tx_test_transaction_1",
-            "amount": -350,  # £3.50 spent
+            "amount": -350,
             "created": (datetime.now() - timedelta(hours=2)).isoformat(),
             "currency": "GBP",
             "description": "Pret A Manger",
@@ -58,7 +57,7 @@ MOCK_TRANSACTIONS = {
         },
         {
             "id": "tx_test_transaction_2",
-            "amount": -2550,  # £25.50 spent
+            "amount": -2550,
             "created": (datetime.now() - timedelta(days=1)).isoformat(),
             "currency": "GBP",
             "description": "Tesco Store 1234",
@@ -80,7 +79,7 @@ MOCK_TRANSACTIONS = {
         },
         {
             "id": "tx_test_transaction_3",
-            "amount": 150000,  # £1,500.00 received
+            "amount": 150000,
             "created": (datetime.now() - timedelta(days=7)).isoformat(),
             "currency": "GBP",
             "description": "Salary Payment",
@@ -101,7 +100,7 @@ MOCK_POTS = {
             "id": "pot_test_holiday",
             "name": "Holiday Fund",
             "style": "beach_ball",
-            "balance": 45000,  # £450.00
+            "balance": 45000,
             "currency": "GBP",
             "created": (datetime.now() - timedelta(days=120)).isoformat(),
             "updated": (datetime.now() - timedelta(days=5)).isoformat(),
@@ -111,7 +110,7 @@ MOCK_POTS = {
             "id": "pot_test_emergency",
             "name": "Emergency Fund",
             "style": "fire_coral",
-            "balance": 100000,  # £1,000.00
+            "balance": 100000,
             "currency": "GBP",
             "created": (datetime.now() - timedelta(days=300)).isoformat(),
             "updated": (datetime.now() - timedelta(days=30)).isoformat(),
@@ -165,16 +164,12 @@ def get_mock_response(
     elif endpoint.startswith("/transactions/") and not endpoint.endswith(
         "/transactions"
     ):
-        # Single transaction
         return {"transaction": MOCK_TRANSACTIONS["transactions"][0]}
     elif endpoint.startswith("/pots/") and not endpoint.endswith("/pots"):
-        # Single pot
         return {"pot": MOCK_POTS["pots"][0]}
     elif endpoint.startswith("/webhooks/") and not endpoint.endswith("/webhooks"):
-        # Single webhook
         return {"webhook": MOCK_WEBHOOKS["webhooks"][0]}
     else:
-        # Default response for unhandled endpoints
         return {
             "message": "Mock endpoint not implemented",
             "endpoint": endpoint,

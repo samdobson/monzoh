@@ -113,7 +113,6 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
-        # Convert amount from major units to minor units
         amount_minor = convert_amount_to_minor_units(amount)
 
         data = {
@@ -154,7 +153,6 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
-        # Convert amount from major units to minor units
         amount_minor = convert_amount_to_minor_units(amount)
 
         data = {
@@ -169,7 +167,6 @@ class Pot(BaseModel):
         updated_pot._source_account_id = self._source_account_id
         return updated_pot
 
-    # Async methods
     async def adeposit(
         self, amount: int | float | Decimal | str, dedupe_id: str | None = None
     ) -> Pot:
@@ -199,7 +196,6 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
-        # Convert amount from major units to minor units
         amount_minor = convert_amount_to_minor_units(amount)
 
         data = {
@@ -250,7 +246,6 @@ class Pot(BaseModel):
         if dedupe_id is None:
             dedupe_id = str(uuid4())
 
-        # Convert amount from major units to minor units
         amount_minor = convert_amount_to_minor_units(amount)
 
         data = {
@@ -266,7 +261,6 @@ class Pot(BaseModel):
         return updated_pot
 
 
-# Response containers
 class PotsResponse(BaseModel):
     """Pots list response."""
 

@@ -256,7 +256,6 @@ class TestMockResponse:
     def test_raise_for_status_success(self) -> None:
         """Test raise_for_status with successful status code."""
         response = MockResponse({}, status_code=200)
-        # Should not raise any exception
         response.raise_for_status()
 
     def test_raise_for_status_error(self) -> None:
@@ -342,10 +341,8 @@ class TestBaseSyncClient:
 
             with client as ctx_client:
                 assert ctx_client is client
-                # Access http_client to create it
                 _ = ctx_client.http_client
 
-            # Client should be closed on exit
             mock_client.close.assert_called_once()
 
     def test_context_manager_without_own_client(self) -> None:
@@ -356,7 +353,6 @@ class TestBaseSyncClient:
         with client as ctx_client:
             assert ctx_client is client
 
-        # Client should not be closed
         mock_client.close.assert_not_called()
 
     def test_request_mock_mode(self) -> None:
@@ -431,9 +427,7 @@ class TestBaseSyncClient:
 
         client = BaseSyncClient("real_token", http_client=mock_http_client)
 
-        with pytest.raises(
-            Exception
-        ):  # Should raise some error based on create_error_from_response
+        with pytest.raises(Exception):
             client._request("GET", "/test")
 
     def test_request_network_error(self) -> None:
@@ -454,14 +448,12 @@ class TestBaseSyncClient:
             mock_response = Mock()
             mock_request.return_value = mock_response
 
-            # Test _get
             result = client._get("/test", params={"p": "v"}, headers={"h": "v"})
             assert result is mock_response
             mock_request.assert_called_with(
                 "GET", "/test", params={"p": "v"}, headers={"h": "v"}
             )
 
-            # Test _post
             result = client._post(
                 "/test",
                 data={"d": "v"},
@@ -479,7 +471,6 @@ class TestBaseSyncClient:
                 headers={"h": "v"},
             )
 
-            # Test _put
             result = client._put(
                 "/test", data={"d": "v"}, json_data={"j": "v"}, headers={"h": "v"}
             )
@@ -492,14 +483,12 @@ class TestBaseSyncClient:
                 headers={"h": "v"},
             )
 
-            # Test _patch
             result = client._patch("/test", data={"d": "v"}, headers={"h": "v"})
             assert result is mock_response
             mock_request.assert_called_with(
                 "PATCH", "/test", data={"d": "v"}, headers={"h": "v"}
             )
 
-            # Test _delete
             result = client._delete("/test", params={"p": "v"}, headers={"h": "v"})
             assert result is mock_response
             mock_request.assert_called_with(

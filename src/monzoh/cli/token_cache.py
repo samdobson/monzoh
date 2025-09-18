@@ -19,16 +19,13 @@ def get_token_cache_path() -> Path:
     system = platform.system()
 
     if system == "Windows":
-        # Use %LOCALAPPDATA% on Windows
         cache_dir = (
             Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
             / "monzoh"
         )
-    elif system == "Darwin":  # macOS
-        # Use ~/Library/Caches on macOS
+    elif system == "Darwin":
         cache_dir = Path.home() / "Library" / "Caches" / "monzoh"
     else:
-        # Linux and other Unix-like systems: use XDG_CACHE_HOME or ~/.cache
         cache_dir = Path(os.getenv("XDG_CACHE_HOME", Path.home() / ".cache")) / "monzoh"
 
     cache_dir.mkdir(parents=True, exist_ok=True)
@@ -40,7 +37,6 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
     try:
         cache_path = get_token_cache_path()
 
-        # Calculate expiry time
         expires_at = datetime.now() + timedelta(seconds=token.expires_in)
 
         cache_data = {
@@ -54,12 +50,9 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
         with open(cache_path, "w") as f:
             json.dump(cache_data, f, indent=2)
 
-        # Set restrictive permissions (readable only by owner)
         try:
             cache_path.chmod(0o600)
         except OSError:
-            # On Windows, chmod might not work as expected
-            # The file is still protected by the user's directory permissions
             pass
 
         console.print(f"💾 Token cached to [green]{cache_path}[/green]")
@@ -86,10 +79,9 @@ def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | Non
         with open(cache_path) as f:
             cache_data: dict[str, Any] = json.load(f)
 
-        # Check if token has expired
         if not include_expired:
             expires_at = datetime.fromisoformat(cache_data["expires_at"])
-            if datetime.now() >= expires_at - timedelta(minutes=5):  # 5 min buffer
+            if datetime.now() >= expires_at - timedelta(minutes=5):
                 return None
 
         return cache_data

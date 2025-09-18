@@ -12,7 +12,6 @@ from ..exceptions import MonzoNetworkError, create_error_from_response
 from ..models import WhoAmI
 from .mock_data import get_mock_response
 
-# Simple type alias for query parameters
 QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
 
 
@@ -28,7 +27,6 @@ class AsyncMockResponse:
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
-        # Add httpx.Response-like attributes
         self.headers: dict[str, str] = {}
         self.cookies: dict[str, str] = {}
         self.url = ""
@@ -155,7 +153,6 @@ class BaseAsyncClient:
             MonzoNetworkError: If network request fails
             create_error_from_response: If API returns an error response
         """
-        # Return mock data if using test token
         if self.is_mock_mode:
             mock_data = get_mock_response(
                 endpoint, method, params=params, data=data, json_data=json_data
@@ -164,7 +161,6 @@ class BaseAsyncClient:
 
         url = f"{self.BASE_URL}{endpoint}"
 
-        # Combine headers
         all_headers = self.auth_headers.copy()
         if headers:
             all_headers.update(headers)
@@ -180,7 +176,6 @@ class BaseAsyncClient:
                 headers=all_headers,
             )
 
-            # Handle non-success status codes
             if response.status_code >= 400:
                 error_data = {}
                 try:
@@ -327,8 +322,6 @@ class BaseAsyncClient:
         if not expand:
             return None
 
-        # Format expand parameters as expand[]=field1&expand[]=field2
-        # Return list of tuples to handle multiple values for same key
         return [("expand[]", field) for field in expand]
 
     def _prepare_pagination_params(
