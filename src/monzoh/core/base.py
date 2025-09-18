@@ -114,7 +114,7 @@ class BaseSyncClient:
         Returns:
             True if client is in mock mode, False otherwise
         """
-        return self.access_token == "test"
+        return self.access_token == "test"  # noqa: S105
 
     def __enter__(self) -> BaseSyncClient:
         """Context manager entry.

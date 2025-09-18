@@ -105,7 +105,7 @@ class BaseAsyncClient:
         Returns:
             True if client is in mock mode, False otherwise
         """
-        return self.access_token == "test"
+        return self.access_token == "test"  # noqa: S105
 
     async def __aenter__(self) -> BaseAsyncClient:
         """Async context manager entry.
