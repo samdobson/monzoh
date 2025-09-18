@@ -1,6 +1,5 @@
 """Pydantic models for Monzo API entities."""
 
-# Import all models to maintain backward compatibility
 from .accounts import Account, AccountsResponse, AccountType, Balance
 from .attachments import Attachment, AttachmentResponse, AttachmentUpload
 from .base import ExpandParams, OAuthToken, PaginationParams, WhoAmI
@@ -24,39 +23,31 @@ from .transactions import (
 from .webhooks import Webhook, WebhookEvent, WebhookResponse, WebhooksResponse
 
 __all__ = [
-    # Base models
     "OAuthToken",
     "WhoAmI",
     "PaginationParams",
     "ExpandParams",
-    # Account models
     "Account",
     "AccountType",
     "Balance",
     "AccountsResponse",
-    # Transaction models
     "Transaction",
     "Merchant",
     "Address",
     "TransactionsResponse",
     "TransactionResponse",
-    # Pot models
     "Pot",
     "PotsResponse",
-    # Attachment models
     "Attachment",
     "AttachmentUpload",
     "AttachmentResponse",
-    # Feed models
     "FeedItemParams",
-    # Receipt models
     "Receipt",
     "ReceiptItem",
     "ReceiptTax",
     "ReceiptPayment",
     "ReceiptMerchant",
     "ReceiptResponse",
-    # Webhook models
     "Webhook",
     "WebhookEvent",
     "WebhooksResponse",

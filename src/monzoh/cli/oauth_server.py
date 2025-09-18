@@ -11,17 +11,15 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
 
     server: "OAuthCallbackServer"
 
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         """Handle GET request for OAuth callback."""
         parsed = urllib.parse.urlparse(self.path)
         query_params = urllib.parse.parse_qs(parsed.query)
 
-        # Store the auth code and state
         self.server.auth_code = query_params.get("code", [None])[0]
         self.server.state = query_params.get("state", [None])[0]
         self.server.error = query_params.get("error", [None])[0]
 
-        # Send response to browser
         if self.server.auth_code:
             self.send_response(200)
             self.send_header("Content-type", "text/html")
@@ -31,7 +29,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
                 <html>
                     <head><title>Monzo OAuth</title></head>
                     <body>
-                        <h1>&#x2705; Authorization Successful!</h1>
+                        <h1>&
                         <p>You can now close this window and return to the terminal.</p>
                         <script>setTimeout(() => window.close(), 3000);</script>
                     </body>
@@ -48,7 +46,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
                 <html>
                     <head><title>Monzo OAuth Error</title></head>
                     <body>
-                        <h1>&#x274C; Authorization Failed</h1>
+                        <h1>&
                         <p>Error: {error_msg}</p>
                         <p>Please close this window and try again.</p>
                     </body>
@@ -56,7 +54,6 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
             """.encode()
             )
 
-        # Signal that we got a response
         self.server.callback_received.set()
 
     def log_message(self, format: str, *args: Any) -> None:
@@ -94,7 +91,6 @@ def start_callback_server(port: int = 8080) -> OAuthCallbackServer:
         """Run the OAuth callback server indefinitely."""
         server.serve_forever()
 
-    # Start server in background thread
     server_thread = Thread(target=run_server, daemon=True)
     server_thread.start()
 

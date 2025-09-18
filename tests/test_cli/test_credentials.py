@@ -35,7 +35,6 @@ class TestLoadEnvCredentials:
     def test_load_with_defaults(self) -> None:
         """Test loading with default redirect URI."""
         creds = load_env_credentials()
-        # At minimum should have redirect_uri default
         assert "redirect_uri" in creds
 
     @patch("monzoh.cli.credentials.load_dotenv")

@@ -31,7 +31,6 @@ class AsyncPotsAPI:
         response = await self.client._get("/pots", params=params)
         pots_response = PotsResponse(**response.json())
 
-        # Set client and source account on all pot objects
         for pot in pots_response.pots:
             pot._set_client(self.client)
             pot._source_account_id = current_account_id
@@ -56,7 +55,6 @@ class AsyncPotsAPI:
         Returns:
             Updated pot
         """
-        # Convert amount from major units to minor units
         amount_minor = convert_amount_to_minor_units(amount)
 
         data = {
@@ -89,7 +87,6 @@ class AsyncPotsAPI:
         Returns:
             Updated pot
         """
-        # Convert amount from major units to minor units
         amount_minor = convert_amount_to_minor_units(amount)
 
         data = {

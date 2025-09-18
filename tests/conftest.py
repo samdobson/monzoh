@@ -161,7 +161,6 @@ def sample_pot() -> dict[str, Any]:
     }
 
 
-# Async fixtures
 @pytest.fixture
 def mock_async_response() -> Callable[..., Mock]:
     """Create a mock async response factory.
@@ -218,7 +217,6 @@ def mock_async_base_client(mock_async_response: Callable[..., Mock]) -> Mock:
     """
     client = Mock(spec=BaseAsyncClient)
 
-    # Set up default response
     mock_response = mock_async_response()
     client._get = AsyncMock(return_value=mock_response)
     client._post = AsyncMock(return_value=mock_response)
@@ -226,7 +224,6 @@ def mock_async_base_client(mock_async_response: Callable[..., Mock]) -> Mock:
     client._patch = AsyncMock(return_value=mock_response)
     client._delete = AsyncMock(return_value=mock_response)
 
-    # Mock helper methods
     client._prepare_pagination_params = Mock(return_value={})
     client._prepare_expand_params = Mock(return_value=None)
 
@@ -251,7 +248,6 @@ def async_monzo_client(
     )
     default_response = mock_async_response()
 
-    # Mock the base client methods to return async mocks
     setattr(client._base_client, "_get", AsyncMock(return_value=default_response))
     setattr(client._base_client, "_post", AsyncMock(return_value=default_response))
     setattr(client._base_client, "_put", AsyncMock(return_value=default_response))

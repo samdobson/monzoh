@@ -37,12 +37,10 @@ class TestAttachmentsAPI:
             mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
-        # Mock the upload URL response
         upload_data = {
             "upload_url": "https://s3.amazonaws.com/upload",
             "file_url": "https://s3.amazonaws.com/file",
         }
-        # Mock the register response
         attachment_data = {
             "id": "attach_00009238aOZ8rp29FlJDQc",
             "user_id": "user_00009237aqC8c5umZmrRdh",
@@ -53,7 +51,6 @@ class TestAttachmentsAPI:
         }
         register_response_data = {"attachment": attachment_data}
 
-        # Setup mock responses for the two API calls
         upload_response = mock_response(json_data=upload_data)
         register_response = mock_response(json_data=register_response_data)
         monzo_client._base_client._post.side_effect = [
@@ -61,7 +58,6 @@ class TestAttachmentsAPI:
             register_response,
         ]
 
-        # Mock httpx client for file upload
         mock_client = Mock()
         mock_httpx_client_class.return_value.__enter__.return_value = mock_client
 
@@ -74,12 +70,10 @@ class TestAttachmentsAPI:
             file_data=file_data,
         )
 
-        # Verify the result is an attachment
         assert isinstance(result, Attachment)
         assert result.id == attachment_data["id"]
         assert result.external_id == attachment_data["external_id"]
 
-        # Verify file upload was called
         mock_client.put.assert_called_once_with(
             "https://s3.amazonaws.com/upload",
             content=file_data,
@@ -105,7 +99,6 @@ class TestAttachmentsAPI:
             mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
-        # Create a temporary test file
         with tempfile.NamedTemporaryFile(
             mode="wb", suffix=".jpg", delete=False
         ) as tmp_file:
@@ -114,12 +107,10 @@ class TestAttachmentsAPI:
             tmp_file_path = tmp_file.name
 
         try:
-            # Mock the upload URL response
             upload_data = {
                 "upload_url": "https://s3.amazonaws.com/upload",
                 "file_url": "https://s3.amazonaws.com/file",
             }
-            # Mock the register response
             attachment_data = {
                 "id": "attach_00009238aOZ8rp29FlJDQc",
                 "user_id": "user_00009237aqC8c5umZmrRdh",
@@ -130,7 +121,6 @@ class TestAttachmentsAPI:
             }
             register_response_data = {"attachment": attachment_data}
 
-            # Setup mock responses for the two API calls
             upload_response = mock_response(json_data=upload_data)
             register_response = mock_response(json_data=register_response_data)
             monzo_client._base_client._post.side_effect = [
@@ -138,7 +128,6 @@ class TestAttachmentsAPI:
                 register_response,
             ]
 
-            # Mock httpx client for file upload
             mock_client = Mock()
             mock_httpx_client_class.return_value.__enter__.return_value = mock_client
 
@@ -147,12 +136,10 @@ class TestAttachmentsAPI:
                 transaction_id="tx_00008zIcpb1TB4yeIFXMzx", file_path=tmp_file_path
             )
 
-            # Verify the result is an attachment
             assert isinstance(result, Attachment)
             assert result.id == attachment_data["id"]
             assert result.external_id == attachment_data["external_id"]
 
-            # Verify file upload was called with correct content
             mock_client.put.assert_called_once_with(
                 "https://s3.amazonaws.com/upload",
                 content=test_content,
@@ -162,19 +149,17 @@ class TestAttachmentsAPI:
                 },
             )
 
-            # Verify the API calls were made with inferred values
             expected_file_name = Path(tmp_file_path).name
             monzo_client._base_client._post.assert_any_call(
                 "/attachment/upload",
                 data={
                     "file_name": expected_file_name,
-                    "file_type": "image/jpeg",  # inferred from .jpg extension
+                    "file_type": "image/jpeg",
                     "content_length": str(len(test_content)),
                 },
             )
 
         finally:
-            # Clean up temporary file
             Path(tmp_file_path).unlink()
 
     def test_upload_validation_error(self, monzo_client: Any) -> None:
@@ -186,7 +171,7 @@ class TestAttachmentsAPI:
         api = AttachmentsAPI(monzo_client._base_client)
 
         try:
-            api.upload(transaction_id="tx_123")  # Missing required args
+            api.upload(transaction_id="tx_123")
             assert False, "Expected ValueError"
         except ValueError as e:
             assert "Either file_path must be provided" in str(e)

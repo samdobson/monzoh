@@ -66,10 +66,8 @@ class TestMonzoOAuth:
             client_secret="test_client_secret",
             redirect_uri="https://example.com/callback",
         )
-        # First call should create client
         client1 = oauth.http_client
         assert client1 is not None
-        # Second call should return same client
         client2 = oauth.http_client
         assert client1 is client2
 
@@ -204,10 +202,8 @@ class TestMonzoOAuth:
             mock_client_class.return_value = mock_client
 
             with oauth:
-                # Access http_client to create it
                 _ = oauth.http_client
 
-            # Should close the client on exit
             mock_client.close.assert_called_once()
 
     def test_context_manager_doesnt_close_provided_client(
@@ -228,7 +224,6 @@ class TestMonzoOAuth:
         with oauth:
             pass
 
-        # Should not close the provided client
         mock_http_client.close.assert_not_called()
 
     def test_exchange_code_for_token_http_error(
@@ -277,9 +272,7 @@ class TestMonzoOAuth:
         mock_response_obj.json.side_effect = ValueError("Invalid JSON")
         mock_http_client.post.return_value = mock_response_obj
 
-        with pytest.raises(
-            Exception
-        ):  # Should raise some error from create_error_from_response
+        with pytest.raises(Exception):
             oauth.exchange_code_for_token("test_code")
 
     def test_exchange_code_for_token_network_error(self, mock_http_client: Any) -> None:
@@ -353,9 +346,7 @@ class TestMonzoOAuth:
         mock_response_obj.json.side_effect = KeyError("No JSON")
         mock_http_client.post.return_value = mock_response_obj
 
-        with pytest.raises(
-            Exception
-        ):  # Should raise some error from create_error_from_response
+        with pytest.raises(Exception):
             oauth.refresh_token("test_refresh_token")
 
     def test_refresh_token_network_error(self, mock_http_client: Any) -> None:
@@ -397,7 +388,6 @@ class TestMonzoOAuth:
         mock_response = mock_response()
         mock_http_client.post.return_value = mock_response
 
-        # Should not raise any exception
         oauth.logout("test_access_token")
 
         mock_http_client.post.assert_called_once()
@@ -428,9 +418,7 @@ class TestMonzoOAuth:
         )
         mock_http_client.post.return_value = mock_response
 
-        with pytest.raises(
-            Exception
-        ):  # Should raise some error from create_error_from_response
+        with pytest.raises(Exception):
             oauth.logout("invalid_token")
 
     def test_logout_http_error_no_json(
@@ -454,9 +442,7 @@ class TestMonzoOAuth:
         mock_response_obj.json.side_effect = TypeError("JSON error")
         mock_http_client.post.return_value = mock_response_obj
 
-        with pytest.raises(
-            Exception
-        ):  # Should raise some error from create_error_from_response
+        with pytest.raises(Exception):
             oauth.logout("test_token")
 
     def test_logout_network_error(self, mock_http_client: Any) -> None:

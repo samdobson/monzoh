@@ -30,31 +30,26 @@ def _load_cached_token() -> str | None:
         from .auth import MonzoOAuth
         from .cli import load_env_credentials, load_token_from_cache, try_refresh_token
 
-        # First try to load a valid (non-expired) token
         cached_token = load_token_from_cache()
         if cached_token and isinstance(cached_token, dict):
             access_token = cached_token.get("access_token")
             if isinstance(access_token, str):
                 return access_token
 
-        # If no valid token, check for expired token to refresh
         expired_token = load_token_from_cache(include_expired=True)
         if expired_token and isinstance(expired_token, dict):
-            # Load OAuth credentials to attempt refresh
             credentials = load_env_credentials()
             client_id = credentials.get("client_id")
             client_secret = credentials.get("client_secret")
             redirect_uri = credentials.get("redirect_uri")
 
             if client_id and client_secret and redirect_uri:
-                # Attempt to refresh the token
                 oauth = MonzoOAuth(
                     client_id=client_id,
                     client_secret=client_secret,
                     redirect_uri=redirect_uri,
                 )
 
-                # Use a minimal console for refresh output
                 console = Console(file=None, quiet=True)
 
                 refreshed_token = try_refresh_token(expired_token, oauth, console)
@@ -90,7 +85,6 @@ class MonzoClient:
             access_token=effective_token, http_client=http_client, timeout=timeout
         )
 
-        # Initialize API endpoints
         self.accounts = AccountsAPI(self._base_client)
         self.transactions = TransactionsAPI(self._base_client)
         self.pots = PotsAPI(self._base_client)

@@ -20,11 +20,9 @@ class TestAuthenticate:
             mock_load_cache: Mock load cache fixture.
             mock_client_class: Mock client class fixture.
         """
-        # Mock cached token
         cached_token = {"access_token": "cached_token", "user_id": "user123"}
         mock_load_cache.return_value = cached_token
 
-        # Mock client and whoami response
         mock_client = Mock()
         mock_whoami = Mock()
         mock_whoami.user_id = "user123"
@@ -75,7 +73,6 @@ class TestAuthenticate:
                 "redirect_uri": "http://localhost:8080/callback",
             }
 
-            # Mock server
             mock_server = Mock()
             mock_server.callback_received = Mock()
             mock_server.callback_received.wait.return_value = True
@@ -84,7 +81,6 @@ class TestAuthenticate:
             mock_server.state = "test_state"
             mock_start_server.return_value = mock_server
 
-            # Mock OAuth
             mock_oauth = Mock()
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.__enter__ = Mock(return_value=mock_oauth)
@@ -93,12 +89,10 @@ class TestAuthenticate:
 
             mock_token.return_value = "test_state"
 
-            # Mock token response
             mock_oauth_token = Mock()
             mock_oauth_token.access_token = "new_access_token"
             mock_oauth.exchange_code_for_token.return_value = mock_oauth_token
 
-            # Mock client
             mock_client = Mock()
             mock_whoami = Mock()
             mock_whoami.user_id = "user123"
@@ -155,10 +149,9 @@ class TestAuthenticate:
                 "redirect_uri": "http://localhost:8080/callback",
             }
 
-            # Mock server with timeout
             mock_server = Mock()
             mock_server.callback_received = Mock()
-            mock_server.callback_received.wait.return_value = False  # Timeout
+            mock_server.callback_received.wait.return_value = False
             mock_start_server.return_value = mock_server
 
             mock_oauth = Mock()

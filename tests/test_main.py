@@ -14,7 +14,6 @@ class TestLoadCachedToken:
 
     def test_load_cached_token_import_error(self) -> None:
         """Test when CLI module cannot be imported."""
-        # Mock the import to raise an ImportError
         with patch.dict("sys.modules", {"monzoh.cli": None}):
             result = _load_cached_token()
             assert result is None
@@ -69,13 +68,10 @@ class TestMonzoClient:
         """
         mock_load_token.return_value = None
 
-        # Should not raise error during initialization anymore
         client = MonzoClient(http_client=mock_http_client)
 
-        # Token should be None
         assert client._base_client.access_token is None
 
-        # But API calls should raise authentication error
         with pytest.raises(MonzoAuthenticationError, match="Access token is not set"):
             client.whoami()
 
@@ -91,11 +87,9 @@ class TestMonzoClient:
         """
         mock_load_token.return_value = None
 
-        # Create client without token
         client = MonzoClient(http_client=mock_http_client)
         assert client._base_client.access_token is None
 
-        # Set token
         client.set_access_token("new_token")
         assert client._base_client.access_token == "new_token"
 

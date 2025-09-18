@@ -99,7 +99,5 @@ class TestAsyncAccountsAPI:
         cast(Mock, mock_async_base_client._get).assert_called_once_with(
             "/balance", params={"account_id": "test_account_id"}
         )
-        assert balance.balance == Decimal(
-            "50.00"
-        )  # 5000 minor units -> 50.00 major units
+        assert balance.balance == Decimal("50.00")
         assert balance.currency == sample_balance["currency"]

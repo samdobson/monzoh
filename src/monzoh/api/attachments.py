@@ -41,7 +41,6 @@ class AttachmentsAPI:
         Raises:
             ValueError: If neither file_path nor (file_name and file_data) are provided
         """
-        # Handle file_path vs direct data input
         if file_path:
             path = Path(file_path)
             actual_file_name = file_name or path.name
@@ -57,21 +56,18 @@ class AttachmentsAPI:
                 "must be provided"
             )
 
-        # Step 1: Get upload URL
         upload_info = self._get_upload_url(
             file_name=actual_file_name,
             file_type=actual_file_type,
             content_length=len(actual_file_data),
         )
 
-        # Step 2: Upload the file data
         self._upload_file_to_url(
             upload_url=upload_info.upload_url,
             file_data=actual_file_data,
             file_type=actual_file_type,
         )
 
-        # Step 3: Register the attachment
         attachment = self._register(
             external_id=transaction_id,
             file_url=upload_info.file_url,
@@ -150,7 +146,6 @@ class AttachmentsAPI:
         """
         import httpx
 
-        # AWS S3 signed URLs require specific headers that match the signature
         headers = {
             "Content-Type": file_type,
             "Content-Length": str(len(file_data)),
@@ -158,4 +153,4 @@ class AttachmentsAPI:
 
         with httpx.Client() as client:
             response = client.put(upload_url, content=file_data, headers=headers)
-            response.raise_for_status()  # Raise exception if upload fails
+            response.raise_for_status()

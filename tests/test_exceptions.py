@@ -29,7 +29,7 @@ class TestExceptions:
         assert error.original_message == "API Error"
         assert error.status_code == 400
         assert error.response_data == response_data
-        assert str(error) == "Custom API message"  # Should use response data message
+        assert str(error) == "Custom API message"
 
     def test_monzo_error_with_simple_data(self) -> None:
         """Test MonzoError with simple response data."""

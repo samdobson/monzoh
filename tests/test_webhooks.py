@@ -113,7 +113,7 @@ class TestWebhookPayloadParsing:
 
     def test_parse_webhook_payload_missing_required_fields(self) -> None:
         """Test parsing webhook with missing required fields."""
-        payload = {"type": "transaction.created"}  # Missing 'data' field
+        payload = {"type": "transaction.created"}
         body = json.dumps(payload)
 
         with pytest.raises(
@@ -127,7 +127,6 @@ class TestWebhookPayloadParsing:
             "type": "transaction.created",
             "data": {
                 "id": "tx_123",
-                # Missing required fields like amount, created, currency, description
             },
         }
         body = json.dumps(payload)
@@ -205,7 +204,6 @@ class TestTransactionWebhookParsing:
             "type": "transaction.created",
             "data": {
                 "id": "tx_123",
-                # Missing required fields
             },
         }
         body = json.dumps(payload)
@@ -275,7 +273,7 @@ class TestWebhookTypes:
     def test_transaction_webhook_payload_invalid_type(self) -> None:
         """Test TransactionWebhookPayload with invalid type."""
         invalid_data = {
-            "type": "balance.updated",  # Wrong type
+            "type": "balance.updated",
             "data": {
                 "id": "tx_123",
                 "amount": -500,
@@ -304,16 +302,15 @@ class TestWebhookIntegration:
 
     def test_full_transaction_workflow(self) -> None:
         """Test complete transaction webhook processing workflow."""
-        # Simulate incoming webhook data
         webhook_body = {
             "type": "transaction.created",
             "data": {
                 "id": "tx_integration_test",
-                "amount": -750,  # £7.50 spending
+                "amount": -750,
                 "created": "2023-06-15T14:30:00Z",
                 "currency": "GBP",
                 "description": "Local Coffee Shop",
-                "account_balance": 89250,  # £892.50
+                "account_balance": 89250,
                 "category": "eating_out",
                 "is_load": False,
                 "settled": "2023-06-15T14:30:00Z",
@@ -323,19 +320,15 @@ class TestWebhookIntegration:
             },
         }
 
-        # Parse as generic payload
         payload = parse_webhook_payload(body=json.dumps(webhook_body))
         assert isinstance(payload, TransactionWebhookPayload)
 
-        # Parse as specific transaction
         transaction = parse_transaction_webhook(body=json.dumps(webhook_body))
 
-        # Verify parsing consistency
         assert payload.data.id == transaction.id
         assert payload.data.amount == transaction.amount
         assert payload.data.description == transaction.description
 
-        # Verify business logic can access data
         amount_pounds = (
             abs(transaction.amount) / 100 if transaction.amount is not None else 0
         )

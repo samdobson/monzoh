@@ -126,12 +126,10 @@ class Receipt(BaseModel):
     )
 
 
-# Response containers
 class ReceiptResponse(BaseModel):
     """Receipt response."""
 
     receipt: Receipt = Field(..., description="Receipt object")
 
 
-# Update forward references
 ReceiptItem.model_rebuild()

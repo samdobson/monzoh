@@ -35,9 +35,7 @@ class TestPotsAPI:
         assert isinstance(pots[0], Pot)
         assert pots[0].id == sample_pot["id"]
         assert pots[0].name == sample_pot["name"]
-        assert pots[0].balance == Decimal(
-            "1337.00"
-        )  # 133700 minor units -> 1337.00 major units
+        assert pots[0].balance == Decimal("1337.00")
 
         monzo_client._base_client._get.assert_called_once()
         call_args = monzo_client._base_client._get.call_args
@@ -60,7 +58,7 @@ class TestPotsAPI:
             sample_pot: Sample pot data fixture.
         """
         updated_pot = sample_pot.copy()
-        updated_pot["balance"] = 150000  # Increased balance
+        updated_pot["balance"] = 150000
 
         mock_response = mock_response(json_data=updated_pot)
         monzo_client._base_client._put.return_value = mock_response
@@ -68,7 +66,7 @@ class TestPotsAPI:
         pot = monzo_client.pots.deposit(
             pot_id="pot_123",
             source_account_id="acc_123",
-            amount=10.00,  # £10.00 in major units
+            amount=10.00,
             dedupe_id="deposit_123",
         )
 
@@ -79,7 +77,7 @@ class TestPotsAPI:
         call_args = monzo_client._base_client._put.call_args
         assert "/pots/pot_123/deposit" in call_args[0][0]
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "1000"  # £10.00 -> 1000 minor units
+        assert call_args[1]["data"]["amount"] == "1000"
         assert call_args[1]["data"]["dedupe_id"] == "deposit_123"
 
     def test_withdraw(
@@ -98,7 +96,7 @@ class TestPotsAPI:
             sample_pot: Sample pot data fixture.
         """
         updated_pot = sample_pot.copy()
-        updated_pot["balance"] = 120000  # Decreased balance
+        updated_pot["balance"] = 120000
 
         mock_response = mock_response(json_data=updated_pot)
         monzo_client._base_client._put.return_value = mock_response
@@ -106,7 +104,7 @@ class TestPotsAPI:
         pot = monzo_client.pots.withdraw(
             pot_id="pot_123",
             destination_account_id="acc_123",
-            amount=5.00,  # £5.00 in major units
+            amount=5.00,
             dedupe_id="withdraw_123",
         )
 
@@ -117,7 +115,7 @@ class TestPotsAPI:
         call_args = monzo_client._base_client._put.call_args
         assert "/pots/pot_123/withdraw" in call_args[0][0]
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
-        assert call_args[1]["data"]["amount"] == "500"  # £5.00 -> 500 minor units
+        assert call_args[1]["data"]["amount"] == "500"
         assert call_args[1]["data"]["dedupe_id"] == "withdraw_123"
 
     def test_deposit_auto_dedupe_id(

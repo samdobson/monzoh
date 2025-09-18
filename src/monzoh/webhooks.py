@@ -62,7 +62,6 @@ def parse_webhook_payload(
             )
         ```
     """
-    # Parse JSON payload
     try:
         if isinstance(body, bytes):
             payload_data = json.loads(body.decode("utf-8"))
@@ -71,13 +70,11 @@ def parse_webhook_payload(
     except json.JSONDecodeError as e:
         raise WebhookParseError(f"Invalid JSON payload: {e}")
 
-    # Validate basic payload structure
     try:
         base_payload = WebhookPayload(**payload_data)
     except ValidationError as e:
         raise WebhookParseError(f"Invalid webhook payload structure: {e}")
 
-    # Parse specific event types with stronger validation
     event_type = base_payload.type
 
     if event_type == "transaction.created":
@@ -86,7 +83,6 @@ def parse_webhook_payload(
         except ValidationError as e:
             raise WebhookParseError(f"Invalid transaction webhook payload: {e}")
 
-    # Return generic payload for other event types
     return base_payload
 
 
@@ -112,7 +108,6 @@ def parse_transaction_webhook(
         ```python
         from monzoh.webhooks import parse_transaction_webhook
 
-        # Parse transaction directly
         transaction = parse_transaction_webhook(body=request_body)
 
         print(f"New transaction: {transaction.description}")

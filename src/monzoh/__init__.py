@@ -33,11 +33,9 @@ from .webhooks import (
 __version__ = "1.2.0"
 
 __all__ = [
-    # Main clients
     "MonzoClient",
     "AsyncMonzoClient",
     "MonzoOAuth",
-    # Models
     "Account",
     "Balance",
     "Transaction",
@@ -47,7 +45,6 @@ __all__ = [
     "Webhook",
     "OAuthToken",
     "WhoAmI",
-    # Exceptions
     "MonzoError",
     "MonzoAuthenticationError",
     "MonzoBadRequestError",
@@ -56,7 +53,6 @@ __all__ = [
     "MonzoServerError",
     "MonzoNetworkError",
     "MonzoValidationError",
-    # Webhook utilities
     "WebhookParseError",
     "parse_transaction_webhook",
     "parse_webhook_payload",

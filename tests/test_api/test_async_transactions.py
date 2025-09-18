@@ -188,7 +188,7 @@ class TestAsyncTransactionsAPI:
             "transaction": sample_transaction
         }
 
-        metadata = {"category": ""}  # Empty string deletes metadata
+        metadata = {"category": ""}
         await transactions_api.annotate("test_transaction_id", metadata)
 
         expected_data = {"metadata[category]": ""}

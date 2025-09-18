@@ -53,9 +53,7 @@ class TestAsyncPotsAPI:
         assert isinstance(pots[0], Pot)
         assert pots[0].id == sample_pot["id"]
         assert pots[0].name == sample_pot["name"]
-        assert pots[0].balance == Decimal(
-            "1337.00"
-        )  # 133700 minor units -> 1337.00 major units
+        assert pots[0].balance == Decimal("1337.00")
 
     @pytest.mark.asyncio
     async def test_deposit(
@@ -72,7 +70,7 @@ class TestAsyncPotsAPI:
             sample_pot: Sample pot data fixture.
         """
         updated_pot = sample_pot.copy()
-        updated_pot["balance"] = 150000  # Increased balance
+        updated_pot["balance"] = 150000
 
         cast(
             Mock, mock_async_base_client._put
@@ -81,7 +79,7 @@ class TestAsyncPotsAPI:
         pot = await pots_api.deposit(
             pot_id="pot_123",
             source_account_id="acc_123",
-            amount=10.00,  # £10.00 in major units
+            amount=10.00,
             dedupe_id="deposit_123",
         )
 
@@ -111,7 +109,7 @@ class TestAsyncPotsAPI:
             sample_pot: Sample pot data fixture.
         """
         updated_pot = sample_pot.copy()
-        updated_pot["balance"] = 120000  # Decreased balance
+        updated_pot["balance"] = 120000
 
         cast(
             Mock, mock_async_base_client._put
@@ -120,7 +118,7 @@ class TestAsyncPotsAPI:
         pot = await pots_api.withdraw(
             pot_id="pot_123",
             destination_account_id="acc_123",
-            amount=5.00,  # £5.00 in major units
+            amount=5.00,
             dedupe_id="withdraw_123",
         )
 

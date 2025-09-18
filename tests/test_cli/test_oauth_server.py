@@ -29,12 +29,10 @@ class TestOAuthCallbackServer:
         Args:
             mock_init: Mock __init__ method fixture.
         """
-        mock_init.return_value = (
-            None  # Mock the parent __init__ to avoid socket binding
-        )
+        mock_init.return_value = None
 
         server = OAuthCallbackServer(("localhost", 8080))
-        server.auth_code = None  # Set the attributes that would normally be set
+        server.auth_code = None
         server.state = None
         server.error = None
         server.callback_received = Event()

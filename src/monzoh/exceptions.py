@@ -22,7 +22,6 @@ class MonzoError(Exception):
         self.status_code = status_code
         self.response_data = response_data or {}
 
-        # Create user-friendly message
         friendly_message = self._create_friendly_message()
         super().__init__(friendly_message)
         self.message = friendly_message
@@ -33,9 +32,7 @@ class MonzoError(Exception):
         Returns:
             User-friendly error message
         """
-        # Extract meaningful information from response data
         if isinstance(self.response_data, dict):
-            # Try to get the main error message
             api_message = str(self.response_data.get("message", ""))
             error_code = str(self.response_data.get("code", ""))
 
@@ -44,9 +41,7 @@ class MonzoError(Exception):
             elif error_code:
                 return f"API error: {error_code}"
 
-        # Fallback to original message, cleaned up
         if "API request failed:" in self.original_message:
-            # Try to extract just the meaningful part
             try:
                 import json
 
@@ -71,10 +66,8 @@ class MonzoAuthenticationError(MonzoError):
         Returns:
             User-friendly authentication error message
         """
-        # First try the parent's logic
         base_message = super()._create_friendly_message()
 
-        # Add context-specific improvements for auth errors
         if "insufficient_permissions" in self.original_message:
             return (
                 "Access forbidden: Your access token doesn't have the required "

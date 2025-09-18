@@ -76,7 +76,6 @@ def convert_amount_to_minor_units(amount: int | float | Decimal | str) -> int:
         if amount < 0:
             raise ValueError("Amount cannot be negative")
 
-        # All supported currencies (GBP, EUR, USD) use 2 decimal places
         return int(amount * 100)
 
     except (ValueError, TypeError, ArithmeticError) as e:
