@@ -538,3 +538,121 @@ class TestBaseSyncClient:
 
         expected = {"limit": "25", "since": "2023-01-01"}
         assert result == expected
+
+
+class TestClientTokenLoading:
+    """Test token loading functionality in client.py."""
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_success(self, mock_load_token: Mock) -> None:
+        """Test successful token loading from cache."""
+        mock_load_token.return_value = {"access_token": "cached_token"}
+
+        from monzoh.client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result == "cached_token"
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_invalid_token(self, mock_load_token: Mock) -> None:
+        """Test token loading with invalid token format."""
+        mock_load_token.return_value = {"invalid": "format"}
+
+        from monzoh.client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    @patch("monzoh.cli.load_token_from_cache")
+    @patch("monzoh.cli.load_env_credentials")
+    @patch("monzoh.cli.try_refresh_token")
+    @patch("monzoh.client.MonzoOAuth")
+    @patch("rich.console.Console")
+    def test_load_cached_token_refresh_attempt(
+        self,
+        mock_console_class: Mock,
+        mock_oauth_class: Mock,
+        mock_refresh: Mock,
+        mock_credentials: Mock,
+        mock_load_token: Mock,
+    ) -> None:
+        """Test token refresh attempt when current token is None."""
+        mock_load_token.side_effect = [
+            None,
+            {"refresh_token": "expired_refresh"},
+        ]
+        mock_credentials.return_value = {
+            "client_id": "test_id",
+            "client_secret": "test_secret",
+            "redirect_uri": "test_uri",
+        }
+        mock_oauth_instance = Mock()
+        mock_oauth_class.return_value = mock_oauth_instance
+        mock_refresh.return_value = "refreshed_token"
+
+        from monzoh.client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result == "refreshed_token"
+
+    @patch("monzoh.cli.load_token_from_cache")
+    @patch("monzoh.cli.load_env_credentials")
+    def test_load_cached_token_no_credentials(
+        self, mock_credentials: Mock, mock_load_token: Mock
+    ) -> None:
+        """Test token refresh when credentials are missing."""
+        mock_load_token.side_effect = [
+            None,
+            {"refresh_token": "expired_refresh"},
+        ]
+        mock_credentials.return_value = {}
+
+        from monzoh.client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_import_error(self, mock_load_token: Mock) -> None:
+        """Test token loading with import error."""
+        mock_load_token.side_effect = ImportError("Module not found")
+
+        from monzoh.client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_other_exceptions(self, mock_load_token: Mock) -> None:
+        """Test token loading with various exceptions."""
+        mock_load_token.side_effect = ValueError("Invalid value")
+
+        from monzoh.client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    @patch("monzoh.client._load_cached_token")
+    def test_client_initialization_with_cached_token(self, mock_load: Mock) -> None:
+        """Test client initialization loads cached token when none provided."""
+        mock_load.return_value = "cached_token"
+
+        client = MonzoClient()
+        assert client._base_client.access_token == "cached_token"
+
+    @patch("monzoh.client._load_cached_token")
+    def test_client_initialization_prefers_provided_token(
+        self, mock_load: Mock
+    ) -> None:
+        """Test client initialization prefers provided token over cached."""
+        mock_load.return_value = "cached_token"
+
+        client = MonzoClient(access_token="provided_token")
+        assert client._base_client.access_token == "provided_token"
+        mock_load.assert_not_called()
+
+    def test_client_set_access_token(self) -> None:
+        """Test setting access token on client."""
+        client = MonzoClient(access_token="initial_token")
+        client.set_access_token("new_token")
+        assert client._base_client.access_token == "new_token"

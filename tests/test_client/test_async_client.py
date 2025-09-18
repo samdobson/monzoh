@@ -234,3 +234,77 @@ class TestBaseAsyncClient:
 
         params = client._prepare_expand_params(None)
         assert params is None
+
+
+class TestAsyncClientTokenLoading:
+    """Test async client token loading functionality."""
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_success(self, mock_load_token: Mock) -> None:
+        """Test successful token loading from cache.
+
+        Args:
+            mock_load_token: Mock load_token_from_cache function.
+        """
+        mock_load_token.return_value = {"access_token": "cached_token"}
+
+        from monzoh.async_client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result == "cached_token"
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_invalid_format(self, mock_load_token: Mock) -> None:
+        """Test token loading with invalid token format.
+
+        Args:
+            mock_load_token: Mock load_token_from_cache function.
+        """
+        mock_load_token.return_value = {"invalid": "format"}
+
+        from monzoh.async_client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_import_error(self, mock_load_token: Mock) -> None:
+        """Test token loading with import error.
+
+        Args:
+            mock_load_token: Mock load_token_from_cache function.
+        """
+        mock_load_token.side_effect = ImportError("Module not found")
+
+        from monzoh.async_client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    @patch("monzoh.cli.load_token_from_cache")
+    def test_load_cached_token_other_exceptions(self, mock_load_token: Mock) -> None:
+        """Test token loading with various exceptions.
+
+        Args:
+            mock_load_token: Mock load_token_from_cache function.
+        """
+        mock_load_token.side_effect = ValueError("Invalid value")
+
+        from monzoh.async_client import _load_cached_token
+
+        result = _load_cached_token()
+        assert result is None
+
+    def test_async_client_create_oauth_http_client_handling(self) -> None:
+        """Test OAuth client creation with async HTTP client handling."""
+        mock_async_client = Mock(spec=httpx.AsyncClient)
+
+        oauth_client = AsyncMonzoClient.create_oauth_client(
+            client_id="test_id",
+            client_secret="test_secret",
+            redirect_uri="https://example.com/callback",
+            http_client=mock_async_client,
+        )
+
+        assert oauth_client.client_id == "test_id"
+        assert oauth_client.client_secret == "test_secret"

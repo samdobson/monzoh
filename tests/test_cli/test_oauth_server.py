@@ -12,11 +12,62 @@ from monzoh.cli.oauth_server import (
 
 
 class TestOAuthCallbackHandler:
-    """Tests for OAuth callback handler - basic structure tests only."""
+    """Tests for OAuth callback handler."""
 
     def test_handler_exists(self) -> None:
         """Test that the handler class exists and can be imported."""
         assert OAuthCallbackHandler is not None
+
+    def test_do_get_success(self) -> None:
+        """Test successful OAuth callback handling."""
+        handler = object.__new__(OAuthCallbackHandler)
+        handler.server = Mock(spec=OAuthCallbackServer)
+        handler.server.callback_received = Event()
+        handler.path = "/callback?code=test_code&state=test_state"
+
+        with (
+            patch.object(handler, "send_response") as mock_send_response,
+            patch.object(handler, "send_header") as _mock_send_header,
+            patch.object(handler, "end_headers") as _mock_end_headers,
+        ):
+            handler.wfile = Mock()
+            handler.wfile.write = Mock()
+
+            handler.do_GET()
+
+            assert handler.server.auth_code == "test_code"
+            assert handler.server.state == "test_state"
+            assert handler.server.error is None
+            mock_send_response.assert_called_with(200)
+            assert handler.server.callback_received.is_set()
+
+    def test_do_get_error(self) -> None:
+        """Test OAuth callback error handling."""
+        handler = object.__new__(OAuthCallbackHandler)
+        handler.server = Mock(spec=OAuthCallbackServer)
+        handler.server.callback_received = Event()
+        handler.path = "/callback?error=access_denied"
+
+        with (
+            patch.object(handler, "send_response") as mock_send_response,
+            patch.object(handler, "send_header") as _mock_send_header,
+            patch.object(handler, "end_headers") as _mock_end_headers,
+        ):
+            handler.wfile = Mock()
+            handler.wfile.write = Mock()
+
+            handler.do_GET()
+
+            assert handler.server.error == "access_denied"
+            mock_send_response.assert_called_with(400)
+            assert handler.server.callback_received.is_set()
+            handler.wfile.write.assert_called()
+
+    def test_log_message_suppressed(self) -> None:
+        """Test that log messages are suppressed."""
+        handler = object.__new__(OAuthCallbackHandler)
+
+        handler.log_message("test format", "arg1", "arg2")
 
 
 class TestOAuthCallbackServer:

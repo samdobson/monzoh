@@ -41,7 +41,6 @@ class TestAccountOOInterface:
 
     def test_account_get_balance(self) -> None:
         """Test Account.get_balance() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -56,7 +55,6 @@ class TestAccountOOInterface:
         }
         mock_client._get.return_value = mock_response
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -64,7 +62,6 @@ class TestAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test get_balance
         balance = account.get_balance()
 
         assert isinstance(balance, Balance)
@@ -73,14 +70,12 @@ class TestAccountOOInterface:
         assert balance.currency == "GBP"
         assert balance.spend_today == Decimal("1.00")
 
-        # Verify API call
         mock_client._get.assert_called_once_with(
             "/balance", params={"account_id": "acc_123"}
         )
 
     def test_account_list_transactions(self) -> None:
         """Test Account.list_transactions() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_client._prepare_pagination_params.return_value = {"limit": 10}
         mock_client._prepare_expand_params.return_value = []
@@ -99,7 +94,6 @@ class TestAccountOOInterface:
         }
         mock_client._get.return_value = mock_response
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -107,19 +101,16 @@ class TestAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test list_transactions
         transactions = account.list_transactions(limit=10)
 
         assert len(transactions) == 1
         assert isinstance(transactions[0], Transaction)
         assert transactions[0].id == "tx_123"
         assert transactions[0].amount == -1000
-        # Verify client is set on returned transaction
         assert transactions[0]._client == mock_client
 
     def test_account_list_pots(self) -> None:
         """Test Account.list_pots() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -138,7 +129,6 @@ class TestAccountOOInterface:
         }
         mock_client._get.return_value = mock_response
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -146,14 +136,12 @@ class TestAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test list_pots
         pots = account.list_pots()
 
         assert len(pots) == 1
         assert isinstance(pots[0], Pot)
         assert pots[0].id == "pot_123"
         assert pots[0].name == "Savings"
-        # Verify client is set on returned pot
         assert pots[0]._client == mock_client
         assert pots[0]._source_account_id == "acc_123"
 
@@ -161,13 +149,11 @@ class TestAccountOOInterface:
         """Test Account.create_feed_item() method."""
         from monzoh.models.feed import FeedItemParams
 
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {}
         mock_client._post.return_value = mock_response
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -175,13 +161,11 @@ class TestAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test create_feed_item with minimal params
         params = FeedItemParams(
             title="Test Feed Item", image_url="https://example.com/image.jpg"
         )
         account.create_feed_item(params)
 
-        # Verify API call
         mock_client._post.assert_called_once_with(
             "/feed",
             data={
@@ -196,13 +180,11 @@ class TestAccountOOInterface:
         """Test Account.create_feed_item() method with all parameters."""
         from monzoh.models.feed import FeedItemParams
 
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {}
         mock_client._post.return_value = mock_response
 
-        # Create account and set client
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -210,7 +192,6 @@ class TestAccountOOInterface:
         )
         account._set_client(mock_client)
 
-        # Test create_feed_item with all params
         params = FeedItemParams(
             title="Test Feed Item",
             image_url="https://example.com/image.jpg",
@@ -222,7 +203,6 @@ class TestAccountOOInterface:
         )
         account.create_feed_item(params)
 
-        # Verify API call
         mock_client._post.assert_called_once_with(
             "/feed",
             data={
@@ -262,14 +242,13 @@ class TestPotOOInterface:
 
     def test_pot_deposit(self) -> None:
         """Test Pot.deposit() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         updated_pot_data = {
             "id": "pot_123",
             "name": "Savings",
             "style": "beach_ball",
-            "balance": 11000,  # Updated balance
+            "balance": 11000,
             "currency": "GBP",
             "created": datetime.now().isoformat(),
             "updated": datetime.now().isoformat(),
@@ -278,7 +257,6 @@ class TestPotOOInterface:
         mock_response.json.return_value = updated_pot_data
         mock_client._put.return_value = mock_response
 
-        # Create pot and set client/source account
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -291,15 +269,13 @@ class TestPotOOInterface:
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
 
-        # Test deposit
-        updated_pot = pot.deposit(10.00)  # £10.00 in major units
+        updated_pot = pot.deposit(10.00)
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == Decimal("110.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
-        # Verify API call
         mock_client._put.assert_called_once()
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/deposit"
@@ -309,7 +285,6 @@ class TestPotOOInterface:
 
     def test_pot_deposit_with_custom_dedupe_id(self) -> None:
         """Test Pot.deposit() with custom dedupe_id."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {
@@ -324,7 +299,6 @@ class TestPotOOInterface:
         }
         mock_client._put.return_value = mock_response
 
-        # Create pot and set client/source account
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -337,24 +311,21 @@ class TestPotOOInterface:
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
 
-        # Test deposit with custom dedupe_id
         custom_dedupe_id = str(uuid4())
-        pot.deposit(10.00, dedupe_id=custom_dedupe_id)  # £10.00 in major units
+        pot.deposit(10.00, dedupe_id=custom_dedupe_id)
 
-        # Verify API call used custom dedupe_id
         call_args = mock_client._put.call_args
         assert call_args[1]["data"]["dedupe_id"] == custom_dedupe_id
 
     def test_pot_withdraw(self) -> None:
         """Test Pot.withdraw() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         updated_pot_data = {
             "id": "pot_123",
             "name": "Savings",
             "style": "beach_ball",
-            "balance": 9500,  # Updated balance after withdrawal
+            "balance": 9500,
             "currency": "GBP",
             "created": datetime.now().isoformat(),
             "updated": datetime.now().isoformat(),
@@ -363,7 +334,6 @@ class TestPotOOInterface:
         mock_response.json.return_value = updated_pot_data
         mock_client._put.return_value = mock_response
 
-        # Create pot and set client/source account
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -376,15 +346,13 @@ class TestPotOOInterface:
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
 
-        # Test withdraw
-        updated_pot = pot.withdraw(5.00)  # £5.00 in major units
+        updated_pot = pot.withdraw(5.00)
 
         assert isinstance(updated_pot, Pot)
         assert updated_pot.balance == Decimal("95.00")
         assert updated_pot._client == mock_client
         assert updated_pot._source_account_id == "acc_123"
 
-        # Verify API call
         mock_client._put.assert_called_once()
         call_args = mock_client._put.call_args
         assert call_args[0][0] == "/pots/pot_123/withdraw"
@@ -433,7 +401,6 @@ class TestTransactionOOInterface:
 
     def test_transaction_annotate(self) -> None:
         """Test Transaction.annotate() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         updated_transaction_data = {
@@ -447,7 +414,6 @@ class TestTransactionOOInterface:
         mock_response.json.return_value = {"transaction": updated_transaction_data}
         mock_client._patch.return_value = mock_response
 
-        # Create transaction and set client
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -457,14 +423,12 @@ class TestTransactionOOInterface:
         )
         transaction._set_client(mock_client)
 
-        # Test annotate
         updated_transaction = transaction.annotate({"key": "value"})
 
         assert isinstance(updated_transaction, Transaction)
         assert updated_transaction.metadata == {"key": "value"}
         assert updated_transaction._client == mock_client
 
-        # Verify API call
         mock_client._patch.assert_called_once()
         call_args = mock_client._patch.call_args
         assert call_args[0][0] == "/transactions/tx_123"
@@ -472,7 +436,6 @@ class TestTransactionOOInterface:
 
     def test_transaction_refresh(self) -> None:
         """Test Transaction.refresh() method."""
-        # Mock client
         mock_client = Mock(spec=BaseSyncClient)
         mock_client._prepare_expand_params.return_value = [("expand[]", "merchant")]
         mock_response = Mock()
@@ -486,7 +449,6 @@ class TestTransactionOOInterface:
         mock_response.json.return_value = {"transaction": refreshed_transaction_data}
         mock_client._get.return_value = mock_response
 
-        # Create transaction and set client
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -496,14 +458,12 @@ class TestTransactionOOInterface:
         )
         transaction._set_client(mock_client)
 
-        # Test refresh
         refreshed_transaction = transaction.refresh(expand=["merchant"])
 
         assert isinstance(refreshed_transaction, Transaction)
         assert refreshed_transaction.description == "Updated Test Transaction"
         assert refreshed_transaction._client == mock_client
 
-        # Verify API call
         mock_client._get.assert_called_once_with(
             "/transactions/tx_123", params=[("expand[]", "merchant")]
         )
@@ -537,11 +497,9 @@ class TestModelClientIntegration:
         )
         account._set_client(mock_client)
 
-        # Test model_dump excludes _client
         data = account.model_dump()
         assert "_client" not in data
 
-        # Test model_dump_json excludes _client
         json_str = account.model_dump_json()
         assert "_client" not in json_str
 
@@ -556,6 +514,5 @@ class TestModelClientIntegration:
         )
         account._set_client(mock_client)
 
-        # Test repr doesn't include _client
         repr_str = repr(account)
         assert "_client" not in repr_str

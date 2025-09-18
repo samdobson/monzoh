@@ -125,3 +125,39 @@ class TestExceptions:
         error = create_error_from_response(418, "I'm a teapot", {})
         assert isinstance(error, MonzoError)
         assert str(error) == "I'm a teapot"
+
+    def test_monzo_error_json_parsing_success(self) -> None:
+        """Test MonzoError JSON parsing with valid JSON message."""
+        json_message = (
+            'API request failed: {"message": "Invalid request", "code": "bad_request"}'
+        )
+        error = MonzoError(json_message)
+
+        assert str(error) == "Invalid request"
+        assert error.original_message == json_message
+
+    def test_monzo_error_json_parsing_failure(self) -> None:
+        """Test MonzoError JSON parsing with invalid JSON."""
+        invalid_json = "API request failed: Invalid JSON {not valid}"
+        error = MonzoError(invalid_json)
+
+        assert str(error) == invalid_json
+        assert error.original_message == invalid_json
+
+    def test_monzo_error_json_parsing_no_message_key(self) -> None:
+        """Test MonzoError JSON parsing when JSON doesn't contain message key."""
+        json_without_message = (
+            'API request failed: {"code": "bad_request", "details": "Some details"}'
+        )
+        error = MonzoError(json_without_message)
+
+        assert str(error) == json_without_message
+        assert error.original_message == json_without_message
+
+    def test_monzo_error_json_parsing_non_dict(self) -> None:
+        """Test MonzoError JSON parsing when JSON is not a dictionary."""
+        json_array = 'API request failed: ["error1", "error2"]'
+        error = MonzoError(json_array)
+
+        assert str(error) == json_array
+        assert error.original_message == json_array

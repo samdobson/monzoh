@@ -254,3 +254,50 @@ class TestTryRefreshToken:
 
         assert result is None
         oauth_mock.refresh_token.assert_not_called()
+
+    def test_get_token_cache_path_windows(self) -> None:
+        """Test get_token_cache_path on Windows."""
+        import os
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch("platform.system", return_value="Windows"):
+                with patch.dict(os.environ, {"LOCALAPPDATA": temp_dir}):
+                    path = get_token_cache_path()
+                    assert "monzoh" in str(path)
+                    assert "tokens.json" in str(path)
+
+    def test_get_token_cache_path_linux(self) -> None:
+        """Test get_token_cache_path on Linux."""
+        import os
+        import tempfile
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            with patch("platform.system", return_value="Linux"):
+                with patch.dict(os.environ, {"XDG_CACHE_HOME": temp_dir}):
+                    path = get_token_cache_path()
+                    assert "monzoh" in str(path)
+                    assert "tokens.json" in str(path)
+
+    def test_load_token_from_cache_json_decode_error(self) -> None:
+        """Test load_token_from_cache with invalid JSON."""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            cache_path = Path(temp_dir) / "tokens.json"
+            cache_path.write_text("invalid json")
+
+            with patch(
+                "monzoh.cli.token_cache.get_token_cache_path", return_value=cache_path
+            ):
+                result = load_token_from_cache()
+                assert result is None
+
+    def test_clear_token_cache_os_error(self) -> None:
+        """Test clear_token_cache with OS error."""
+        with patch("monzoh.cli.token_cache.get_token_cache_path") as mock_path:
+            mock_cache_path = Mock()
+            mock_cache_path.exists.return_value = True
+            mock_cache_path.unlink.side_effect = OSError("Permission denied")
+            mock_path.return_value = mock_cache_path
+
+            # Should not raise an exception
+            clear_token_cache()
