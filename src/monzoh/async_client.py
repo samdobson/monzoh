@@ -33,7 +33,7 @@ def _load_cached_token() -> str | None:
         return None
     except ImportError:
         return None
-    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
+    except (AttributeError, TypeError, ValueError, KeyError):
         return None
 
 

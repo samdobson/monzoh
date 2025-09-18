@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 from typing import Any
 
@@ -104,7 +105,7 @@ class BaseAsyncClient:
         Returns:
             True if client is in mock mode, False otherwise
         """
-        return self.access_token == "test"
+        return self.access_token == "test"  # noqa: S105
 
     async def __aenter__(self) -> BaseAsyncClient:
         """Async context manager entry.
@@ -178,10 +179,8 @@ class BaseAsyncClient:
 
             if response.status_code >= 400:
                 error_data = {}
-                try:
+                with contextlib.suppress(ValueError, KeyError, TypeError):
                     error_data = response.json()
-                except (ValueError, KeyError, TypeError):
-                    pass
 
                 raise create_error_from_response(
                     response.status_code,
@@ -192,7 +191,7 @@ class BaseAsyncClient:
             return response
 
         except httpx.RequestError as e:
-            raise MonzoNetworkError(f"Network error: {e}")
+            raise MonzoNetworkError(f"Network error: {e}") from e
 
     async def _get(
         self,

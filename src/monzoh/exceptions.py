@@ -90,25 +90,17 @@ class MonzoAuthenticationError(MonzoError):
 class MonzoBadRequestError(MonzoError):
     """Bad request error (400)."""
 
-    pass
-
 
 class MonzoNotFoundError(MonzoError):
     """Resource not found error (404)."""
-
-    pass
 
 
 class MonzoMethodNotAllowedError(MonzoError):
     """Method not allowed error (405)."""
 
-    pass
-
 
 class MonzoNotAcceptableError(MonzoError):
     """Not acceptable error (406)."""
-
-    pass
 
 
 class MonzoRateLimitError(MonzoError):
@@ -129,13 +121,9 @@ class MonzoRateLimitError(MonzoError):
 class MonzoServerError(MonzoError):
     """Internal server error (500)."""
 
-    pass
-
 
 class MonzoTimeoutError(MonzoError):
     """Gateway timeout error (504)."""
-
-    pass
 
 
 class MonzoNetworkError(MonzoError):
@@ -165,8 +153,6 @@ class MonzoNetworkError(MonzoError):
 
 class MonzoValidationError(MonzoError):
     """Data validation errors."""
-
-    pass
 
 
 def create_error_from_response(

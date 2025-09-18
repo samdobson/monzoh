@@ -8,7 +8,7 @@ import pytest
 
 from monzoh import MonzoClient, MonzoOAuth
 from monzoh.core.base import BaseSyncClient, MockResponse
-from monzoh.exceptions import MonzoBadRequestError, MonzoNetworkError
+from monzoh.exceptions import MonzoBadRequestError, MonzoError, MonzoNetworkError
 
 
 class TestMonzoClient:
@@ -427,7 +427,7 @@ class TestBaseSyncClient:
 
         client = BaseSyncClient("real_token", http_client=mock_http_client)
 
-        with pytest.raises(Exception):
+        with pytest.raises(MonzoError):
             client._request("GET", "/test")
 
     def test_request_network_error(self) -> None:

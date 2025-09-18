@@ -56,9 +56,8 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
 
         self.server.callback_received.set()
 
-    def log_message(self, format: str, *args: Any) -> None:
+    def log_message(self, fmt: str, *args: Any) -> None:
         """Override to suppress request logging."""
-        pass
 
 
 class OAuthCallbackServer(HTTPServer):
