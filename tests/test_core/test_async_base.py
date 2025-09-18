@@ -35,3 +35,49 @@ class TestAsyncMockResponse:
 
         with pytest.raises(Exception, match="HTTP 500 error"):
             response.raise_for_status()
+
+
+class TestBaseAsyncClient:
+    """Test BaseAsyncClient class."""
+
+    @pytest.mark.asyncio
+    async def test_aexit_with_own_client(self) -> None:
+        """Test __aexit__ when we own the HTTP client."""
+        from unittest.mock import AsyncMock
+
+        from monzoh.core.async_base import BaseAsyncClient
+
+        client = BaseAsyncClient(access_token="test_token")
+        client._own_client = True
+        client._http_client = AsyncMock()
+
+        await client.__aexit__(None, None, None)
+
+        client._http_client.aclose.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_aexit_without_own_client(self) -> None:
+        """Test __aexit__ when we don't own the HTTP client."""
+        from unittest.mock import AsyncMock
+
+        from monzoh.core.async_base import BaseAsyncClient
+
+        client = BaseAsyncClient(access_token="test_token")
+        client._own_client = False
+        client._http_client = AsyncMock()
+
+        await client.__aexit__(None, None, None)
+
+        client._http_client.aclose.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_aexit_no_http_client(self) -> None:
+        """Test __aexit__ when there's no HTTP client."""
+        from monzoh.core.async_base import BaseAsyncClient
+
+        client = BaseAsyncClient(access_token="test_token")
+        client._own_client = True
+        client._http_client = None
+
+        # Should not raise an exception
+        await client.__aexit__(None, None, None)

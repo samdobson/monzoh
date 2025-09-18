@@ -3,7 +3,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Any
-from unittest.mock import Mock
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
@@ -336,6 +336,94 @@ class TestPotMethods:
         result = Pot.convert_goal_amount_minor_to_major_units(5000)
         assert result == Decimal("50.00")
 
+    def test_transactions_field_validator_settled_datetime(self) -> None:
+        """Test Transaction settled field validator with datetime string."""
+        from monzoh.models.transactions import Transaction
+
+        # Test with ISO datetime string
+        data = {
+            "id": "tx_123",
+            "amount": -1000,
+            "created": datetime(2023, 1, 1, 12, 0, 0),
+            "currency": "GBP",
+            "description": "Test Transaction",
+            "is_load": False,
+            "settled": "2023-01-01T12:00:00Z",
+        }
+        transaction = Transaction(**data)
+        assert isinstance(transaction.settled, datetime)
+
+    def test_pots_goal_amount_none_conversion(self) -> None:
+        """Test Pot goal amount conversion with None value."""
+        from monzoh.models.pots import Pot
+
+        data = {
+            "id": "pot_123",
+            "name": "Savings",
+            "style": "beach_ball",
+            "balance": 10000,
+            "currency": "GBP",
+            "created": datetime(2023, 1, 1, 12, 0, 0),
+            "updated": datetime(2023, 1, 1, 12, 0, 0),
+            "deleted": False,
+            "goal_amount": None,
+        }
+        pot = Pot(**data)
+        assert pot.goal_amount is None
+
+
+class TestAccountMethods:
+    """Test Account model methods."""
+
+    def test_account_list_transactions_with_expand(self) -> None:
+        """Test Account.list_transactions with expand parameter."""
+        from unittest.mock import Mock
+
+        from monzoh.core.base import BaseSyncClient
+        from monzoh.models.accounts import Account
+
+        account = Account(
+            id="acc_123",
+            description="Test Account",
+            created=datetime(2023, 1, 1, 12, 0, 0),
+        )
+
+        mock_client = Mock(spec=BaseSyncClient)
+        mock_response = Mock()
+        mock_response.json.return_value = {"transactions": []}
+        mock_client._get.return_value = mock_response
+        mock_client._prepare_expand_params.return_value = [("expand[]", "merchant")]
+        mock_client._prepare_pagination_params.return_value = {"limit": "50"}
+        account._set_client(mock_client)
+
+        account.list_transactions(expand=["merchant"])
+
+        # Verify that both params and expand_params were combined
+        mock_client._get.assert_called_once()
+        call_args = mock_client._get.call_args
+        assert call_args[0][0] == "/transactions"
+        assert ("expand[]", "merchant") in call_args[1]["params"]
+
+    @pytest.mark.asyncio
+    async def test_account_async_list_pots_wrong_client_type(self) -> None:
+        """Test Account.alist_pots raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+        from monzoh.models.accounts import Account
+
+        account = Account(
+            id="acc_123",
+            description="Test Account",
+            created=datetime(2023, 1, 1, 12, 0, 0),
+        )
+
+        mock_client = Mock(spec=BaseSyncClient)
+        account._set_client(mock_client)
+
+        with pytest.raises(
+            RuntimeError, match="Async method called on account with sync client"
+        ):
+            await account.alist_pots()
+
 
 class TestTransactionMethods:
     """Test Transaction model methods."""
@@ -404,3 +492,193 @@ class TestTransactionMethods:
                 file_name="receipt.jpg",
                 file_type="image/jpeg",
             )
+
+    @pytest.mark.asyncio
+    async def test_transaction_async_upload_attachment_with_async_client(self) -> None:
+        """Test aupload_attachment with async client."""
+        from unittest.mock import patch
+
+        from monzoh.core.async_base import BaseAsyncClient
+
+        transaction = Transaction(
+            id="tx_123",
+            amount=-1000,
+            created=datetime(2023, 1, 1, 12, 0, 0),
+            currency="GBP",
+            description="Test Transaction",
+            is_load=False,
+        )
+
+        mock_client = Mock(spec=BaseAsyncClient)
+        transaction._set_client(mock_client)
+
+        mock_attachment = Mock()
+
+        with patch(
+            "monzoh.api.async_attachments.AsyncAttachmentsAPI"
+        ) as mock_api_class:
+            mock_api = Mock()
+            mock_api.upload = AsyncMock(return_value=mock_attachment)
+            mock_api_class.return_value = mock_api
+
+            result = await transaction.aupload_attachment(
+                file_path="/path/to/file.jpg",
+                file_name="receipt.jpg",
+                file_type="image/jpeg",
+            )
+
+        mock_api_class.assert_called_once_with(mock_client)
+        mock_api.upload.assert_called_once_with(
+            transaction_id="tx_123",
+            file_path="/path/to/file.jpg",
+            file_name="receipt.jpg",
+            file_type="image/jpeg",
+        )
+        assert result is mock_attachment
+
+    @pytest.mark.asyncio
+    async def test_transaction_async_upload_attachment_wrong_client_type(self) -> None:
+        """Test aupload_attachment raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
+        transaction = Transaction(
+            id="tx_123",
+            amount=-1000,
+            created=datetime(2023, 1, 1, 12, 0, 0),
+            currency="GBP",
+            description="Test Transaction",
+            is_load=False,
+        )
+
+        mock_client = Mock(spec=BaseSyncClient)
+        transaction._set_client(mock_client)
+
+        with pytest.raises(
+            RuntimeError, match="Async method called on transaction with sync client"
+        ):
+            await transaction.aupload_attachment(
+                file_path="/path/to/file.jpg",
+                file_name="receipt.jpg",
+                file_type="image/jpeg",
+            )
+
+    @pytest.mark.asyncio
+    async def test_transaction_async_annotate_with_async_client(self) -> None:
+        """Test aannotate with async client."""
+        from monzoh.core.async_base import BaseAsyncClient
+
+        transaction = Transaction(
+            id="tx_123",
+            amount=-1000,
+            created=datetime(2023, 1, 1, 12, 0, 0),
+            currency="GBP",
+            description="Test Transaction",
+            is_load=False,
+        )
+
+        mock_client = Mock(spec=BaseAsyncClient)
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "transaction": {
+                "id": "tx_123",
+                "amount": -1000,
+                "created": "2023-01-01T12:00:00Z",
+                "currency": "GBP",
+                "description": "Test Transaction",
+                "is_load": False,
+                "metadata": {"key1": "value1", "key2": ""},
+            }
+        }
+        mock_client._patch.return_value = mock_response
+        transaction._set_client(mock_client)
+
+        result = await transaction.aannotate(metadata={"key1": "value1", "key2": ""})
+
+        mock_client._patch.assert_called_once_with(
+            "/transactions/tx_123",
+            data={"metadata[key1]": "value1", "metadata[key2]": ""},
+        )
+        assert isinstance(result, Transaction)
+
+    @pytest.mark.asyncio
+    async def test_transaction_async_annotate_wrong_client_type(self) -> None:
+        """Test aannotate raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
+        transaction = Transaction(
+            id="tx_123",
+            amount=-1000,
+            created=datetime(2023, 1, 1, 12, 0, 0),
+            currency="GBP",
+            description="Test Transaction",
+            is_load=False,
+        )
+
+        mock_client = Mock(spec=BaseSyncClient)
+        transaction._set_client(mock_client)
+
+        with pytest.raises(
+            RuntimeError, match="Async method called on transaction with sync client"
+        ):
+            await transaction.aannotate(metadata={"key": "value"})
+
+    @pytest.mark.asyncio
+    async def test_transaction_async_refresh_with_async_client(self) -> None:
+        """Test arefresh with async client."""
+        from monzoh.core.async_base import BaseAsyncClient
+
+        transaction = Transaction(
+            id="tx_123",
+            amount=-1000,
+            created=datetime(2023, 1, 1, 12, 0, 0),
+            currency="GBP",
+            description="Test Transaction",
+            is_load=False,
+        )
+
+        mock_client = Mock(spec=BaseAsyncClient)
+        mock_response = Mock()
+        mock_response.json.return_value = {
+            "transaction": {
+                "id": "tx_123",
+                "amount": -1000,
+                "created": "2023-01-01T12:00:00Z",
+                "currency": "GBP",
+                "description": "Updated Transaction",
+                "is_load": False,
+            }
+        }
+        mock_client._get.return_value = mock_response
+        mock_client._prepare_expand_params.return_value = {"expand[]": "merchant"}
+        transaction._set_client(mock_client)
+
+        result = await transaction.arefresh(expand=["merchant"])
+
+        mock_client._prepare_expand_params.assert_called_once_with(["merchant"])
+        mock_client._get.assert_called_once_with(
+            "/transactions/tx_123", params={"expand[]": "merchant"}
+        )
+        assert isinstance(result, Transaction)
+        assert result.description == "Updated Transaction"
+
+    @pytest.mark.asyncio
+    async def test_transaction_async_refresh_wrong_client_type(self) -> None:
+        """Test arefresh raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
+        transaction = Transaction(
+            id="tx_123",
+            amount=-1000,
+            created=datetime(2023, 1, 1, 12, 0, 0),
+            currency="GBP",
+            description="Test Transaction",
+            is_load=False,
+        )
+
+        mock_client = Mock(spec=BaseSyncClient)
+        transaction._set_client(mock_client)
+
+        with pytest.raises(
+            RuntimeError, match="Async method called on transaction with sync client"
+        ):
+            await transaction.arefresh()
