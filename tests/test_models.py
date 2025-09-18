@@ -40,6 +40,10 @@ class TestModels:
             "total_balance": 6000,
             "currency": "GBP",
             "spend_today": 100,
+            "balance_including_flexible_savings": False,
+            "local_currency": "GBP",
+            "local_exchange_rate": 100,
+            "local_spend": 100,
         }
         balance = Balance(**data)
 

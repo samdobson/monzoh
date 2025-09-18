@@ -19,6 +19,20 @@ if TYPE_CHECKING:
     from .transactions import Transaction
 
 
+class AccountOwner(BaseModel):
+    """Represents an account owner.
+
+    Attributes:
+        user_id: User identifier
+        preferred_name: Preferred display name
+        preferred_first_name: Preferred first name
+    """
+
+    user_id: str | None = Field(None, description="User identifier")
+    preferred_name: str | None = Field(None, description="Preferred display name")
+    preferred_first_name: str | None = Field(None, description="Preferred first name")
+
+
 class Account(BaseModel):
     """Represents a Monzo account.
 
@@ -37,6 +51,10 @@ class Account(BaseModel):
     description: str = Field(..., description="Human-readable account description")
     created: datetime = Field(..., description="Account creation timestamp")
     closed: bool = Field(False, description="Whether the account is closed")
+    type: str | None = Field(None, description="Account type")
+    currency: str | None = Field(None, description="Account currency")
+    country_code: str | None = Field(None, description="Country code")
+    owners: list[AccountOwner] | None = Field(None, description="Account owners")
 
     model_config = {"arbitrary_types_allowed": True}
 
@@ -350,8 +368,19 @@ class Balance(BaseModel):
             "eg. pounds for GBP, or euros/dollars for EUR and USD"
         ),
     )
+    balance_including_flexible_savings: bool = Field(
+        ..., description="Whether balance includes flexible savings pots"
+    )
+    local_currency: str = Field(..., description="Local currency")
+    local_exchange_rate: Decimal = Field(..., description="Local exchange rate")
+    local_spend: Decimal = Field(
+        ...,
+        description=("Local spend in major units of the local currency"),
+    )
 
-    @field_validator("balance", "total_balance", "spend_today", mode="before")
+    @field_validator(
+        "balance", "total_balance", "spend_today", "local_spend", mode="before"
+    )
     @classmethod
     def convert_minor_to_major_units(cls, v: int) -> Decimal:
         """Convert balance from minor units (API response) to major units.

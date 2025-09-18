@@ -66,7 +66,7 @@ accounts = client.accounts.list()
 account = accounts[0]
 
 # Get balance
-balance = client.accounts.get_balance(account_id=account.id)
+balance = account.get_balance()
 
 print(f"Current balance: £{balance.balance:.2f}")
 print(f"Total balance: £{balance.total_balance:.2f}")
@@ -140,8 +140,7 @@ for i, account in enumerate(accounts, 1):
     print(f"   Created: {account.created}")
     print(f"   Status: {'Open' if not account.closed else 'Closed'}")
     
-    # Get balance for this account
-    balance = client.accounts.get_balance(account_id=account.id)
+    balance = account.get_balance()
     print(f"   Balance: £{balance.balance:.2f}")
 ```
 
@@ -171,7 +170,7 @@ for account in joint_accounts:
 accounts = client.accounts.list()
 
 for account in accounts:
-    balance = client.accounts.get_balance(account_id=account.id)
+    balance = account.get_balance()
     
     print(f"\n{account.description}")
     print("-" * len(account.description))
@@ -209,7 +208,7 @@ def create_account_summary():
         if account.closed:
             continue  # Skip closed accounts
             
-        balance = client.accounts.get_balance(account_id=account.id)
+        balance = account.get_balance()
         
         balance_gbp = balance.balance
         spent_today_gbp = balance.spend_today
@@ -258,7 +257,7 @@ try:
     # Get balance for each account
     for account in accounts:
         try:
-            balance = client.accounts.get_balance(account_id=account.id)
+            balance = account.get_balance()
             print(f"{account.description}: £{balance.balance:.2f}")
             
         except MonzoNotFoundError:
@@ -309,7 +308,7 @@ accounts = client.accounts.list()
 print(f"Mock accounts: {len(accounts)}")  # Returns 2 mock accounts
 
 # Mock balance data
-balance = client.accounts.get_balance(accounts[0].id) 
+balance = accounts[0].get_balance()
 print(f"Mock balance: £{balance.balance / 100:.2f}")
 ```
 
