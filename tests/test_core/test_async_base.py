@@ -18,8 +18,6 @@ class TestAsyncMockResponse:
     def test_async_mock_response_raise_for_status_success(self) -> None:
         """Test AsyncMockResponse raise_for_status with success status."""
         response = AsyncMockResponse({}, 200)
-
-        # Should not raise an exception
         response.raise_for_status()
 
     def test_async_mock_response_raise_for_status_error(self) -> None:
@@ -79,5 +77,4 @@ class TestBaseAsyncClient:
         client._own_client = True
         client._http_client = None
 
-        # Should not raise an exception
         await client.__aexit__(None, None, None)
