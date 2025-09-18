@@ -29,7 +29,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
                 <html>
                     <head><title>Monzo OAuth</title></head>
                     <body>
-                        <h1>&
+                        <h1>&#x2705; Authorization Successful!</h1>
                         <p>You can now close this window and return to the terminal.</p>
                         <script>setTimeout(() => window.close(), 3000);</script>
                     </body>
@@ -46,7 +46,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
                 <html>
                     <head><title>Monzo OAuth Error</title></head>
                     <body>
-                        <h1>&
+                        <h1>&#x274C; Authorization Failed</h1>
                         <p>Error: {error_msg}</p>
                         <p>Please close this window and try again.</p>
                     </body>
