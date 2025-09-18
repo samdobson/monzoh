@@ -260,24 +260,28 @@ class TestTryRefreshToken:
         import os
         import tempfile
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with patch("platform.system", return_value="Windows"):
-                with patch.dict(os.environ, {"LOCALAPPDATA": temp_dir}):
-                    path = get_token_cache_path()
-                    assert "monzoh" in str(path)
-                    assert "tokens.json" in str(path)
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch("platform.system", return_value="Windows"),
+            patch.dict(os.environ, {"LOCALAPPDATA": temp_dir}),
+        ):
+            path = get_token_cache_path()
+            assert "monzoh" in str(path)
+            assert "tokens.json" in str(path)
 
     def test_get_token_cache_path_linux(self) -> None:
         """Test get_token_cache_path on Linux."""
         import os
         import tempfile
 
-        with tempfile.TemporaryDirectory() as temp_dir:
-            with patch("platform.system", return_value="Linux"):
-                with patch.dict(os.environ, {"XDG_CACHE_HOME": temp_dir}):
-                    path = get_token_cache_path()
-                    assert "monzoh" in str(path)
-                    assert "tokens.json" in str(path)
+        with (
+            tempfile.TemporaryDirectory() as temp_dir,
+            patch("platform.system", return_value="Linux"),
+            patch.dict(os.environ, {"XDG_CACHE_HOME": temp_dir}),
+        ):
+            path = get_token_cache_path()
+            assert "monzoh" in str(path)
+            assert "tokens.json" in str(path)
 
     def test_load_token_from_cache_json_decode_error(self) -> None:
         """Test load_token_from_cache with invalid JSON."""

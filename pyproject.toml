@@ -57,15 +57,24 @@ packages = ["src/monzoh"]
 target-version = "py310"
 
 [tool.ruff.lint]
-ignore = ["D107"]
+ignore = ["D107", "S101", "S105", "S106", "T201"]
 select = [
-    "D",   # pydocstyle
-    "E",   # pycodestyle errors
-    "W",   # pycodestyle warnings
-    "F",   # Pyflakes
-    "I",   # isort
-    "N",   # pep8-naming
-    "UP",  # pyupgrade
+    "A",
+    "B",
+    "C4",
+    "D",
+    "E",
+    "F",
+    "I",
+    "N",
+    "PIE",
+    "Q",
+    "RUF",
+    "S",
+    "SIM",
+    "T20",
+    "UP",
+    "W",
 ]
 pydocstyle.convention = "google"
 
