@@ -38,7 +38,7 @@ class MonzoError(Exception):
 
             if api_message:
                 return api_message
-            elif error_code:
+            if error_code:
                 return f"API error: {error_code}"
 
         if "API request failed:" in self.original_message:
@@ -73,12 +73,12 @@ class MonzoAuthenticationError(MonzoError):
                 "Access forbidden: Your access token doesn't have the required "
                 "permissions. You may need to approve access in the Monzo app."
             )
-        elif "unauthorized" in self.original_message.lower() or self.status_code == 401:
+        if "unauthorized" in self.original_message.lower() or self.status_code == 401:
             return (
                 "Authentication failed: Your access token is invalid or expired. "
                 "Please run 'monzoh-auth' to authenticate again."
             )
-        elif self.status_code == 403:
+        if self.status_code == 403:
             return (
                 "Access forbidden: You don't have permission to access this resource. "
                 "Your access token may lack the required scopes."
@@ -140,15 +140,14 @@ class MonzoNetworkError(MonzoError):
                 "Request timed out: The Monzo API is not responding. "
                 "Please try again later."
             )
-        elif "connection" in self.original_message.lower():
+        if "connection" in self.original_message.lower():
             return (
                 "Connection error: Unable to connect to the Monzo API. "
                 "Please check your internet connection."
             )
-        else:
-            return (
-                f"Network error: {self.original_message.replace('Network error: ', '')}"
-            )
+        return (
+            f"Network error: {self.original_message.replace('Network error: ', '')}"
+        )
 
 
 class MonzoValidationError(MonzoError):

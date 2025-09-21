@@ -159,31 +159,30 @@ def get_mock_response(
 
     if endpoint == "/ping/whoami":
         return MOCK_WHOAMI
-    elif endpoint == "/accounts":
+    if endpoint == "/accounts":
         return MOCK_ACCOUNTS
-    elif endpoint == "/balance" or (
+    if endpoint == "/balance" or (
         endpoint.startswith("/accounts/") and endpoint.endswith("/balance")
     ):
         return MOCK_BALANCE
-    elif endpoint == "/transactions" or (
+    if endpoint == "/transactions" or (
         endpoint.startswith("/accounts/") and "transactions" in endpoint
     ):
         return MOCK_TRANSACTIONS
-    elif endpoint == "/pots":
+    if endpoint == "/pots":
         return MOCK_POTS
-    elif endpoint == "/webhooks":
+    if endpoint == "/webhooks":
         return MOCK_WEBHOOKS
-    elif endpoint.startswith("/transactions/") and not endpoint.endswith(
+    if endpoint.startswith("/transactions/") and not endpoint.endswith(
         "/transactions"
     ):
         return {"transaction": MOCK_TRANSACTIONS["transactions"][0]}
-    elif endpoint.startswith("/pots/") and not endpoint.endswith("/pots"):
+    if endpoint.startswith("/pots/") and not endpoint.endswith("/pots"):
         return {"pot": MOCK_POTS["pots"][0]}
-    elif endpoint.startswith("/webhooks/") and not endpoint.endswith("/webhooks"):
+    if endpoint.startswith("/webhooks/") and not endpoint.endswith("/webhooks"):
         return {"webhook": MOCK_WEBHOOKS["webhooks"][0]}
-    else:
-        return {
-            "message": "Mock endpoint not implemented",
-            "endpoint": endpoint,
-            "params": params,
-        }
+    return {
+        "message": "Mock endpoint not implemented",
+        "endpoint": endpoint,
+        "params": params,
+    }

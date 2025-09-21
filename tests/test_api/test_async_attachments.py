@@ -66,7 +66,7 @@ class TestAsyncAttachmentsAPI:
         async def mock_post_side_effect(*args: Any, **kwargs: Any) -> Mock:
             if args[0] == "/attachment/upload":
                 return upload_response
-            elif args[0] == "/attachment/register":
+            if args[0] == "/attachment/register":
                 return register_response
             return Mock()
 
@@ -141,7 +141,7 @@ class TestAsyncAttachmentsAPI:
             async def mock_post_side_effect(*args: Any, **kwargs: Any) -> Mock:
                 if args[0] == "/attachment/upload":
                     return upload_response
-                elif args[0] == "/attachment/register":
+                if args[0] == "/attachment/register":
                     return register_response
                 return Mock()
 

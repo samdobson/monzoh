@@ -159,12 +159,11 @@ def authenticate() -> str | None:
 
             return token.access_token
 
-        else:
-            server.shutdown()
-            console.print(
-                f"\n⏰ [yellow]Timeout after {callback_timeout} seconds[/yellow]"
-            )
-            return None
+        server.shutdown()
+        console.print(
+            f"\n⏰ [yellow]Timeout after {callback_timeout} seconds[/yellow]"
+        )
+        return None
 
     except KeyboardInterrupt:
         console.print("\n\n👋 [yellow]Authentication cancelled by user[/yellow]")
