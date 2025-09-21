@@ -77,7 +77,7 @@ class TestTokenCache:
         with (
             patch(
                 "monzoh.cli.token_cache.get_token_cache_path",
-                side_effect=Exception("Permission denied"),
+                side_effect=PermissionError("Permission denied"),
             ),
             patch.object(console, "print") as mock_print,
         ):
@@ -231,7 +231,7 @@ class TestTryRefreshToken:
         oauth_mock = Mock()
         console = Console()
 
-        oauth_mock.refresh_token.side_effect = Exception("Refresh failed")
+        oauth_mock.refresh_token.side_effect = ValueError("Refresh failed")
         oauth_mock.__enter__ = Mock(return_value=oauth_mock)
         oauth_mock.__exit__ = Mock(return_value=None)
 
