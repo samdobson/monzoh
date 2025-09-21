@@ -1,5 +1,6 @@
 """Async Monzo API client."""
 
+import types
 from typing import Any
 
 import httpx
@@ -87,7 +88,12 @@ class AsyncMonzoClient:
         await self._base_client.__aenter__()
         return self
 
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Async context manager exit.
 
         Args:

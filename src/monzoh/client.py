@@ -1,5 +1,6 @@
 """Main Monzo API client."""
 
+import types
 from typing import Any
 
 import httpx
@@ -100,7 +101,12 @@ class MonzoClient:
         self._base_client.__enter__()
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Context manager exit.
 
         Args:

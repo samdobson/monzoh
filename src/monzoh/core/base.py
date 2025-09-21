@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import contextlib
 import json
+import types
 from typing import Any
 
 import httpx
@@ -126,7 +127,12 @@ class BaseSyncClient:
         """
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Context manager exit.
 
         Args:
