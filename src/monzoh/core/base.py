@@ -31,7 +31,7 @@ class MockResponse:
         status_code: HTTP status code to simulate
     """
 
-    def __init__(self, json_data: dict[str, Any], status_code: int = 200):
+    def __init__(self, json_data: dict[str, Any], status_code: int = 200) -> None:
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)

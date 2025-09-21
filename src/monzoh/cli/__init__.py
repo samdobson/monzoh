@@ -1,5 +1,7 @@
 """CLI package for Monzo OAuth authentication."""
 
+import sys
+
 from .auth_flow import authenticate
 from .credentials import (
     get_credentials_interactively,
@@ -30,10 +32,10 @@ def main() -> None:
             print("   client = MonzoClient()  # Will load token automatically")
         else:
             print("\n❌ Authentication failed or was cancelled")
-            exit(1)
+            sys.exit(1)
     except KeyboardInterrupt:
         print("\n\n👋 Goodbye!")
-        exit(0)
+        sys.exit(0)
 
 
 __all__ = [

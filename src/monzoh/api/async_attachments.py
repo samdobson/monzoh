@@ -69,12 +69,11 @@ class AsyncAttachmentsAPI:
             file_type=actual_file_type,
         )
 
-        attachment = await self._register(
+        return await self._register(
             external_id=transaction_id,
             file_url=upload_info.file_url,
             file_type=actual_file_type,
         )
-        return attachment
 
     async def _get_upload_url(
         self, file_name: str, file_type: str, content_length: int

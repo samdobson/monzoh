@@ -69,12 +69,11 @@ class AttachmentsAPI:
             file_type=actual_file_type,
         )
 
-        attachment = self._register(
+        return self._register(
             external_id=transaction_id,
             file_url=upload_info.file_url,
             file_type=actual_file_type,
         )
-        return attachment
 
     def _get_upload_url(
         self, file_name: str, file_type: str, content_length: int
