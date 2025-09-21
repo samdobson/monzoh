@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
-
-if TYPE_CHECKING:
-    import builtins
-    from datetime import datetime
+import builtins
+from datetime import datetime
+from typing import Any
 
 from ..core.async_base import BaseAsyncClient
 from ..models import Transaction, TransactionResponse, TransactionsResponse
