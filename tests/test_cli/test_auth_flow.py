@@ -2,6 +2,8 @@
 
 from unittest.mock import Mock, patch
 
+import pytest
+
 from monzoh.cli import main
 from monzoh.cli.auth_flow import authenticate
 
@@ -176,8 +178,6 @@ def test_main_success() -> None:
 
 def test_main_failure() -> None:
     """Test main function with failed authentication."""
-    import pytest
-
     with (
         patch("monzoh.cli.authenticate") as mock_authenticate,
         patch("builtins.print"),
@@ -190,8 +190,6 @@ def test_main_failure() -> None:
 
 def test_main_keyboard_interrupt() -> None:
     """Test main function with keyboard interrupt."""
-    import pytest
-
     with (
         patch("monzoh.cli.authenticate") as mock_authenticate,
         patch("builtins.print"),

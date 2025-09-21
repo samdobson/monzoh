@@ -8,6 +8,7 @@ import pytest
 
 from monzoh.async_client import AsyncMonzoClient
 from monzoh.core.async_base import BaseAsyncClient
+from monzoh.models import Account
 
 
 class TestAsyncClientOOIntegration:
@@ -176,8 +177,6 @@ class TestAsyncClientOOIntegration:
         }
         mock_base_client._get = AsyncMock(return_value=mock_response)
 
-        from monzoh.models import Account
-
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -213,8 +212,6 @@ class TestAsyncClientOOIntegration:
             ]
         }
         mock_base_client._get = AsyncMock(return_value=mock_response)
-
-        from monzoh.models import Account
 
         account = Account(
             id="acc_123",

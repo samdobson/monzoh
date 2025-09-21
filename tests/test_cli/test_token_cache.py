@@ -1,6 +1,7 @@
 """Tests for CLI token caching functionality."""
 
 import json
+import os
 import tempfile
 from datetime import datetime, timedelta
 from pathlib import Path
@@ -257,9 +258,6 @@ class TestTryRefreshToken:
 
     def test_get_token_cache_path_windows(self) -> None:
         """Test get_token_cache_path on Windows."""
-        import os
-        import tempfile
-
         with (
             tempfile.TemporaryDirectory() as temp_dir,
             patch("platform.system", return_value="Windows"),
@@ -271,9 +269,6 @@ class TestTryRefreshToken:
 
     def test_get_token_cache_path_linux(self) -> None:
         """Test get_token_cache_path on Linux."""
-        import os
-        import tempfile
-
         with (
             tempfile.TemporaryDirectory() as temp_dir,
             patch("platform.system", return_value="Linux"),

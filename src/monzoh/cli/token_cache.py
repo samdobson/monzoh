@@ -3,6 +3,7 @@
 import contextlib
 import json
 import os
+import platform
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,6 @@ from ..models import OAuthToken
 
 def get_token_cache_path() -> Path:
     """Get path for token cache file."""
-    import platform
-
     system = platform.system()
 
     if system == "Windows":

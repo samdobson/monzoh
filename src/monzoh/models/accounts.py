@@ -15,8 +15,8 @@ if TYPE_CHECKING:
     from ..core import BaseSyncClient
     from ..core.async_base import BaseAsyncClient
     from .feed import FeedItemParams
-    from .pots import Pot
-    from .transactions import Transaction
+    from .pots import Pot, PotsResponse
+    from .transactions import Transaction, TransactionsResponse
 
 
 class AccountOwner(BaseModel):
@@ -127,8 +127,6 @@ class Account(BaseModel):
         Returns:
             List of transactions
         """
-        from .transactions import TransactionsResponse
-
         client = cast("BaseSyncClient", self._ensure_client())
         params = {"account_id": self.id}
 
@@ -157,8 +155,6 @@ class Account(BaseModel):
         Returns:
             List of pots
         """
-        from .pots import PotsResponse
-
         client = cast("BaseSyncClient", self._ensure_client())
         params = {"current_account_id": self.id}
 
@@ -205,8 +201,6 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
-
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(
@@ -238,9 +232,6 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
-        from .transactions import TransactionsResponse
-
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(
@@ -278,9 +269,6 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
-        from .pots import PotsResponse
-
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(
@@ -310,8 +298,6 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
-
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(

@@ -5,6 +5,14 @@ from unittest.mock import Mock, patch
 
 import pytest
 
+from monzoh.api.accounts import AccountsAPI
+from monzoh.api.attachments import AttachmentsAPI
+from monzoh.api.feed import FeedAPI
+from monzoh.api.pots import PotsAPI
+from monzoh.api.receipts import ReceiptsAPI
+from monzoh.api.transactions import TransactionsAPI
+from monzoh.api.webhooks import WebhooksAPI
+from monzoh.auth import MonzoOAuth
 from monzoh.client import MonzoClient, _load_cached_token
 from monzoh.exceptions import MonzoAuthenticationError
 
@@ -140,8 +148,6 @@ class TestMonzoClient:
 
     def test_create_oauth_client(self) -> None:
         """Test create_oauth_client class method."""
-        from monzoh.auth import MonzoOAuth
-
         mock_http_client = Mock()
         oauth_client = MonzoClient.create_oauth_client(
             client_id="test_id",
@@ -158,8 +164,6 @@ class TestMonzoClient:
 
     def test_create_oauth_client_without_http_client(self) -> None:
         """Test create_oauth_client without HTTP client."""
-        from monzoh.auth import MonzoOAuth
-
         oauth_client = MonzoClient.create_oauth_client(
             client_id="test_id",
             client_secret="test_secret",
@@ -178,14 +182,6 @@ class TestMonzoClient:
         Args:
             mock_http_client: Mock HTTP client fixture.
         """
-        from monzoh.api.accounts import AccountsAPI
-        from monzoh.api.attachments import AttachmentsAPI
-        from monzoh.api.feed import FeedAPI
-        from monzoh.api.pots import PotsAPI
-        from monzoh.api.receipts import ReceiptsAPI
-        from monzoh.api.transactions import TransactionsAPI
-        from monzoh.api.webhooks import WebhooksAPI
-
         client = MonzoClient("test_token", http_client=mock_http_client)
 
         assert isinstance(client.accounts, AccountsAPI)

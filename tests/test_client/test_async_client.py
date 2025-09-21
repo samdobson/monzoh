@@ -7,6 +7,7 @@ import httpx
 import pytest
 
 from monzoh import AsyncMonzoClient, MonzoOAuth
+from monzoh.async_client import _load_cached_token
 from monzoh.core.async_base import AsyncMockResponse, BaseAsyncClient
 from monzoh.exceptions import (
     MonzoAuthenticationError,
@@ -252,8 +253,6 @@ class TestAsyncClientTokenLoading:
         """
         mock_load_token.return_value = {"access_token": "cached_token"}
 
-        from monzoh.async_client import _load_cached_token
-
         result = _load_cached_token()
         assert result == "cached_token"
 
@@ -265,8 +264,6 @@ class TestAsyncClientTokenLoading:
             mock_load_token: Mock load_token_from_cache function.
         """
         mock_load_token.return_value = {"invalid": "format"}
-
-        from monzoh.async_client import _load_cached_token
 
         result = _load_cached_token()
         assert result is None
@@ -280,8 +277,6 @@ class TestAsyncClientTokenLoading:
         """
         mock_load_token.side_effect = ImportError("Module not found")
 
-        from monzoh.async_client import _load_cached_token
-
         result = _load_cached_token()
         assert result is None
 
@@ -293,8 +288,6 @@ class TestAsyncClientTokenLoading:
             mock_load_token: Mock load_token_from_cache function.
         """
         mock_load_token.side_effect = ValueError("Invalid value")
-
-        from monzoh.async_client import _load_cached_token
 
         result = _load_cached_token()
         assert result is None

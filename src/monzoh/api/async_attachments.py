@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import httpx
+
 from ..core.async_base import BaseAsyncClient
 from ..models import Attachment, AttachmentResponse, AttachmentUpload
 from ..utils import infer_file_type, read_file_data
@@ -146,8 +148,6 @@ class AsyncAttachmentsAPI:
         Returns:
             None
         """
-        import httpx
-
         headers = {
             "Content-Type": file_type,
             "Content-Length": str(len(file_data)),

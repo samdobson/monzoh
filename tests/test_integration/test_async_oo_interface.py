@@ -6,8 +6,10 @@ from unittest.mock import AsyncMock, Mock
 
 import pytest
 
+from monzoh.core import BaseSyncClient
 from monzoh.core.async_base import BaseAsyncClient
 from monzoh.models import Account, Balance, Pot, Transaction
+from monzoh.models.feed import FeedItemParams
 
 
 class TestAsyncAccountOOInterface:
@@ -32,8 +34,6 @@ class TestAsyncAccountOOInterface:
             await account.alist_pots()
 
         with pytest.raises(RuntimeError, match="No client available"):
-            from monzoh.models.feed import FeedItemParams
-
             params = FeedItemParams(
                 title="Test", image_url="https://example.com/image.jpg"
             )
@@ -78,8 +78,6 @@ class TestAsyncAccountOOInterface:
     @pytest.mark.asyncio
     async def test_account_with_sync_client_raises_error(self) -> None:
         """Test that async methods raise error when sync client is set."""
-        from monzoh.core import BaseSyncClient
-
         mock_sync_client = Mock(spec=BaseSyncClient)
 
         account = Account(
@@ -97,8 +95,6 @@ class TestAsyncAccountOOInterface:
     @pytest.mark.asyncio
     async def test_account_acreate_feed_item(self) -> None:
         """Test Account.acreate_feed_item() method."""
-        from monzoh.models.feed import FeedItemParams
-
         mock_client = Mock(spec=BaseAsyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {}
@@ -136,9 +132,6 @@ class TestAsyncAccountOOInterface:
         self,
     ) -> None:
         """Test that acreate_feed_item raises error when sync client is set."""
-        from monzoh.core import BaseSyncClient
-        from monzoh.models.feed import FeedItemParams
-
         mock_sync_client = Mock(spec=BaseSyncClient)
 
         account = Account(
@@ -204,8 +197,6 @@ class TestAsyncPotOOInterface:
     @pytest.mark.asyncio
     async def test_pot_with_sync_client_raises_error(self) -> None:
         """Test that async methods raise error when sync client is set."""
-        from monzoh.core import BaseSyncClient
-
         mock_sync_client = Mock(spec=BaseSyncClient)
 
         pot = Pot(
@@ -270,8 +261,6 @@ class TestAsyncTransactionOOInterface:
     @pytest.mark.asyncio
     async def test_transaction_with_sync_client_raises_error(self) -> None:
         """Test that async methods raise error when sync client is set."""
-        from monzoh.core import BaseSyncClient
-
         mock_sync_client = Mock(spec=BaseSyncClient)
 
         transaction = Transaction(
