@@ -12,6 +12,7 @@ from httpx import QueryParams
 
 from ..exceptions import (
     MonzoAuthenticationError,
+    MonzoError,
     MonzoNetworkError,
     create_error_from_response,
 )
@@ -50,11 +51,11 @@ class MockResponse:
         """Mock implementation of raise_for_status.
 
         Raises:
-            Exception: If status code indicates an error (>= 400)
+            MonzoError: If status code indicates an error (>= 400)
         """
         if self.status_code >= 400:
             msg = f"HTTP {self.status_code} error"
-            raise Exception(msg)
+            raise MonzoError(msg, status_code=self.status_code)
 
 
 class BaseSyncClient:

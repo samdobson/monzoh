@@ -262,7 +262,7 @@ class TestMockResponse:
         """Test raise_for_status with error status code."""
         response = MockResponse({}, status_code=400)
 
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(MonzoError) as exc_info:
             response.raise_for_status()
 
         assert "HTTP 400 error" in str(exc_info.value)

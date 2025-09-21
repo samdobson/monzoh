@@ -4,6 +4,7 @@ import json
 from typing import Any, Literal, cast
 
 import pytest
+from pydantic_core import ValidationError
 
 from monzoh.models import Transaction
 from monzoh.webhooks import (
@@ -290,7 +291,9 @@ class TestWebhookTypes:
             },
         }
 
-        with pytest.raises(ValueError):
+        with pytest.raises(
+            ValidationError, match="Input should be 'transaction.created'"
+        ):
             TransactionWebhookPayload(
                 type=cast("Literal['transaction.created']", invalid_data["type"]),
                 data=Transaction(**cast("dict[str, Any]", invalid_data["data"])),
