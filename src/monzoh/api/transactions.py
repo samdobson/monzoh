@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import builtins
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from ..core import BaseSyncClient
+if TYPE_CHECKING:
+    from ..core import BaseSyncClient
 from ..models import Transaction, TransactionResponse, TransactionsResponse
 
 
