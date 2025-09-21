@@ -5,7 +5,7 @@ from __future__ import annotations
 import contextlib
 import json
 import types
-from typing import Any
+from typing import Any, TypedDict
 
 import httpx
 from httpx import QueryParams
@@ -22,6 +22,16 @@ from monzoh.models import WhoAmI
 from .mock_data import get_mock_response
 
 QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
+
+
+class RequestOptions(TypedDict, total=False):
+    """Optional parameters for HTTP requests."""
+
+    params: QueryParamsType
+    data: dict[str, Any] | None
+    json_data: dict[str, Any] | None
+    files: dict[str, Any] | None
+    headers: dict[str, str] | None
 
 
 class MockResponse:
@@ -150,22 +160,14 @@ class BaseSyncClient:
         self,
         method: str,
         endpoint: str,
-        params: QueryParamsType = None,
-        data: dict[str, Any] | None = None,
-        json_data: dict[str, Any] | None = None,
-        files: dict[str, Any] | None = None,
-        headers: dict[str, str] | None = None,
+        **options: RequestOptions,
     ) -> httpx.Response | MockResponse:
         """Make HTTP request.
 
         Args:
             method: HTTP method
             endpoint: API endpoint (without base URL)
-            params: URL parameters
-            data: Form data
-            json_data: JSON data
-            files: File uploads
-            headers: Additional headers
+            **options: Request options including params, data, json_data, files, headers
 
         Returns:
             HTTP response
@@ -174,6 +176,12 @@ class BaseSyncClient:
             MonzoNetworkError: If network request fails
             create_error_from_response: If API returns an error response
         """
+        params = options.get("params")
+        data = options.get("data")
+        json_data = options.get("json_data")
+        files = options.get("files")
+        headers = options.get("headers")
+
         if self.is_mock_mode:
             mock_data = get_mock_response(
                 endpoint, method, params=params, data=data, json_data=json_data

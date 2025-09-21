@@ -38,9 +38,7 @@ def _try_cached_token(console: Console) -> str | None:
     try:
         with MonzoClient(cached_token["access_token"]) as client:
             whoami = client.whoami()
-            console.print(
-                f"✅ [green]Using cached token for: {whoami.user_id}[/green]"
-            )
+            console.print(f"✅ [green]Using cached token for: {whoami.user_id}[/green]")
             return cached_token["access_token"]
     except Exception:
         console.print("❌ Error during authentication: Token is invalid")
@@ -139,9 +137,7 @@ def _perform_oauth_flow(console: Console) -> str | None:
         return None
 
     if server.state != state:
-        console.print(
-            "\n❌ [red]Invalid state parameter - possible CSRF attack[/red]"
-        )
+        console.print("\n❌ [red]Invalid state parameter - possible CSRF attack[/red]")
         return None
 
     console.print("\n✅ [green]Authorization code received![/green]")

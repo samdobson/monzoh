@@ -60,7 +60,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
         console.print(f"⚠️  [yellow]Warning: Could not cache token: {e}[/yellow]")
 
 
-def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | None:
+def load_token_from_cache(*, include_expired: bool = False) -> dict[str, Any] | None:
     """Load token from cache file.
 
     Args:
