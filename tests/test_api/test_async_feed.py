@@ -42,7 +42,7 @@ class TestAsyncFeedAPI:
         )
         await feed_api.create_item("acc_00009237aqC8c5umZmrRdh", params)
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
+        cast("Mock", mock_async_base_client._post).assert_called_once_with(
             "/feed",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -75,7 +75,7 @@ class TestAsyncFeedAPI:
         )
         await feed_api.create_item("acc_00009237aqC8c5umZmrRdh", params)
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
+        cast("Mock", mock_async_base_client._post).assert_called_once_with(
             "/feed",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -110,7 +110,7 @@ class TestAsyncFeedAPI:
         )
         await feed_api.create_item("acc_00009237aqC8c5umZmrRdh", params)
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
+        cast("Mock", mock_async_base_client._post).assert_called_once_with(
             "/feed",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",

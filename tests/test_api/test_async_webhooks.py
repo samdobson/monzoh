@@ -44,14 +44,14 @@ class TestAsyncWebhooksAPI:
         }
         response_data = {"webhook": webhook_data}
         cast(
-            Mock, mock_async_base_client._post
+            "Mock", mock_async_base_client._post
         ).return_value.json.return_value = response_data
 
         result = await webhooks_api.register(
             "acc_00009237aqC8c5umZmrRdh", "http://example.com/webhook"
         )
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
+        cast("Mock", mock_async_base_client._post).assert_called_once_with(
             "/webhooks",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -89,12 +89,12 @@ class TestAsyncWebhooksAPI:
         ]
         response_data = {"webhooks": webhook_data}
         cast(
-            Mock, mock_async_base_client._get
+            "Mock", mock_async_base_client._get
         ).return_value.json.return_value = response_data
 
         result = await webhooks_api.list("acc_00009237aqC8c5umZmrRdh")
 
-        cast(Mock, mock_async_base_client._get).assert_called_once_with(
+        cast("Mock", mock_async_base_client._get).assert_called_once_with(
             "/webhooks", params={"account_id": "acc_00009237aqC8c5umZmrRdh"}
         )
         assert isinstance(result, list)
@@ -117,7 +117,7 @@ class TestAsyncWebhooksAPI:
         """
         response_data: dict[str, Any] = {"webhooks": []}
         cast(
-            Mock, mock_async_base_client._get
+            "Mock", mock_async_base_client._get
         ).return_value.json.return_value = response_data
 
         result = await webhooks_api.list("acc_00009237aqC8c5umZmrRdh")
@@ -139,6 +139,6 @@ class TestAsyncWebhooksAPI:
         """
         await webhooks_api.delete("webhook_000091yhhOmrXQaVZ1Irsv")
 
-        cast(Mock, mock_async_base_client._delete).assert_called_once_with(
+        cast("Mock", mock_async_base_client._delete).assert_called_once_with(
             "/webhooks/webhook_000091yhhOmrXQaVZ1Irsv"
         )

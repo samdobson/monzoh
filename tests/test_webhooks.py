@@ -251,8 +251,8 @@ class TestWebhookTypes:
         }
 
         payload = TransactionWebhookPayload(
-            type=cast(Literal["transaction.created"], valid_data["type"]),
-            data=Transaction(**cast(dict[str, Any], valid_data["data"])),
+            type=cast("Literal['transaction.created']", valid_data["type"]),
+            data=Transaction(**cast("dict[str, Any]", valid_data["data"])),
         )
         assert payload.type == "transaction.created"
         assert payload.data.id == "tx_123"
@@ -265,7 +265,7 @@ class TestWebhookTypes:
         }
 
         payload = WebhookPayload(
-            type=cast(str, data["type"]), data=cast(dict[str, Any], data["data"])
+            type=cast("str", data["type"]), data=cast("dict[str, Any]", data["data"])
         )
         assert payload.type == "balance.updated"
         assert payload.data["account_id"] == "acc_123"
@@ -292,8 +292,8 @@ class TestWebhookTypes:
 
         with pytest.raises(ValueError):
             TransactionWebhookPayload(
-                type=cast(Literal["transaction.created"], invalid_data["type"]),
-                data=Transaction(**cast(dict[str, Any], invalid_data["data"])),
+                type=cast("Literal['transaction.created']", invalid_data["type"]),
+                data=Transaction(**cast("dict[str, Any]", invalid_data["data"])),
             )
 
 
