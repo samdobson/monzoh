@@ -56,7 +56,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
 
         console.print(f"💾 Token cached to [green]{cache_path}[/green]")
 
-    except (OSError, json.JSONEncodeError) as e:
+    except Exception as e:
         console.print(f"⚠️  [yellow]Warning: Could not cache token: {e}[/yellow]")
 
 
@@ -116,7 +116,7 @@ def try_refresh_token(
         console.print("✅ [green]Token refreshed successfully![/green]")
         return new_token.access_token
 
-    except (MonzoError, OSError, json.JSONDecodeError) as e:
+    except Exception as e:
         console.print(f"⚠️  [yellow]Token refresh failed: {e}[/yellow]")
         clear_token_cache()
         return None

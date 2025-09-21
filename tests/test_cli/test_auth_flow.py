@@ -91,6 +91,11 @@ class TestAuthenticate:
 
             mock_oauth_token = Mock()
             mock_oauth_token.access_token = "new_access_token"
+            mock_oauth_token.expires_in = 3600
+            mock_oauth_token.refresh_token = "refresh_token"
+            mock_oauth_token.token_type = "Bearer"
+            mock_oauth_token.user_id = "user123"
+            mock_oauth_token.client_id = "test_id"
             mock_oauth.exchange_code_for_token.return_value = mock_oauth_token
 
             mock_client = Mock()
@@ -445,7 +450,7 @@ class TestAuthenticateErrorHandling:
     @patch("monzoh.cli.auth_flow.load_token_from_cache")
     def test_authenticate_general_exception(self, mock_load_cache: Mock) -> None:
         """Test authentication with general exception."""
-        mock_load_cache.side_effect = Exception("General error")
+        mock_load_cache.side_effect = ValueError("General error")
 
         with patch("monzoh.cli.auth_flow.Console") as mock_console_class:
             mock_console = Mock()

@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
+
 from monzoh.api.attachments import AttachmentsAPI
 from monzoh.models import Attachment
 
@@ -170,12 +172,8 @@ class TestAttachmentsAPI:
         """
         api = AttachmentsAPI(monzo_client._base_client)
 
-        try:
+        with pytest.raises(ValueError, match="Either file_path must be provided"):
             api.upload(transaction_id="tx_123")
-            msg = "Expected ValueError"
-            raise AssertionError(msg)
-        except ValueError as e:
-            assert "Either file_path must be provided" in str(e)
 
     def test_private_register(
         self,
