@@ -1,6 +1,6 @@
 """Tests for Pydantic models."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
@@ -33,7 +33,7 @@ class TestModels:
         data: dict[str, Any] = {
             "id": "acc_123",
             "description": "Test Account",
-            "created": datetime(2023, 1, 1, 12, 0, 0),
+            "created": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
         }
         account = Account(**data)
 
@@ -65,7 +65,7 @@ class TestModels:
         data: dict[str, Any] = {
             "id": "tx_123",
             "amount": -1000,
-            "created": datetime(2023, 1, 1, 12, 0, 0),
+            "created": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             "currency": "GBP",
             "description": "Test Transaction",
             "is_load": False,
@@ -85,8 +85,8 @@ class TestModels:
             "style": "beach_ball",
             "balance": 10000,
             "currency": "GBP",
-            "created": datetime(2023, 1, 1, 12, 0, 0),
-            "updated": datetime(2023, 1, 1, 12, 0, 0),
+            "created": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            "updated": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             "deleted": False,
         }
         pot = Pot(**data)
@@ -214,8 +214,8 @@ class TestPotMethods:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime(2023, 1, 1, 12, 0, 0),
-            updated=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            updated=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             deleted=False,
         )
 
@@ -230,8 +230,8 @@ class TestPotMethods:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime(2023, 1, 1, 12, 0, 0),
-            updated=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            updated=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             deleted=False,
         )
 
@@ -249,8 +249,8 @@ class TestPotMethods:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime(2023, 1, 1, 12, 0, 0),
-            updated=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            updated=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             deleted=False,
         )
         pot._source_account_id = "acc_123"
@@ -266,8 +266,8 @@ class TestPotMethods:
             style="beach_ball",
             balance=15000,
             currency="GBP",
-            created=datetime(2023, 1, 1, 12, 0, 0),
-            updated=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            updated=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             deleted=False,
         )
 
@@ -312,8 +312,8 @@ class TestPotMethods:
             style="beach_ball",
             balance=15000,
             currency="GBP",
-            created=datetime(2023, 1, 1, 12, 0, 0),
-            updated=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            updated=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             deleted=False,
         )
 
@@ -341,7 +341,7 @@ class TestPotMethods:
         data = {
             "id": "tx_123",
             "amount": -1000,
-            "created": datetime(2023, 1, 1, 12, 0, 0),
+            "created": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             "currency": "GBP",
             "description": "Test Transaction",
             "is_load": False,
@@ -358,8 +358,8 @@ class TestPotMethods:
             "style": "beach_ball",
             "balance": 10000,
             "currency": "GBP",
-            "created": datetime(2023, 1, 1, 12, 0, 0),
-            "updated": datetime(2023, 1, 1, 12, 0, 0),
+            "created": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
+            "updated": datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             "deleted": False,
             "goal_amount": None,
         }
@@ -375,7 +375,7 @@ class TestAccountMethods:
         account = AccountModel(
             id="acc_123",
             description="Test Account",
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
         )
 
         mock_client = Mock(spec=BaseSyncClient)
@@ -400,7 +400,7 @@ class TestAccountMethods:
         account = AccountModel(
             id="acc_123",
             description="Test Account",
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
         )
 
         mock_client = Mock(spec=BaseSyncClient)
@@ -420,7 +420,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -456,7 +456,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -480,7 +480,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -519,7 +519,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -543,7 +543,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -579,7 +579,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -599,7 +599,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,
@@ -636,7 +636,7 @@ class TestTransactionMethods:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime(2023, 1, 1, 12, 0, 0),
+            created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
             currency="GBP",
             description="Test Transaction",
             is_load=False,

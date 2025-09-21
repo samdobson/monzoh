@@ -1,6 +1,6 @@
 """Tests for transactions API."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from monzoh.models import Transaction
@@ -89,7 +89,7 @@ class TestTransactionsAPI:
         mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
-        since_time = datetime(2023, 1, 1, 12, 0, 0)
+        since_time = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
         transactions = monzo_client.transactions.list(
             account_id="acc_123", limit=50, since=since_time
         )
