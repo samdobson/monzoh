@@ -9,6 +9,7 @@ from typing import Any
 
 import httpx
 from httpx import QueryParams
+from typing_extensions import Self
 
 from monzoh.exceptions import MonzoNetworkError, create_error_from_response
 from monzoh.models import WhoAmI
@@ -110,7 +111,7 @@ class BaseAsyncClient:
         """
         return self.access_token == "test"  # noqa: S105
 
-    async def __aenter__(self) -> BaseAsyncClient:
+    async def __aenter__(self) -> Self:
         """Async context manager entry.
 
         Returns:

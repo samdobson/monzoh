@@ -9,6 +9,7 @@ from typing import Any
 
 import httpx
 from httpx import QueryParams
+from typing_extensions import Self
 
 from monzoh.exceptions import (
     MonzoAuthenticationError,
@@ -121,7 +122,7 @@ class BaseSyncClient:
         """
         return self.access_token == "test"  # noqa: S105
 
-    def __enter__(self) -> BaseSyncClient:
+    def __enter__(self) -> Self:
         """Context manager entry.
 
         Returns:
