@@ -1,7 +1,6 @@
 """Async Monzo API client."""
 
 import types
-from typing import Any
 
 import httpx
 

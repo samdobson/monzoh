@@ -2,7 +2,6 @@
 
 import contextlib
 import types
-from typing import Any
 from urllib.parse import urlencode
 
 import httpx
