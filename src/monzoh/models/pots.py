@@ -100,7 +100,7 @@ class Pot(BaseModel):
         self._client: BaseSyncClient | BaseAsyncClient | None = None
         self._source_account_id: str | None = None
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
 

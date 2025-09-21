@@ -63,7 +63,7 @@ class Account(BaseModel):
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:
         """Post-init hook to set up client if available.
 
         Args:
