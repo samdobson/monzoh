@@ -2,6 +2,8 @@
 
 from pathlib import Path
 
+import httpx
+
 from monzoh.core.async_base import BaseAsyncClient
 from monzoh.models import Attachment, AttachmentResponse, AttachmentUpload
 from monzoh.utils import infer_file_type, read_file_data
@@ -146,8 +148,6 @@ class AsyncAttachmentsAPI:
         Returns:
             None
         """
-        import httpx
-
         headers = {
             "Content-Type": file_type,
             "Content-Length": str(len(file_data)),
