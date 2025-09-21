@@ -68,12 +68,14 @@ def parse_webhook_payload(
         else:
             payload_data = json.loads(body)
     except json.JSONDecodeError as e:
-        raise WebhookParseError(f"Invalid JSON payload: {e}") from e
+        msg = f"Invalid JSON payload: {e}"
+        raise WebhookParseError(msg) from e
 
     try:
         base_payload = WebhookPayload(**payload_data)
     except ValidationError as e:
-        raise WebhookParseError(f"Invalid webhook payload structure: {e}") from e
+        msg = f"Invalid webhook payload structure: {e}"
+        raise WebhookParseError(msg) from e
 
     event_type = base_payload.type
 
@@ -81,7 +83,8 @@ def parse_webhook_payload(
         try:
             return TransactionWebhookPayload(**payload_data)
         except ValidationError as e:
-            raise WebhookParseError(f"Invalid transaction webhook payload: {e}") from e
+            msg = f"Invalid transaction webhook payload: {e}"
+            raise WebhookParseError(msg) from e
 
     return base_payload
 
@@ -118,8 +121,7 @@ def parse_transaction_webhook(
     payload = parse_webhook_payload(body=body)
 
     if not isinstance(payload, TransactionWebhookPayload):
-        raise WebhookParseError(
-            f"Expected transaction.created event, got {payload.type}"
-        )
+        msg = f"Expected transaction.created event, got {payload.type}"
+        raise WebhookParseError(msg)
 
     return payload.data

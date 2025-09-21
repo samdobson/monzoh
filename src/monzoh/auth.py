@@ -126,9 +126,8 @@ class MonzoOAuth:
             return OAuthToken(**response.json())
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(
-                f"Network error during token exchange: {e}"
-            ) from e
+            msg = f"Network error during token exchange: {e}"
+            raise MonzoAuthenticationError(msg) from e
 
     def refresh_token(self, refresh_token: str) -> OAuthToken:
         """Refresh an access token.
@@ -166,9 +165,8 @@ class MonzoOAuth:
             return OAuthToken(**response.json())
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(
-                f"Network error during token refresh: {e}"
-            ) from e
+            msg = f"Network error during token refresh: {e}"
+            raise MonzoAuthenticationError(msg) from e
 
     def logout(self, access_token: str) -> None:
         """Invalidate an access token.
@@ -196,4 +194,5 @@ class MonzoOAuth:
                 )
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(f"Network error during logout: {e}") from e
+            msg = f"Network error during logout: {e}"
+            raise MonzoAuthenticationError(msg) from e

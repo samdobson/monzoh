@@ -79,7 +79,8 @@ def convert_amount_to_minor_units(amount: float | Decimal | str) -> int:
         return int(amount * 100)
 
     except (ValueError, TypeError, ArithmeticError) as e:
-        raise ValueError(f"Invalid amount '{amount}': {e}") from e
+        msg = f"Invalid amount '{amount}': {e}"
+        raise ValueError(msg) from e
 
 
 def convert_amount_from_minor_units(amount: int) -> Decimal:

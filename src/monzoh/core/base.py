@@ -52,7 +52,8 @@ class MockResponse:
             Exception: If status code indicates an error (>= 400)
         """
         if self.status_code >= 400:
-            raise Exception(f"HTTP {self.status_code} error")
+            msg = f"HTTP {self.status_code} error"
+            raise Exception(msg)
 
 
 class BaseSyncClient:
@@ -200,7 +201,8 @@ class BaseSyncClient:
             return response
 
         except httpx.RequestError as e:
-            raise MonzoNetworkError(f"Network error: {e}") from e
+            msg = f"Network error: {e}"
+            raise MonzoNetworkError(msg) from e
 
     def _get(
         self,
