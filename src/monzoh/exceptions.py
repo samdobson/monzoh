@@ -145,9 +145,7 @@ class MonzoNetworkError(MonzoError):
                 "Connection error: Unable to connect to the Monzo API. "
                 "Please check your internet connection."
             )
-        return (
-            f"Network error: {self.original_message.replace('Network error: ', '')}"
-        )
+        return f"Network error: {self.original_message.replace('Network error: ', '')}"
 
 
 class MonzoValidationError(MonzoError):

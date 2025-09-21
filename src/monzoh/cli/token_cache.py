@@ -49,7 +49,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
             "client_id": token.client_id,
         }
 
-        with open(cache_path, "w") as f:
+        with cache_path.open("w") as f:
             json.dump(cache_data, f, indent=2)
 
         with contextlib.suppress(OSError):
@@ -76,7 +76,7 @@ def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | Non
         if not cache_path.exists():
             return None
 
-        with open(cache_path) as f:
+        with cache_path.open() as f:
             cache_data: dict[str, Any] = json.load(f)
 
         if not include_expired:

@@ -173,9 +173,7 @@ def get_mock_response(
         return MOCK_POTS
     if endpoint == "/webhooks":
         return MOCK_WEBHOOKS
-    if endpoint.startswith("/transactions/") and not endpoint.endswith(
-        "/transactions"
-    ):
+    if endpoint.startswith("/transactions/") and not endpoint.endswith("/transactions"):
         return {"transaction": MOCK_TRANSACTIONS["transactions"][0]}
     if endpoint.startswith("/pots/") and not endpoint.endswith("/pots"):
         return {"pot": MOCK_POTS["pots"][0]}

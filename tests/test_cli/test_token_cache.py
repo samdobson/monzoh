@@ -54,7 +54,7 @@ class TestTokenCache:
 
             assert cache_path.exists()
 
-            with open(cache_path) as f:
+            with cache_path.open() as f:
                 data = json.load(f)
 
             assert data["access_token"] == "test_access"
@@ -98,7 +98,7 @@ class TestTokenCache:
                 "client_id": "client123",
             }
 
-            with open(cache_path, "w") as f:
+            with cache_path.open("w") as f:
                 json.dump(cache_data, f)
 
             with patch(
@@ -123,7 +123,7 @@ class TestTokenCache:
                 "client_id": "client123",
             }
 
-            with open(cache_path, "w") as f:
+            with cache_path.open("w") as f:
                 json.dump(cache_data, f)
 
             with patch(
@@ -147,7 +147,7 @@ class TestTokenCache:
                 "client_id": "client123",
             }
 
-            with open(cache_path, "w") as f:
+            with cache_path.open("w") as f:
                 json.dump(cache_data, f)
 
             with patch(

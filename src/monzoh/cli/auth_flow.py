@@ -160,9 +160,7 @@ def authenticate() -> str | None:
             return token.access_token
 
         server.shutdown()
-        console.print(
-            f"\n⏰ [yellow]Timeout after {callback_timeout} seconds[/yellow]"
-        )
+        console.print(f"\n⏰ [yellow]Timeout after {callback_timeout} seconds[/yellow]")
         return None
 
     except KeyboardInterrupt:

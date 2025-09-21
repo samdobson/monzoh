@@ -85,7 +85,7 @@ def save_credentials_to_env(creds: dict[str, str], console: Console) -> None:
         env_content = []
 
         if env_path.exists():
-            with open(env_path) as f:
+            with env_path.open() as f:
                 env_content = f.readlines()
 
         env_content = [
@@ -104,7 +104,7 @@ def save_credentials_to_env(creds: dict[str, str], console: Console) -> None:
             ]
         )
 
-        with open(env_path, "w") as f:
+        with env_path.open("w") as f:
             f.writelines(env_content)
 
         console.print(f"✅ Credentials saved to [green]{env_path}[/green]")
