@@ -17,6 +17,7 @@ from monzoh.exceptions import (
     create_error_from_response,
 )
 from monzoh.models import WhoAmI
+
 from .mock_data import get_mock_response
 
 QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None

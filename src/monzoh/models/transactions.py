@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field, field_validator
 if TYPE_CHECKING:
     from monzoh.core import BaseSyncClient
     from monzoh.core.async_base import BaseAsyncClient
+
     from .attachments import Attachment
 
 

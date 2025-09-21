@@ -11,7 +11,6 @@ from typing import Any
 from rich.console import Console
 
 from monzoh.auth import MonzoOAuth
-from monzoh.exceptions import MonzoError
 from monzoh.models import OAuthToken
 
 

@@ -11,6 +11,7 @@ from rich.text import Text
 from monzoh.auth import MonzoOAuth
 from monzoh.client import MonzoClient
 from monzoh.exceptions import MonzoError
+
 from .credentials import (
     get_credentials_interactively,
     load_env_credentials,
