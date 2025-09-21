@@ -10,6 +10,7 @@ from rich.text import Text
 
 from ..auth import MonzoOAuth
 from ..client import MonzoClient
+from ..exceptions import MonzoError
 from .credentials import (
     get_credentials_interactively,
     load_env_credentials,
@@ -166,6 +167,6 @@ def authenticate() -> str | None:
     except KeyboardInterrupt:
         console.print("\n\n👋 [yellow]Authentication cancelled by user[/yellow]")
         return None
-    except Exception as e:
+    except (MonzoError, OSError, ValueError) as e:
         console.print(f"\n❌ [red]Error during authentication: {e}[/red]")
         return None
