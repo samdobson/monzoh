@@ -113,7 +113,9 @@ class Transaction(BaseModel):
             "'income', 'savings', 'transfers')"
         ),
     )
-    is_load: bool = Field(False, description="Whether this is a top-up transaction")
+    is_load: bool = Field(
+        default=False, description="Whether this is a top-up transaction"
+    )
     settled: datetime | None = Field(
         None, description="Settlement timestamp (when transaction completed)"
     )

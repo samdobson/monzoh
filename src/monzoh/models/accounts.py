@@ -51,7 +51,7 @@ class Account(BaseModel):
     id: str = Field(..., description="Unique account identifier")
     description: str = Field(..., description="Human-readable account description")
     created: datetime = Field(..., description="Account creation timestamp")
-    closed: bool = Field(False, description="Whether the account is closed")
+    closed: bool = Field(default=False, description="Whether the account is closed")
     type: str | None = Field(None, description="Account type")
     currency: str | None = Field(None, description="Account currency")
     country_code: str | None = Field(None, description="Country code")

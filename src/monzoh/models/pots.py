@@ -62,7 +62,7 @@ class Pot(BaseModel):
     currency: str = Field(..., description="ISO 4217 currency code")
     created: datetime = Field(..., description="Pot creation timestamp")
     updated: datetime = Field(..., description="Last pot update timestamp")
-    deleted: bool = Field(False, description="Whether the pot is deleted")
+    deleted: bool = Field(default=False, description="Whether the pot is deleted")
     account_id: str | None = Field(None, description="Associated account identifier")
     goal_amount: Decimal | None = Field(
         None,
