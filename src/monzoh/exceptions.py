@@ -1,6 +1,5 @@
 """Custom exceptions for the Monzo API client."""
 
-import json
 from typing import Any
 
 
@@ -44,6 +43,8 @@ class MonzoError(Exception):
 
         if "API request failed:" in self.original_message:
             try:
+                import json
+
                 json_start = self.original_message.find("{")
                 if json_start != -1:
                     json_part = self.original_message[json_start:]

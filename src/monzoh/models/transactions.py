@@ -9,8 +9,6 @@ from typing import TYPE_CHECKING, Any, Literal, cast
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
-    from ..api.async_attachments import AsyncAttachmentsAPI
-    from ..api.attachments import AttachmentsAPI
     from ..core import BaseSyncClient
     from ..core.async_base import BaseAsyncClient
     from .attachments import Attachment
@@ -212,6 +210,9 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or if using async client
         """
+        from ..api.attachments import AttachmentsAPI
+        from ..core import BaseSyncClient
+
         client = self._ensure_client()
         if not isinstance(client, BaseSyncClient):
             raise RuntimeError(
@@ -289,6 +290,9 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or if using sync client
         """
+        from ..api.async_attachments import AsyncAttachmentsAPI
+        from ..core.async_base import BaseAsyncClient
+
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(
@@ -317,6 +321,8 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
+        from ..core.async_base import BaseAsyncClient
+
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(
@@ -349,6 +355,8 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
+        from ..core.async_base import BaseAsyncClient
+
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(

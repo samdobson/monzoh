@@ -231,6 +231,8 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
+        from ..core.async_base import BaseAsyncClient
+
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(
@@ -277,6 +279,8 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
+        from ..core.async_base import BaseAsyncClient
+
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
             raise RuntimeError(

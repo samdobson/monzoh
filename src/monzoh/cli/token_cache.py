@@ -16,6 +16,8 @@ from ..models import OAuthToken
 
 def get_token_cache_path() -> Path:
     """Get path for token cache file."""
+    import platform
+
     system = platform.system()
 
     if system == "Windows":

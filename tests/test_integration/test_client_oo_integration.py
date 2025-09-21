@@ -6,7 +6,6 @@ from unittest.mock import Mock
 
 from monzoh.client import MonzoClient
 from monzoh.core import BaseSyncClient
-from monzoh.models import Account
 
 
 class TestClientOOIntegration:
@@ -171,6 +170,8 @@ class TestClientOOIntegration:
         }
         mock_base_client._get.return_value = mock_response
 
+        from monzoh.models import Account
+
         account = Account(
             id="acc_123",
             description="Test Account",
@@ -205,6 +206,8 @@ class TestClientOOIntegration:
             ]
         }
         mock_base_client._get.return_value = mock_response
+
+        from monzoh.models import Account
 
         account = Account(
             id="acc_123",

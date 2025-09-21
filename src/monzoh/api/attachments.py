@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import httpx
-
 from ..core import BaseSyncClient
 from ..models import Attachment, AttachmentResponse, AttachmentUpload
 from ..utils import infer_file_type, read_file_data
@@ -146,6 +144,8 @@ class AttachmentsAPI:
         Returns:
             None
         """
+        import httpx
+
         headers = {
             "Content-Type": file_type,
             "Content-Length": str(len(file_data)),

@@ -9,7 +9,6 @@ import pytest
 
 from monzoh.core import BaseSyncClient
 from monzoh.models import Account, Balance, Pot, Transaction
-from monzoh.models.feed import FeedItemParams
 
 
 class TestAccountOOInterface:
@@ -33,6 +32,8 @@ class TestAccountOOInterface:
             account.list_pots()
 
         with pytest.raises(RuntimeError, match="No client available"):
+            from monzoh.models.feed import FeedItemParams
+
             params = FeedItemParams(
                 title="Test", image_url="https://example.com/image.jpg"
             )
@@ -146,6 +147,8 @@ class TestAccountOOInterface:
 
     def test_account_create_feed_item(self) -> None:
         """Test Account.create_feed_item() method."""
+        from monzoh.models.feed import FeedItemParams
+
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {}
@@ -175,6 +178,8 @@ class TestAccountOOInterface:
 
     def test_account_create_feed_item_with_all_params(self) -> None:
         """Test Account.create_feed_item() method with all parameters."""
+        from monzoh.models.feed import FeedItemParams
+
         mock_client = Mock(spec=BaseSyncClient)
         mock_response = Mock()
         mock_response.json.return_value = {}

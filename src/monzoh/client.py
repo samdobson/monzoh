@@ -3,7 +3,6 @@
 from typing import Any
 
 import httpx
-from rich.console import Console
 
 from .api import (
     AccountsAPI,
@@ -15,7 +14,6 @@ from .api import (
     WebhooksAPI,
 )
 from .auth import MonzoOAuth
-from .cli import load_env_credentials, load_token_from_cache, try_refresh_token
 from .core import BaseSyncClient
 from .models import WhoAmI
 
@@ -27,6 +25,11 @@ def _load_cached_token() -> str | None:
         Access token if available, None otherwise
     """
     try:
+        from rich.console import Console
+
+        from .auth import MonzoOAuth
+        from .cli import load_env_credentials, load_token_from_cache, try_refresh_token
+
         cached_token = load_token_from_cache()
         if cached_token and isinstance(cached_token, dict):
             access_token = cached_token.get("access_token")
@@ -54,7 +57,7 @@ def _load_cached_token() -> str | None:
                     return refreshed_token
 
         return None
-    except (AttributeError, TypeError, ValueError, KeyError):
+    except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return None
 
 

@@ -3,12 +3,10 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 from typing import Any
-from unittest.mock import AsyncMock, Mock, patch
+from unittest.mock import AsyncMock, Mock
 
 import pytest
 
-from monzoh.core.async_base import BaseAsyncClient
-from monzoh.core.base import BaseSyncClient
 from monzoh.models import (
     Account,
     Balance,
@@ -19,10 +17,7 @@ from monzoh.models import (
     Transaction,
     WhoAmI,
 )
-from monzoh.models.accounts import Account as AccountModel
 from monzoh.models.feed import FeedItemParams
-from monzoh.models.pots import Pot as PotModel
-from monzoh.models.transactions import Transaction as TransactionModel
 
 
 class TestModels:
@@ -260,6 +255,10 @@ class TestPotMethods:
     @pytest.mark.asyncio
     async def test_pot_async_withdraw_with_async_client(self) -> None:
         """Test awithdraw with async client."""
+        from unittest.mock import patch
+
+        from monzoh.core.async_base import BaseAsyncClient
+
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -306,6 +305,8 @@ class TestPotMethods:
     @pytest.mark.asyncio
     async def test_pot_async_withdraw_wrong_client_type(self) -> None:
         """Test awithdraw raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
         pot = Pot(
             id="pot_123",
             name="Savings",
@@ -337,6 +338,8 @@ class TestPotMethods:
 
     def test_transactions_field_validator_settled_datetime(self) -> None:
         """Test Transaction settled field validator with datetime string."""
+        from monzoh.models.transactions import Transaction
+
         # Test with ISO datetime string
         data = {
             "id": "tx_123",
@@ -347,11 +350,13 @@ class TestPotMethods:
             "is_load": False,
             "settled": "2023-01-01T12:00:00Z",
         }
-        transaction = TransactionModel(**data)
+        transaction = Transaction(**data)
         assert isinstance(transaction.settled, datetime)
 
     def test_pots_goal_amount_none_conversion(self) -> None:
         """Test Pot goal amount conversion with None value."""
+        from monzoh.models.pots import Pot
+
         data = {
             "id": "pot_123",
             "name": "Savings",
@@ -363,7 +368,7 @@ class TestPotMethods:
             "deleted": False,
             "goal_amount": None,
         }
-        pot = PotModel(**data)
+        pot = Pot(**data)
         assert pot.goal_amount is None
 
 
@@ -372,7 +377,12 @@ class TestAccountMethods:
 
     def test_account_list_transactions_with_expand(self) -> None:
         """Test Account.list_transactions with expand parameter."""
-        account = AccountModel(
+        from unittest.mock import Mock
+
+        from monzoh.core.base import BaseSyncClient
+        from monzoh.models.accounts import Account
+
+        account = Account(
             id="acc_123",
             description="Test Account",
             created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
@@ -397,7 +407,10 @@ class TestAccountMethods:
     @pytest.mark.asyncio
     async def test_account_async_list_pots_wrong_client_type(self) -> None:
         """Test Account.alist_pots raises error with sync client."""
-        account = AccountModel(
+        from monzoh.core.base import BaseSyncClient
+        from monzoh.models.accounts import Account
+
+        account = Account(
             id="acc_123",
             description="Test Account",
             created=datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc),
@@ -417,6 +430,10 @@ class TestTransactionMethods:
 
     def test_transaction_upload_attachment_with_sync_client(self) -> None:
         """Test upload_attachment with sync client."""
+        from unittest.mock import patch
+
+        from monzoh.core.base import BaseSyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -453,6 +470,8 @@ class TestTransactionMethods:
 
     def test_transaction_upload_attachment_wrong_client_type(self) -> None:
         """Test upload_attachment raises error with async client."""
+        from monzoh.core.async_base import BaseAsyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -477,6 +496,10 @@ class TestTransactionMethods:
     @pytest.mark.asyncio
     async def test_transaction_async_upload_attachment_with_async_client(self) -> None:
         """Test aupload_attachment with async client."""
+        from unittest.mock import patch
+
+        from monzoh.core.async_base import BaseAsyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -516,6 +539,8 @@ class TestTransactionMethods:
     @pytest.mark.asyncio
     async def test_transaction_async_upload_attachment_wrong_client_type(self) -> None:
         """Test aupload_attachment raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -540,6 +565,8 @@ class TestTransactionMethods:
     @pytest.mark.asyncio
     async def test_transaction_async_annotate_with_async_client(self) -> None:
         """Test aannotate with async client."""
+        from monzoh.core.async_base import BaseAsyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -576,6 +603,8 @@ class TestTransactionMethods:
     @pytest.mark.asyncio
     async def test_transaction_async_annotate_wrong_client_type(self) -> None:
         """Test aannotate raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -596,6 +625,8 @@ class TestTransactionMethods:
     @pytest.mark.asyncio
     async def test_transaction_async_refresh_with_async_client(self) -> None:
         """Test arefresh with async client."""
+        from monzoh.core.async_base import BaseAsyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
@@ -633,6 +664,8 @@ class TestTransactionMethods:
     @pytest.mark.asyncio
     async def test_transaction_async_refresh_wrong_client_type(self) -> None:
         """Test arefresh raises error with sync client."""
+        from monzoh.core.base import BaseSyncClient
+
         transaction = Transaction(
             id="tx_123",
             amount=-1000,

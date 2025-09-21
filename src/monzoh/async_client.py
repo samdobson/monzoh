@@ -12,7 +12,6 @@ from .api.async_receipts import AsyncReceiptsAPI
 from .api.async_transactions import AsyncTransactionsAPI
 from .api.async_webhooks import AsyncWebhooksAPI
 from .auth import MonzoOAuth
-from .cli import load_token_from_cache
 from .core.async_base import BaseAsyncClient
 from .exceptions import MonzoAuthenticationError
 from .models import WhoAmI
@@ -25,10 +24,14 @@ def _load_cached_token() -> str | None:
         Access token if available, None otherwise
     """
     try:
+        from .cli import load_token_from_cache
+
         cached_token = load_token_from_cache()
         if cached_token and isinstance(cached_token, dict):
             access_token = cached_token.get("access_token")
             return access_token if isinstance(access_token, str) else None
+        return None
+    except ImportError:
         return None
     except (AttributeError, TypeError, ValueError, KeyError):
         return None

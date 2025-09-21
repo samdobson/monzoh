@@ -7,7 +7,6 @@ import httpx
 import pytest
 
 from monzoh import MonzoClient, MonzoOAuth
-from monzoh.client import _load_cached_token
 from monzoh.core.base import BaseSyncClient, MockResponse
 from monzoh.exceptions import MonzoBadRequestError, MonzoError, MonzoNetworkError
 
@@ -549,6 +548,8 @@ class TestClientTokenLoading:
         """Test successful token loading from cache."""
         mock_load_token.return_value = {"access_token": "cached_token"}
 
+        from monzoh.client import _load_cached_token
+
         result = _load_cached_token()
         assert result == "cached_token"
 
@@ -556,6 +557,8 @@ class TestClientTokenLoading:
     def test_load_cached_token_invalid_token(self, mock_load_token: Mock) -> None:
         """Test token loading with invalid token format."""
         mock_load_token.return_value = {"invalid": "format"}
+
+        from monzoh.client import _load_cached_token
 
         result = _load_cached_token()
         assert result is None
@@ -587,6 +590,8 @@ class TestClientTokenLoading:
         mock_oauth_class.return_value = mock_oauth_instance
         mock_refresh.return_value = "refreshed_token"
 
+        from monzoh.client import _load_cached_token
+
         result = _load_cached_token()
         assert result == "refreshed_token"
 
@@ -602,6 +607,8 @@ class TestClientTokenLoading:
         ]
         mock_credentials.return_value = {}
 
+        from monzoh.client import _load_cached_token
+
         result = _load_cached_token()
         assert result is None
 
@@ -610,6 +617,8 @@ class TestClientTokenLoading:
         """Test token loading with import error."""
         mock_load_token.side_effect = ImportError("Module not found")
 
+        from monzoh.client import _load_cached_token
+
         result = _load_cached_token()
         assert result is None
 
@@ -617,6 +626,8 @@ class TestClientTokenLoading:
     def test_load_cached_token_other_exceptions(self, mock_load_token: Mock) -> None:
         """Test token loading with various exceptions."""
         mock_load_token.side_effect = ValueError("Invalid value")
+
+        from monzoh.client import _load_cached_token
 
         result = _load_cached_token()
         assert result is None
