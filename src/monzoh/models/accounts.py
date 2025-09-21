@@ -215,7 +215,7 @@ class Account(BaseModel):
                 "Async method called on account with sync client. "
                 "Use get_balance() instead or retrieve account from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
         params = {"account_id": self.id}
         response = await client._get("/balance", params=params)
         return Balance(**response.json())
@@ -252,7 +252,7 @@ class Account(BaseModel):
                 "Use list_transactions() instead or retrieve account from "
                 "AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
         params = {"account_id": self.id}
 
         pagination_params = client._prepare_pagination_params(
@@ -293,7 +293,7 @@ class Account(BaseModel):
                 "Async method called on account with sync client. "
                 "Use list_pots() instead or retrieve account from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
         params = {"current_account_id": self.id}
 
         response = await client._get("/pots", params=params)
@@ -326,7 +326,7 @@ class Account(BaseModel):
                 "Use create_feed_item() instead or retrieve account from "
                 "AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
         data = {
             "account_id": self.id,
             "type": "basic",

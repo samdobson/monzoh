@@ -90,7 +90,7 @@ class TestAsyncAccountOOInterface:
         account._set_client(mock_sync_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on account with sync client"
+            TypeError, match="Async method called on account with sync client"
         ):
             await account.aget_balance()
 
@@ -150,7 +150,7 @@ class TestAsyncAccountOOInterface:
 
         params = FeedItemParams(title="Test", image_url="https://example.com/image.jpg")
         with pytest.raises(
-            RuntimeError, match="Async method called on account with sync client"
+            TypeError, match="Async method called on account with sync client"
         ):
             await account.acreate_feed_item(params)
 
@@ -222,7 +222,7 @@ class TestAsyncPotOOInterface:
         pot._source_account_id = "acc_123"
 
         with pytest.raises(
-            RuntimeError, match="Async method called on pot with sync client"
+            TypeError, match="Async method called on pot with sync client"
         ):
             await pot.adeposit(10.00)
 
@@ -284,6 +284,6 @@ class TestAsyncTransactionOOInterface:
         transaction._set_client(mock_sync_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on transaction with sync client"
+            TypeError, match="Async method called on transaction with sync client"
         ):
             await transaction.aannotate({"category": "food"})

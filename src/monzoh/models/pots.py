@@ -239,7 +239,7 @@ class Pot(BaseModel):
                 "Async method called on pot with sync client. "
                 "Use deposit() instead or retrieve pot from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
         source_account_id = self._get_source_account_id()
 
         if dedupe_id is None:
@@ -288,7 +288,7 @@ class Pot(BaseModel):
                 "Async method called on pot with sync client. "
                 "Use withdraw() instead or retrieve pot from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
 
         if destination_account_id is None:
             destination_account_id = self._get_source_account_id()

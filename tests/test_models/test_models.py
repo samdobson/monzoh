@@ -322,7 +322,7 @@ class TestPotMethods:
         pot._set_client(mock_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on pot with sync client"
+            TypeError, match="Async method called on pot with sync client"
         ):
             await pot.awithdraw(amount=Decimal("50.00"))
 
@@ -420,7 +420,7 @@ class TestAccountMethods:
         account._set_client(mock_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on account with sync client"
+            TypeError, match="Async method called on account with sync client"
         ):
             await account.alist_pots()
 
@@ -485,7 +485,7 @@ class TestTransactionMethods:
         transaction._set_client(mock_client)
 
         with pytest.raises(
-            RuntimeError, match="Sync method called on transaction with async client"
+            TypeError, match="Sync method called on transaction with async client"
         ):
             transaction.upload_attachment(
                 file_path="/path/to/file.jpg",
@@ -554,7 +554,7 @@ class TestTransactionMethods:
         transaction._set_client(mock_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on transaction with sync client"
+            TypeError, match="Async method called on transaction with sync client"
         ):
             await transaction.aupload_attachment(
                 file_path="/path/to/file.jpg",
@@ -618,7 +618,7 @@ class TestTransactionMethods:
         transaction._set_client(mock_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on transaction with sync client"
+            TypeError, match="Async method called on transaction with sync client"
         ):
             await transaction.aannotate(metadata={"key": "value"})
 
@@ -679,6 +679,6 @@ class TestTransactionMethods:
         transaction._set_client(mock_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on transaction with sync client"
+            TypeError, match="Async method called on transaction with sync client"
         ):
             await transaction.arefresh()

@@ -222,7 +222,7 @@ class Transaction(BaseModel):
                 "Use aupload_attachment() instead or retrieve transaction "
                 "from MonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
 
         attachments_api = AttachmentsAPI(client)
         return attachments_api.upload(
@@ -303,7 +303,7 @@ class Transaction(BaseModel):
                 "Use upload_attachment() instead or retrieve transaction "
                 "from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
 
         attachments_api = AsyncAttachmentsAPI(client)
         return await attachments_api.upload(
@@ -333,7 +333,7 @@ class Transaction(BaseModel):
                 "Async method called on transaction with sync client. "
                 "Use annotate() instead or retrieve transaction from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
 
         data = {}
         for key, value in metadata.items():
@@ -368,7 +368,7 @@ class Transaction(BaseModel):
                 "Async method called on transaction with sync client. "
                 "Use refresh() instead or retrieve transaction from AsyncMonzoClient."
             )
-            raise RuntimeError(msg)
+            raise TypeError(msg)
         expand_params = client._prepare_expand_params(expand)
 
         response = await client._get(f"/transactions/{self.id}", params=expand_params)

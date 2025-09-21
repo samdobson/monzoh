@@ -143,7 +143,7 @@ MOCK_WEBHOOKS = {
 
 
 def get_mock_response(
-    endpoint: str, method: str = "GET", **kwargs: Any
+    endpoint: str, _method: str = "GET", **_kwargs: Any
 ) -> dict[str, Any]:
     """Get mock response data for a given endpoint.
 
@@ -155,7 +155,7 @@ def get_mock_response(
     Returns:
         Mock response data
     """
-    params = kwargs.get("params", {})
+    params = _kwargs.get("params", {})
 
     if endpoint == "/ping/whoami":
         return MOCK_WHOAMI
