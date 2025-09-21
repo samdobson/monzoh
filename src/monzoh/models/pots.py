@@ -122,10 +122,11 @@ class Pot(BaseModel):
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
         """Ensure client is available for API calls."""
         if self._client is None:
-            raise RuntimeError(
+            msg = (
                 "No client available. Pot must be retrieved from MonzoClient "
                 "to use methods."
             )
+            raise RuntimeError(msg)
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Pot:
@@ -139,9 +140,8 @@ class Pot(BaseModel):
             return self._source_account_id
         if self.account_id:
             return self.account_id
-        raise RuntimeError(
-            "No source account ID available. Cannot perform pot operations."
-        )
+        msg = "No source account ID available. Cannot perform pot operations."
+        raise RuntimeError(msg)
 
     def deposit(
         self, amount: float | Decimal | str, dedupe_id: str | None = None
@@ -236,10 +236,11 @@ class Pot(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on pot with sync client. "
                 "Use deposit() instead or retrieve pot from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
         source_account_id = self._get_source_account_id()
 
         if dedupe_id is None:
@@ -284,10 +285,11 @@ class Pot(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on pot with sync client. "
                 "Use withdraw() instead or retrieve pot from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
 
         if destination_account_id is None:
             destination_account_id = self._get_source_account_id()

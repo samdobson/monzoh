@@ -60,10 +60,11 @@ class AsyncMonzoClient:
         if access_token is None:
             access_token = _load_cached_token()
             if access_token is None:
-                raise MonzoAuthenticationError(
+                msg = (
                     "No access token provided and none found in cache. "
                     "Run 'monzoh-auth' to authenticate first."
                 )
+                raise MonzoAuthenticationError(msg)
 
         self._base_client = BaseAsyncClient(
             access_token=access_token, http_client=http_client, timeout=timeout

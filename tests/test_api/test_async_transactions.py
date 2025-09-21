@@ -105,7 +105,9 @@ class TestAsyncTransactionsAPI:
         cast("Mock", mock_async_base_client._prepare_expand_params).return_value = [
             ("expand[]", "merchant")
         ]
-        cast("Mock", mock_async_base_client._prepare_pagination_params).return_value = {}
+        cast(
+            "Mock", mock_async_base_client._prepare_pagination_params
+        ).return_value = {}
 
         await transactions_api.list("test_account_id", expand=["merchant"])
 

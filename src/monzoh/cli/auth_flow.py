@@ -67,9 +67,8 @@ def authenticate() -> str | None:
                         "redirect_uri", "http://localhost:8080/callback"
                     )
                     if not client_id or not client_secret:
-                        raise ValueError(
-                            "Client ID and Client Secret are required"
-                        ) from None
+                        msg = "Client ID and Client Secret are required"
+                        raise ValueError(msg) from None
                     if not redirect_uri:
                         redirect_uri = "http://localhost:8080/callback"
 

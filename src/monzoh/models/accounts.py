@@ -81,10 +81,11 @@ class Account(BaseModel):
             RuntimeError: If no client is available
         """
         if self._client is None:
-            raise RuntimeError(
+            msg = (
                 "No client available. Account must be retrieved from MonzoClient "
                 "to use methods."
             )
+            raise RuntimeError(msg)
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Account:
@@ -210,10 +211,11 @@ class Account(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use get_balance() instead or retrieve account from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
         params = {"account_id": self.id}
         response = await client._get("/balance", params=params)
         return Balance(**response.json())
@@ -244,11 +246,12 @@ class Account(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use list_transactions() instead or retrieve account from "
                 "AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
         params = {"account_id": self.id}
 
         pagination_params = client._prepare_pagination_params(
@@ -284,10 +287,11 @@ class Account(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use list_pots() instead or retrieve account from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
         params = {"current_account_id": self.id}
 
         response = await client._get("/pots", params=params)
@@ -315,11 +319,12 @@ class Account(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use create_feed_item() instead or retrieve account from "
                 "AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
         data = {
             "account_id": self.id,
             "type": "basic",

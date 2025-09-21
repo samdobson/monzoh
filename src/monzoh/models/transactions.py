@@ -174,10 +174,11 @@ class Transaction(BaseModel):
             RuntimeError: If no client is available
         """
         if self._client is None:
-            raise RuntimeError(
+            msg = (
                 "No client available. Transaction must be retrieved from MonzoClient "
                 "to use methods."
             )
+            raise RuntimeError(msg)
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Transaction:
@@ -216,11 +217,12 @@ class Transaction(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseSyncClient):
-            raise RuntimeError(
+            msg = (
                 "Sync method called on transaction with async client. "
                 "Use aupload_attachment() instead or retrieve transaction "
                 "from MonzoClient."
             )
+            raise RuntimeError(msg)
 
         attachments_api = AttachmentsAPI(client)
         return attachments_api.upload(
@@ -296,11 +298,12 @@ class Transaction(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on transaction with sync client. "
                 "Use upload_attachment() instead or retrieve transaction "
                 "from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
 
         attachments_api = AsyncAttachmentsAPI(client)
         return await attachments_api.upload(
@@ -326,10 +329,11 @@ class Transaction(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on transaction with sync client. "
                 "Use annotate() instead or retrieve transaction from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
 
         data = {}
         for key, value in metadata.items():
@@ -360,10 +364,11 @@ class Transaction(BaseModel):
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on transaction with sync client. "
                 "Use refresh() instead or retrieve transaction from AsyncMonzoClient."
             )
+            raise RuntimeError(msg)
         expand_params = client._prepare_expand_params(expand)
 
         response = await client._get(f"/transactions/{self.id}", params=expand_params)

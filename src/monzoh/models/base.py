@@ -74,7 +74,8 @@ def convert_amount_to_minor_units(amount: float | Decimal | str) -> int:
             amount = Decimal(str(amount))
 
         if amount < 0:
-            raise ValueError("Amount cannot be negative")
+            msg = "Amount cannot be negative"
+            raise ValueError(msg)
 
         return int(amount * 100)
 

@@ -172,7 +172,8 @@ class TestAttachmentsAPI:
 
         try:
             api.upload(transaction_id="tx_123")
-            raise AssertionError("Expected ValueError")
+            msg = "Expected ValueError"
+            raise AssertionError(msg)
         except ValueError as e:
             assert "Either file_path must be provided" in str(e)
 

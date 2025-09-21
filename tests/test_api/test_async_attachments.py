@@ -145,7 +145,9 @@ class TestAsyncAttachmentsAPI:
                     return register_response
                 return Mock()
 
-            cast("Mock", mock_async_base_client._post).side_effect = mock_post_side_effect
+            cast(
+                "Mock", mock_async_base_client._post
+            ).side_effect = mock_post_side_effect
 
             mock_client = Mock()
             mock_response = Mock()

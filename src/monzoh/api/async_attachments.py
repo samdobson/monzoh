@@ -51,10 +51,11 @@ class AsyncAttachmentsAPI:
             actual_file_type = file_type or "application/octet-stream"
             actual_file_data = file_data
         else:
-            raise ValueError(
+            msg = (
                 "Either file_path must be provided, or both file_name and file_data "
                 "must be provided"
             )
+            raise ValueError(msg)
 
         upload_info = await self._get_upload_url(
             file_name=actual_file_name,

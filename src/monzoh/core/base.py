@@ -105,7 +105,8 @@ class BaseSyncClient:
             MonzoAuthenticationError: If access token is not set
         """
         if not self.access_token:
-            raise MonzoAuthenticationError("Access token is not set.")
+            msg = "Access token is not set."
+            raise MonzoAuthenticationError(msg)
         return {"Authorization": f"Bearer {self.access_token}"}
 
     @property
