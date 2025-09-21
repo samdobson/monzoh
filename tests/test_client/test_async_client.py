@@ -8,7 +8,11 @@ import pytest
 
 from monzoh import AsyncMonzoClient, MonzoOAuth
 from monzoh.core.async_base import AsyncMockResponse, BaseAsyncClient
-from monzoh.exceptions import MonzoBadRequestError, MonzoNetworkError
+from monzoh.exceptions import (
+    MonzoAuthenticationError,
+    MonzoBadRequestError,
+    MonzoNetworkError,
+)
 
 
 class TestAsyncMonzoClient:
@@ -107,7 +111,7 @@ class TestAsyncMonzoClient:
         with patch("monzoh.async_client._load_cached_token") as mock_load:
             mock_load.return_value = None
 
-            with pytest.raises(Exception):
+            with pytest.raises(MonzoAuthenticationError):
                 AsyncMonzoClient(http_client=mock_async_http_client)
 
     @pytest.mark.asyncio

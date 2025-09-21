@@ -7,7 +7,7 @@ import httpx
 import pytest
 
 from monzoh.auth import MonzoOAuth
-from monzoh.exceptions import MonzoAuthenticationError, MonzoBadRequestError
+from monzoh.exceptions import MonzoAuthenticationError, MonzoBadRequestError, MonzoError
 from monzoh.models import OAuthToken
 
 
@@ -272,7 +272,7 @@ class TestMonzoOAuth:
         mock_response_obj.json.side_effect = ValueError("Invalid JSON")
         mock_http_client.post.return_value = mock_response_obj
 
-        with pytest.raises(Exception):
+        with pytest.raises(MonzoError):
             oauth.exchange_code_for_token("test_code")
 
     def test_exchange_code_for_token_network_error(self, mock_http_client: Any) -> None:
@@ -346,7 +346,7 @@ class TestMonzoOAuth:
         mock_response_obj.json.side_effect = KeyError("No JSON")
         mock_http_client.post.return_value = mock_response_obj
 
-        with pytest.raises(Exception):
+        with pytest.raises(MonzoError):
             oauth.refresh_token("test_refresh_token")
 
     def test_refresh_token_network_error(self, mock_http_client: Any) -> None:
@@ -418,7 +418,7 @@ class TestMonzoOAuth:
         )
         mock_http_client.post.return_value = mock_response
 
-        with pytest.raises(Exception):
+        with pytest.raises(MonzoError):
             oauth.logout("invalid_token")
 
     def test_logout_http_error_no_json(
@@ -442,7 +442,7 @@ class TestMonzoOAuth:
         mock_response_obj.json.side_effect = TypeError("JSON error")
         mock_http_client.post.return_value = mock_response_obj
 
-        with pytest.raises(Exception):
+        with pytest.raises(MonzoError):
             oauth.logout("test_token")
 
     def test_logout_network_error(self, mock_http_client: Any) -> None:

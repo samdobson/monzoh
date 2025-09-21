@@ -37,15 +37,15 @@ def main() -> None:
 
 
 __all__ = [
-    "authenticate",
-    "main",
     "OAuthCallbackHandler",
     "OAuthCallbackServer",
+    "authenticate",
     "clear_token_cache",
     "get_credentials_interactively",
     "get_token_cache_path",
     "load_env_credentials",
     "load_token_from_cache",
+    "main",
     "save_credentials_to_env",
     "save_token_to_cache",
     "start_callback_server",

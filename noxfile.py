@@ -41,7 +41,7 @@ def mypy(session: Session) -> None:
 
 
 @nox.session(python="3.10")
-def format(session: Session) -> None:
+def format_code(session: Session) -> None:
     """Format code with ruff.
 
     Args:

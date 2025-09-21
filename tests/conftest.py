@@ -69,11 +69,11 @@ def monzo_client(
     client = MonzoClient(access_token="test_token", http_client=mock_http_client)
     default_response = mock_response()
 
-    setattr(client._base_client, "_get", Mock(return_value=default_response))
-    setattr(client._base_client, "_post", Mock(return_value=default_response))
-    setattr(client._base_client, "_put", Mock(return_value=default_response))
-    setattr(client._base_client, "_patch", Mock(return_value=default_response))
-    setattr(client._base_client, "_delete", Mock(return_value=default_response))
+    client._base_client._get = Mock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._post = Mock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._put = Mock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._patch = Mock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._delete = Mock(return_value=default_response)  # type: ignore[method-assign]
 
     return client
 
@@ -257,10 +257,10 @@ def async_monzo_client(
     )
     default_response = mock_async_response()
 
-    setattr(client._base_client, "_get", AsyncMock(return_value=default_response))
-    setattr(client._base_client, "_post", AsyncMock(return_value=default_response))
-    setattr(client._base_client, "_put", AsyncMock(return_value=default_response))
-    setattr(client._base_client, "_patch", AsyncMock(return_value=default_response))
-    setattr(client._base_client, "_delete", AsyncMock(return_value=default_response))
+    client._base_client._get = AsyncMock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._post = AsyncMock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._put = AsyncMock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._patch = AsyncMock(return_value=default_response)  # type: ignore[method-assign]
+    client._base_client._delete = AsyncMock(return_value=default_response)  # type: ignore[method-assign]
 
     return client

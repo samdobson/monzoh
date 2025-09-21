@@ -57,8 +57,6 @@ def _load_cached_token() -> str | None:
                     return refreshed_token
 
         return None
-    except ImportError:
-        return None
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
         return None
 

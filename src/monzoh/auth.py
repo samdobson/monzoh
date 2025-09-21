@@ -1,5 +1,6 @@
 """OAuth2 authentication client for Monzo API."""
 
+import contextlib
 from typing import Any
 from urllib.parse import urlencode
 
@@ -114,10 +115,8 @@ class MonzoOAuth:
 
             if response.status_code != 200:
                 error_data = {}
-                try:
+                with contextlib.suppress(ValueError, KeyError, TypeError):
                     error_data = response.json()
-                except (ValueError, KeyError, TypeError):
-                    pass
                 raise create_error_from_response(
                     response.status_code,
                     f"Token exchange failed: {response.text}",
@@ -127,7 +126,9 @@ class MonzoOAuth:
             return OAuthToken(**response.json())
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(f"Network error during token exchange: {e}")
+            raise MonzoAuthenticationError(
+                f"Network error during token exchange: {e}"
+            ) from e
 
     def refresh_token(self, refresh_token: str) -> OAuthToken:
         """Refresh an access token.
@@ -154,10 +155,8 @@ class MonzoOAuth:
 
             if response.status_code != 200:
                 error_data = {}
-                try:
+                with contextlib.suppress(ValueError, KeyError, TypeError):
                     error_data = response.json()
-                except (ValueError, KeyError, TypeError):
-                    pass
                 raise create_error_from_response(
                     response.status_code,
                     f"Token refresh failed: {response.text}",
@@ -167,7 +166,9 @@ class MonzoOAuth:
             return OAuthToken(**response.json())
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(f"Network error during token refresh: {e}")
+            raise MonzoAuthenticationError(
+                f"Network error during token refresh: {e}"
+            ) from e
 
     def logout(self, access_token: str) -> None:
         """Invalidate an access token.
@@ -188,13 +189,11 @@ class MonzoOAuth:
 
             if response.status_code != 200:
                 error_data = {}
-                try:
+                with contextlib.suppress(ValueError, KeyError, TypeError):
                     error_data = response.json()
-                except (ValueError, KeyError, TypeError):
-                    pass
                 raise create_error_from_response(
                     response.status_code, f"Logout failed: {response.text}", error_data
                 )
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(f"Network error during logout: {e}")
+            raise MonzoAuthenticationError(f"Network error during logout: {e}") from e

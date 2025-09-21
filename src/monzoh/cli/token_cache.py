@@ -1,5 +1,6 @@
 """Token caching and refresh functionality."""
 
+import contextlib
 import json
 import os
 from datetime import datetime, timedelta
@@ -50,10 +51,8 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
         with open(cache_path, "w") as f:
             json.dump(cache_data, f, indent=2)
 
-        try:
+        with contextlib.suppress(OSError):
             cache_path.chmod(0o600)
-        except OSError:
-            pass
 
         console.print(f"💾 Token cached to [green]{cache_path}[/green]")
 
