@@ -2,13 +2,14 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from pathlib import Path
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
+    from datetime import datetime
+    from pathlib import Path
+
     from ..core import BaseSyncClient
     from ..core.async_base import BaseAsyncClient
     from .attachments import Attachment

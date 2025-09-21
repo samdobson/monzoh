@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
@@ -12,6 +11,8 @@ from pydantic import BaseModel, Field, field_validator
 from .base import convert_amount_from_minor_units, convert_amount_to_minor_units
 
 if TYPE_CHECKING:
+    from datetime import datetime
+
     from ..core import BaseSyncClient
     from ..core.async_base import BaseAsyncClient
 
