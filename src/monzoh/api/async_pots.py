@@ -2,9 +2,9 @@
 
 from decimal import Decimal
 
-from ..core.async_base import BaseAsyncClient
-from ..models import Pot, PotsResponse
-from ..models.base import convert_amount_to_minor_units
+from monzoh.core.async_base import BaseAsyncClient
+from monzoh.models import Pot, PotsResponse
+from monzoh.models.base import convert_amount_to_minor_units
 
 
 class AsyncPotsAPI:

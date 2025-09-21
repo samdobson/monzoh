@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field, field_validator
 from .base import convert_amount_from_minor_units, convert_amount_to_minor_units
 
 if TYPE_CHECKING:
-    from ..core import BaseSyncClient
-    from ..core.async_base import BaseAsyncClient
+    from monzoh.core import BaseSyncClient
+    from monzoh.core.async_base import BaseAsyncClient
 
 
 class Pot(BaseModel):
@@ -231,7 +231,7 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
@@ -280,7 +280,7 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):

@@ -1,7 +1,7 @@
 """Async feed Items API endpoints."""
 
-from ..core.async_base import BaseAsyncClient
-from ..models.feed import FeedItemParams
+from monzoh.core.async_base import BaseAsyncClient
+from monzoh.models.feed import FeedItemParams
 
 
 class AsyncFeedAPI:

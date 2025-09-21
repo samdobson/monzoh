@@ -7,8 +7,8 @@ from datetime import datetime
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from ..core import BaseSyncClient
-from ..models import Transaction, TransactionResponse, TransactionsResponse
+    from monzoh.core import BaseSyncClient
+from monzoh.models import Transaction, TransactionResponse, TransactionsResponse
 
 
 class TransactionsAPI:

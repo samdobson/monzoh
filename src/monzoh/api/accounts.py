@@ -1,7 +1,7 @@
 """Accounts API endpoints."""
 
-from ..core import BaseSyncClient
-from ..models import Account, AccountsResponse, Balance
+from monzoh.core import BaseSyncClient
+from monzoh.models import Account, AccountsResponse, Balance
 
 
 class AccountsAPI:

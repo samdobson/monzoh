@@ -8,9 +8,9 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
 
-from ..auth import MonzoOAuth
-from ..client import MonzoClient
-from ..exceptions import MonzoError
+from monzoh.auth import MonzoOAuth
+from monzoh.client import MonzoClient
+from monzoh.exceptions import MonzoError
 from .credentials import (
     get_credentials_interactively,
     load_env_credentials,

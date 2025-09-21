@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field, field_validator
 from .base import convert_amount_from_minor_units
 
 if TYPE_CHECKING:
-    from ..core import BaseSyncClient
-    from ..core.async_base import BaseAsyncClient
+    from monzoh.core import BaseSyncClient
+    from monzoh.core.async_base import BaseAsyncClient
     from .feed import FeedItemParams
     from .pots import Pot
     from .transactions import Transaction
@@ -206,7 +206,7 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
@@ -240,7 +240,7 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
         from .transactions import TransactionsResponse
 
         client = self._ensure_client()
@@ -281,7 +281,7 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
         from .pots import PotsResponse
 
         client = self._ensure_client()
@@ -314,7 +314,7 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):

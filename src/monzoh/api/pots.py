@@ -3,9 +3,9 @@
 import uuid
 from decimal import Decimal
 
-from ..core import BaseSyncClient
-from ..models import Pot, PotsResponse
-from ..models.base import convert_amount_to_minor_units
+from monzoh.core import BaseSyncClient
+from monzoh.models import Pot, PotsResponse
+from monzoh.models.base import convert_amount_to_minor_units
 
 
 class PotsAPI:

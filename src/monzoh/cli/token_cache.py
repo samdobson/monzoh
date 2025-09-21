@@ -10,9 +10,9 @@ from typing import Any
 
 from rich.console import Console
 
-from ..auth import MonzoOAuth
-from ..exceptions import MonzoError
-from ..models import OAuthToken
+from monzoh.auth import MonzoOAuth
+from monzoh.exceptions import MonzoError
+from monzoh.models import OAuthToken
 
 
 def get_token_cache_path() -> Path:

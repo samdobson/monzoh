@@ -2,9 +2,9 @@
 
 from pathlib import Path
 
-from ..core import BaseSyncClient
-from ..models import Attachment, AttachmentResponse, AttachmentUpload
-from ..utils import infer_file_type, read_file_data
+from monzoh.core import BaseSyncClient
+from monzoh.models import Attachment, AttachmentResponse, AttachmentUpload
+from monzoh.utils import infer_file_type, read_file_data
 
 
 class AttachmentsAPI:
