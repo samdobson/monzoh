@@ -4,7 +4,7 @@ import contextlib
 import json
 import os
 import platform
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
@@ -37,7 +37,9 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
     try:
         cache_path = get_token_cache_path()
 
-        expires_at = datetime.now() + timedelta(seconds=token.expires_in)
+        expires_at = datetime.now(tz=timezone.utc) + timedelta(
+            seconds=token.expires_in
+        )
 
         cache_data = {
             "access_token": token.access_token,
@@ -79,7 +81,9 @@ def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | Non
 
         if not include_expired:
             expires_at = datetime.fromisoformat(cache_data["expires_at"])
-            if datetime.now() >= expires_at - timedelta(minutes=5):
+            if datetime.now(tz=timezone.utc) >= expires_at - timedelta(
+                minutes=5
+            ):
                 return None
 
         return cache_data

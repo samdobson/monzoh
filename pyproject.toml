@@ -57,30 +57,13 @@ packages = ["src/monzoh"]
 target-version = "py310"
 
 [tool.ruff.lint]
-ignore = ["D107"]
-select = [
-    "A",
-    "B",
-    "C4",
-    "D",
-    "E",
-    "F",
-    "I",
-    "N",
-    "PIE",
-    "Q",
-    "RUF",
-    "S",
-    "SIM",
-    "T20",
-    "UP",
-    "W",
-]
+ignore = ["D107", "COM"]
+select = ["ALL"]
 pydocstyle.convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "src/monzoh/cli/*" = ["T201"]
-"tests/*" = ["S101", "S105", "S106"]
+"tests/*" = ["S101", "S105", "S106", "PLR2004"]
 
 [tool.mypy]
 python_version = "3.10"

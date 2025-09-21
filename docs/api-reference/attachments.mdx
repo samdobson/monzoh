@@ -244,7 +244,7 @@ class ReceiptManager:
         accounts = self.client.accounts.list()
         current_account = accounts[0]
         
-        since = datetime.now() - timedelta(days=days)
+        since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=days)
         transactions = self.client.transactions.list(
             account_id=current_account.id,
             since=since,
@@ -267,7 +267,7 @@ class ReceiptManager:
         current_account = accounts[0]
         
         # Get last 30 days of transactions
-        since = datetime.now() - timedelta(days=30)
+        since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=30)
         transactions = self.client.transactions.list(
             account_id=current_account.id,
             since=since,
@@ -599,7 +599,7 @@ def analyze_attachment_usage():
     current_account = accounts[0]
     
     # Get transactions with attachments
-    since = datetime.now() - timedelta(days=90)  # Last 3 months
+    since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=90)  # Last 3 months
     transactions = client.transactions.list(
         account_id=current_account.id,
         since=since,

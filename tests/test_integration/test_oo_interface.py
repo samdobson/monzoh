@@ -1,6 +1,6 @@
 """Tests for object-oriented interface."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import Mock
 from uuid import uuid4
@@ -20,7 +20,7 @@ class TestAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
 
         with pytest.raises(RuntimeError, match="No client available"):
@@ -57,7 +57,7 @@ class TestAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -84,7 +84,7 @@ class TestAccountOOInterface:
                 {
                     "id": "tx_123",
                     "amount": -1000,
-                    "created": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
                     "currency": "GBP",
                     "description": "Test Transaction",
                     "is_load": False,
@@ -96,7 +96,7 @@ class TestAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -120,8 +120,8 @@ class TestAccountOOInterface:
                     "style": "beach_ball",
                     "balance": 10000,
                     "currency": "GBP",
-                    "created": datetime.now().isoformat(),
-                    "updated": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
+                    "updated": datetime.now(tz=timezone.utc).isoformat(),
                     "deleted": False,
                 }
             ]
@@ -131,7 +131,7 @@ class TestAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -154,7 +154,7 @@ class TestAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -183,7 +183,7 @@ class TestAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -225,8 +225,8 @@ class TestPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
         )
 
         with pytest.raises(RuntimeError, match="No client available"):
@@ -245,8 +245,8 @@ class TestPotOOInterface:
             "style": "beach_ball",
             "balance": 11000,
             "currency": "GBP",
-            "created": datetime.now().isoformat(),
-            "updated": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
+            "updated": datetime.now(tz=timezone.utc).isoformat(),
             "deleted": False,
         }
         mock_response.json.return_value = updated_pot_data
@@ -258,8 +258,8 @@ class TestPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
         )
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
@@ -288,8 +288,8 @@ class TestPotOOInterface:
             "style": "beach_ball",
             "balance": 11000,
             "currency": "GBP",
-            "created": datetime.now().isoformat(),
-            "updated": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
+            "updated": datetime.now(tz=timezone.utc).isoformat(),
             "deleted": False,
         }
         mock_client._put.return_value = mock_response
@@ -300,8 +300,8 @@ class TestPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
         )
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
@@ -322,8 +322,8 @@ class TestPotOOInterface:
             "style": "beach_ball",
             "balance": 9500,
             "currency": "GBP",
-            "created": datetime.now().isoformat(),
-            "updated": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
+            "updated": datetime.now(tz=timezone.utc).isoformat(),
             "deleted": False,
         }
         mock_response.json.return_value = updated_pot_data
@@ -335,8 +335,8 @@ class TestPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
         )
         pot._set_client(mock_client)
         pot._source_account_id = "acc_123"
@@ -362,8 +362,8 @@ class TestPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
         )
         mock_client = Mock(spec=BaseSyncClient)
         pot._set_client(mock_client)
@@ -383,7 +383,7 @@ class TestTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
@@ -401,7 +401,7 @@ class TestTransactionOOInterface:
         updated_transaction_data = {
             "id": "tx_123",
             "amount": -1000,
-            "created": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
             "currency": "GBP",
             "description": "Test Transaction",
             "metadata": {"key": "value"},
@@ -412,7 +412,7 @@ class TestTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
@@ -437,7 +437,7 @@ class TestTransactionOOInterface:
         refreshed_transaction_data = {
             "id": "tx_123",
             "amount": -1000,
-            "created": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
             "currency": "GBP",
             "description": "Updated Test Transaction",
         }
@@ -447,7 +447,7 @@ class TestTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
@@ -474,7 +474,7 @@ class TestModelClientIntegration:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         result = account._set_client(mock_client)
 
@@ -488,7 +488,7 @@ class TestModelClientIntegration:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -505,7 +505,7 @@ class TestModelClientIntegration:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 

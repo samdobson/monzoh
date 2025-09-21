@@ -1,6 +1,6 @@
 """Integration tests for AsyncMonzoClient with OO interface."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
@@ -24,7 +24,7 @@ class TestAsyncClientOOIntegration:
                 {
                     "id": "acc_123",
                     "description": "Test Account",
-                    "created": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
                     "closed": False,
                 }
             ]
@@ -71,8 +71,8 @@ class TestAsyncClientOOIntegration:
                     "style": "beach_ball",
                     "balance": 10000,
                     "currency": "GBP",
-                    "created": datetime.now().isoformat(),
-                    "updated": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
+                    "updated": datetime.now(tz=timezone.utc).isoformat(),
                     "deleted": False,
                 }
             ]
@@ -98,8 +98,8 @@ class TestAsyncClientOOIntegration:
             "style": "beach_ball",
             "balance": 11000,
             "currency": "GBP",
-            "created": datetime.now().isoformat(),
-            "updated": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
+            "updated": datetime.now(tz=timezone.utc).isoformat(),
             "deleted": False,
         }
         mock_base_client._put = AsyncMock(return_value=mock_deposit_response)
@@ -119,7 +119,7 @@ class TestAsyncClientOOIntegration:
                 {
                     "id": "tx_123",
                     "amount": -1000,
-                    "created": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
                     "currency": "GBP",
                     "description": "Test Transaction",
                     "is_load": False,
@@ -144,7 +144,7 @@ class TestAsyncClientOOIntegration:
             "transaction": {
                 "id": "tx_123",
                 "amount": -1000,
-                "created": datetime.now().isoformat(),
+                "created": datetime.now(tz=timezone.utc).isoformat(),
                 "currency": "GBP",
                 "description": "Test Transaction",
                 "metadata": {"category": "food"},
@@ -168,7 +168,7 @@ class TestAsyncClientOOIntegration:
                 {
                     "id": "tx_123",
                     "amount": -1000,
-                    "created": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
                     "currency": "GBP",
                     "description": "Test Transaction",
                     "is_load": False,
@@ -180,7 +180,7 @@ class TestAsyncClientOOIntegration:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_base_client)
 
@@ -205,8 +205,8 @@ class TestAsyncClientOOIntegration:
                     "style": "beach_ball",
                     "balance": 10000,
                     "currency": "GBP",
-                    "created": datetime.now().isoformat(),
-                    "updated": datetime.now().isoformat(),
+                    "created": datetime.now(tz=timezone.utc).isoformat(),
+                    "updated": datetime.now(tz=timezone.utc).isoformat(),
                     "deleted": False,
                 }
             ]
@@ -216,7 +216,7 @@ class TestAsyncClientOOIntegration:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_base_client)
 

@@ -1,6 +1,6 @@
 """Mock data for testing purposes when using 'test' access token."""
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 MOCK_WHOAMI = {
@@ -14,12 +14,16 @@ MOCK_ACCOUNTS = {
         {
             "id": "acc_test_account_1",
             "description": "Test Current Account",
-            "created": (datetime.now() - timedelta(days=365)).isoformat(),
+            "created": (
+                datetime.now(tz=timezone.utc) - timedelta(days=365)
+            ).isoformat(),
         },
         {
             "id": "acc_test_account_2",
             "description": "Test Joint Account",
-            "created": (datetime.now() - timedelta(days=180)).isoformat(),
+            "created": (
+                datetime.now(tz=timezone.utc) - timedelta(days=180)
+            ).isoformat(),
         },
     ]
 }
@@ -36,18 +40,20 @@ MOCK_TRANSACTIONS = {
         {
             "id": "tx_test_transaction_1",
             "amount": -350,
-            "created": (datetime.now() - timedelta(hours=2)).isoformat(),
+            "created": (datetime.now(tz=timezone.utc) - timedelta(hours=2)).isoformat(),
             "currency": "GBP",
             "description": "Pret A Manger",
             "account_balance": 285043,
             "category": "eating_out",
             "is_load": False,
-            "settled": (datetime.now() - timedelta(hours=1)).isoformat(),
+            "settled": (datetime.now(tz=timezone.utc) - timedelta(hours=1)).isoformat(),
             "merchant": {
                 "id": "merch_test_pret",
                 "name": "Pret A Manger",
                 "category": "eating_out",
-                "created": (datetime.now() - timedelta(days=1000)).isoformat(),
+                "created": (
+                    datetime.now(tz=timezone.utc) - timedelta(days=1000)
+                ).isoformat(),
                 "group_id": "grp_test_pret",
                 "logo": "https://logos.example.com/pret.png",
                 "emoji": "🥪",
@@ -58,18 +64,20 @@ MOCK_TRANSACTIONS = {
         {
             "id": "tx_test_transaction_2",
             "amount": -2550,
-            "created": (datetime.now() - timedelta(days=1)).isoformat(),
+            "created": (datetime.now(tz=timezone.utc) - timedelta(days=1)).isoformat(),
             "currency": "GBP",
             "description": "Tesco Store 1234",
             "account_balance": 285393,
             "category": "groceries",
             "is_load": False,
-            "settled": (datetime.now() - timedelta(days=1)).isoformat(),
+            "settled": (datetime.now(tz=timezone.utc) - timedelta(days=1)).isoformat(),
             "merchant": {
                 "id": "merch_test_tesco",
                 "name": "Tesco",
                 "category": "groceries",
-                "created": (datetime.now() - timedelta(days=2000)).isoformat(),
+                "created": (
+                    datetime.now(tz=timezone.utc) - timedelta(days=2000)
+                ).isoformat(),
                 "group_id": "grp_test_tesco",
                 "logo": "https://logos.example.com/tesco.png",
                 "emoji": "🛒",
@@ -80,13 +88,13 @@ MOCK_TRANSACTIONS = {
         {
             "id": "tx_test_transaction_3",
             "amount": 150000,
-            "created": (datetime.now() - timedelta(days=7)).isoformat(),
+            "created": (datetime.now(tz=timezone.utc) - timedelta(days=7)).isoformat(),
             "currency": "GBP",
             "description": "Salary Payment",
             "account_balance": 287943,
             "category": "income",
             "is_load": True,
-            "settled": (datetime.now() - timedelta(days=7)).isoformat(),
+            "settled": (datetime.now(tz=timezone.utc) - timedelta(days=7)).isoformat(),
             "merchant": None,
             "metadata": {"payroll": True},
             "notes": "Monthly salary",
@@ -102,8 +110,10 @@ MOCK_POTS = {
             "style": "beach_ball",
             "balance": 45000,
             "currency": "GBP",
-            "created": (datetime.now() - timedelta(days=120)).isoformat(),
-            "updated": (datetime.now() - timedelta(days=5)).isoformat(),
+            "created": (
+                datetime.now(tz=timezone.utc) - timedelta(days=120)
+            ).isoformat(),
+            "updated": (datetime.now(tz=timezone.utc) - timedelta(days=5)).isoformat(),
             "deleted": False,
         },
         {
@@ -112,8 +122,10 @@ MOCK_POTS = {
             "style": "fire_coral",
             "balance": 100000,
             "currency": "GBP",
-            "created": (datetime.now() - timedelta(days=300)).isoformat(),
-            "updated": (datetime.now() - timedelta(days=30)).isoformat(),
+            "created": (
+                datetime.now(tz=timezone.utc) - timedelta(days=300)
+            ).isoformat(),
+            "updated": (datetime.now(tz=timezone.utc) - timedelta(days=30)).isoformat(),
             "deleted": False,
         },
     ]

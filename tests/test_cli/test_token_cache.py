@@ -3,7 +3,7 @@
 import json
 import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
@@ -90,7 +90,7 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            expires_at = datetime.now() + timedelta(hours=1)
+            expires_at = datetime.now(tz=timezone.utc) + timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
                 "refresh_token": "test_refresh",
@@ -115,7 +115,7 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            expires_at = datetime.now() - timedelta(hours=1)
+            expires_at = datetime.now(tz=timezone.utc) - timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
                 "refresh_token": "test_refresh",
@@ -139,7 +139,7 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            expires_at = datetime.now() - timedelta(hours=1)
+            expires_at = datetime.now(tz=timezone.utc) - timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
                 "refresh_token": "test_refresh",

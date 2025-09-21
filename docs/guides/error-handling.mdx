@@ -321,7 +321,7 @@ class AccountService:
     def _cache_accounts(self, accounts):
         """Cache accounts data with timestamp."""
         cache_data = {
-            "timestamp": datetime.now().isoformat(),
+            "timestamp": datetime.now(tz=datetime.timezone.utc).isoformat(),
             "accounts": [account.model_dump() for account in accounts]
         }
         with open(self.cache_file, "w") as f:
@@ -335,7 +335,7 @@ class AccountService:
             
             # Check if cache is not too old (e.g., 1 hour)
             cache_time = datetime.fromisoformat(cache_data["timestamp"])
-            if datetime.now() - cache_time < timedelta(hours=1):
+            if datetime.now(tz=datetime.timezone.utc) - cache_time < timedelta(hours=1):
                 return cache_data["accounts"]
             else:
                 print("Cached data is too old")

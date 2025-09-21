@@ -531,7 +531,7 @@ def analyze_receipt_data():
     current_account = accounts[0]
     
     # Get transactions with receipts
-    since = datetime.now() - timedelta(days=60)
+    since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=60)
     transactions = client.transactions.list(
         account_id=current_account.id,
         since=since,

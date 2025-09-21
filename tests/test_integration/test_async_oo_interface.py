@@ -1,6 +1,6 @@
 """Tests for async object-oriented interface."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
@@ -21,7 +21,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
 
         with pytest.raises(RuntimeError, match="No client available"):
@@ -59,7 +59,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -83,7 +83,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_sync_client)
 
@@ -103,7 +103,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -137,7 +137,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_sync_client)
 
@@ -162,8 +162,8 @@ class TestAsyncPotOOInterface:
             "style": "beach_ball",
             "balance": 11000,
             "currency": "GBP",
-            "created": datetime.now().isoformat(),
-            "updated": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
+            "updated": datetime.now(tz=timezone.utc).isoformat(),
             "deleted": False,
         }
         mock_client._put = AsyncMock(return_value=mock_response)
@@ -174,8 +174,8 @@ class TestAsyncPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
             deleted=False,
         )
         pot._set_client(mock_client)
@@ -205,8 +205,8 @@ class TestAsyncPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
             deleted=False,
         )
         pot._set_client(mock_sync_client)
@@ -230,7 +230,7 @@ class TestAsyncTransactionOOInterface:
             "transaction": {
                 "id": "tx_123",
                 "amount": -1000,
-                "created": datetime.now().isoformat(),
+                "created": datetime.now(tz=timezone.utc).isoformat(),
                 "currency": "GBP",
                 "description": "Test Transaction",
                 "metadata": {"category": "food"},
@@ -241,7 +241,7 @@ class TestAsyncTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
@@ -266,7 +266,7 @@ class TestAsyncTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
