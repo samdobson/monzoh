@@ -66,9 +66,12 @@ def authenticate() -> str | None:
                     redirect_uri = existing_creds.get(
                         "redirect_uri", "http://localhost:8080/callback"
                     )
-                    assert client_id is not None
-                    assert client_secret is not None
-                    assert redirect_uri is not None
+                    if not client_id or not client_secret:
+                        raise ValueError(
+                            "Client ID and Client Secret are required"
+                        ) from None
+                    if not redirect_uri:
+                        redirect_uri = "http://localhost:8080/callback"
 
                     oauth = MonzoOAuth(
                         client_id=client_id,

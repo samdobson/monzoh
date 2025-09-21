@@ -42,9 +42,8 @@ def get_credentials_interactively(
         )
     )
 
-    if existing_creds.get("client_id"):
-        client_id = existing_creds["client_id"]
-        assert client_id is not None
+    client_id = existing_creds.get("client_id")
+    if client_id:
         console.print(f"✓ Found Client ID: [green]{client_id[:8]}...[/green]")
         creds["client_id"] = client_id
     else:
@@ -52,9 +51,8 @@ def get_credentials_interactively(
             "[bold]Enter your Monzo Client ID[/bold]", console=console
         ).strip()
 
-    if existing_creds.get("client_secret"):
-        client_secret = existing_creds["client_secret"]
-        assert client_secret is not None
+    client_secret = existing_creds.get("client_secret")
+    if client_secret:
         console.print(f"✓ Found Client Secret: [green]{'*' * 8}[/green]")
         creds["client_secret"] = client_secret
     else:
