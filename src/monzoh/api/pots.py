@@ -42,7 +42,7 @@ class PotsAPI:
         self,
         pot_id: str,
         source_account_id: str,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         dedupe_id: str | None = None,
     ) -> Pot:
         """Deposit money into a pot.
@@ -78,7 +78,7 @@ class PotsAPI:
         self,
         pot_id: str,
         destination_account_id: str,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         dedupe_id: str | None = None,
     ) -> Pot:
         """Withdraw money from a pot.

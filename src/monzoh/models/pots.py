@@ -143,7 +143,7 @@ class Pot(BaseModel):
         )
 
     def deposit(
-        self, amount: int | float | Decimal | str, dedupe_id: str | None = None
+        self, amount: float | Decimal | str, dedupe_id: str | None = None
     ) -> Pot:
         """Deposit money into this pot.
 
@@ -177,7 +177,7 @@ class Pot(BaseModel):
 
     def withdraw(
         self,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         destination_account_id: str | None = None,
         dedupe_id: str | None = None,
     ) -> Pot:
@@ -216,7 +216,7 @@ class Pot(BaseModel):
         return updated_pot
 
     async def adeposit(
-        self, amount: int | float | Decimal | str, dedupe_id: str | None = None
+        self, amount: float | Decimal | str, dedupe_id: str | None = None
     ) -> Pot:
         """Deposit money into this pot (async version).
 
@@ -258,7 +258,7 @@ class Pot(BaseModel):
 
     async def awithdraw(
         self,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         destination_account_id: str | None = None,
         dedupe_id: str | None = None,
     ) -> Pot:

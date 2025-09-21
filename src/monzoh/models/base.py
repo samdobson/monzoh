@@ -47,7 +47,7 @@ class ExpandParams(BaseModel):
     )
 
 
-def convert_amount_to_minor_units(amount: int | float | Decimal | str) -> int:
+def convert_amount_to_minor_units(amount: float | Decimal | str) -> int:
     """Convert amount from major units to minor units.
 
     Args:
