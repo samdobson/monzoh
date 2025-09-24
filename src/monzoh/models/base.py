@@ -72,16 +72,15 @@ def convert_amount_to_minor_units(amount: float | Decimal | str) -> int:
             amount = Decimal(amount)
         elif isinstance(amount, int | float):
             amount = Decimal(str(amount))
-
-        if amount < 0:
-            msg = "Amount cannot be negative"
-            raise ValueError(msg)
-
-        return int(amount * 100)
-
     except (ValueError, TypeError, ArithmeticError) as e:
         msg = f"Invalid amount '{amount}': {e}"
         raise ValueError(msg) from e
+
+    if amount < 0:
+        msg = "Amount cannot be negative"
+        raise ValueError(msg)
+
+    return int(amount * 100)
 
 
 def convert_amount_from_minor_units(amount: int) -> Decimal:
