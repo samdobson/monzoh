@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import builtins
 from datetime import datetime
 from decimal import Decimal
 from typing import TYPE_CHECKING, Any, Literal, cast
@@ -12,6 +11,8 @@ from pydantic import BaseModel, Field, field_validator
 from .base import convert_amount_from_minor_units
 
 if TYPE_CHECKING:
+    import builtins
+
     from monzoh.core import BaseSyncClient
     from monzoh.core.async_base import BaseAsyncClient
 

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import contextlib
 import json
-import types
-from typing import Any, TypedDict
+from typing import TYPE_CHECKING, Any, TypedDict
+
+if TYPE_CHECKING:
+    import types
 
 import httpx
 from httpx import QueryParams
