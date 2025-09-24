@@ -1,7 +1,7 @@
 """Tests for async receipts API."""
 
 from typing import Any, cast
-from unittest.mock import Mock
+from unittest.mock import Mock  # noqa: TC003
 
 import pytest
 
@@ -39,7 +39,7 @@ class TestAsyncReceiptsAPI:
         """
         response_data = {"receipt_id": "receipt_123"}
         cast(
-            Mock, mock_async_base_client._put
+            "Mock", mock_async_base_client._put
         ).return_value.json.return_value = response_data
 
         receipt = Receipt(
@@ -76,7 +76,7 @@ class TestAsyncReceiptsAPI:
         result = await receipts_api.create(receipt)
 
         assert result == "receipt_123"
-        cast(Mock, mock_async_base_client._put).assert_called_once_with(
+        cast("Mock", mock_async_base_client._put).assert_called_once_with(
             "/transaction-receipts",
             json_data=receipt.model_dump(exclude_none=True),
             headers={"Content-Type": "application/json"},
@@ -96,7 +96,7 @@ class TestAsyncReceiptsAPI:
         """
         response_data: dict[str, Any] = {}
         cast(
-            Mock, mock_async_base_client._put
+            "Mock", mock_async_base_client._put
         ).return_value.json.return_value = response_data
 
         receipt = Receipt(
@@ -129,7 +129,7 @@ class TestAsyncReceiptsAPI:
         """
         response_data = {"receipt_id": 12345}
         cast(
-            Mock, mock_async_base_client._put
+            "Mock", mock_async_base_client._put
         ).return_value.json.return_value = response_data
 
         receipt = Receipt(
@@ -176,12 +176,12 @@ class TestAsyncReceiptsAPI:
         }
         response_data = {"receipt": receipt_data}
         cast(
-            Mock, mock_async_base_client._get
+            "Mock", mock_async_base_client._get
         ).return_value.json.return_value = response_data
 
         result = await receipts_api.retrieve("tx_00008zIcpb1TB4yeIFXMzx")
 
-        cast(Mock, mock_async_base_client._get).assert_called_once_with(
+        cast("Mock", mock_async_base_client._get).assert_called_once_with(
             "/transaction-receipts", params={"external_id": "tx_00008zIcpb1TB4yeIFXMzx"}
         )
         assert isinstance(result, Receipt)
@@ -202,6 +202,6 @@ class TestAsyncReceiptsAPI:
         """
         await receipts_api.delete("tx_00008zIcpb1TB4yeIFXMzx")
 
-        cast(Mock, mock_async_base_client._delete).assert_called_once_with(
+        cast("Mock", mock_async_base_client._delete).assert_called_once_with(
             "/transaction-receipts", params={"external_id": "tx_00008zIcpb1TB4yeIFXMzx"}
         )

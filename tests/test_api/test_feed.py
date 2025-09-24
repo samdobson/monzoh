@@ -21,14 +21,12 @@ class TestFeedAPI:
     def test_create_item_minimal(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test create item with minimal parameters.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
@@ -53,14 +51,12 @@ class TestFeedAPI:
     def test_create_item_full(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test create item with all parameters.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
@@ -96,14 +92,12 @@ class TestFeedAPI:
     def test_create_item_partial(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test create item with some optional parameters.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})

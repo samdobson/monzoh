@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
-import builtins
-from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from ..core import BaseSyncClient
-from ..models import Transaction, TransactionResponse, TransactionsResponse
+if TYPE_CHECKING:
+    import builtins
+    from datetime import datetime
+
+    from monzoh.core import BaseSyncClient
+from monzoh.models import Transaction, TransactionResponse, TransactionsResponse
 
 
 class TransactionsAPI:

@@ -63,14 +63,14 @@ class TestAsyncAttachmentsAPI:
         register_response = Mock()
         register_response.json.return_value = register_response_data
 
-        async def mock_post_side_effect(*args: Any, **kwargs: Any) -> Mock:
+        async def mock_post_side_effect(*args: Any, **_kwargs: Any) -> Mock:
             if args[0] == "/attachment/upload":
                 return upload_response
-            elif args[0] == "/attachment/register":
+            if args[0] == "/attachment/register":
                 return register_response
             return Mock()
 
-        cast(Mock, mock_async_base_client._post).side_effect = mock_post_side_effect
+        cast("Mock", mock_async_base_client._post).side_effect = mock_post_side_effect
 
         mock_client = Mock()
         mock_response = Mock()
@@ -138,14 +138,16 @@ class TestAsyncAttachmentsAPI:
             register_response = Mock()
             register_response.json.return_value = register_response_data
 
-            async def mock_post_side_effect(*args: Any, **kwargs: Any) -> Mock:
+            async def mock_post_side_effect(*args: Any, **_kwargs: Any) -> Mock:
                 if args[0] == "/attachment/upload":
                     return upload_response
-                elif args[0] == "/attachment/register":
+                if args[0] == "/attachment/register":
                     return register_response
                 return Mock()
 
-            cast(Mock, mock_async_base_client._post).side_effect = mock_post_side_effect
+            cast(
+                "Mock", mock_async_base_client._post
+            ).side_effect = mock_post_side_effect
 
             mock_client = Mock()
             mock_response = Mock()
@@ -169,7 +171,7 @@ class TestAsyncAttachmentsAPI:
 
             expected_file_name = Path(tmp_file_path).name
 
-            actual_calls = cast(Mock, mock_async_base_client._post).call_args_list
+            actual_calls = cast("Mock", mock_async_base_client._post).call_args_list
             assert len(actual_calls) >= 1
             assert actual_calls[0][0] == ("/attachment/upload",)
             assert actual_calls[0][1]["data"]["file_name"] == expected_file_name
@@ -214,10 +216,10 @@ class TestAsyncAttachmentsAPI:
         response_mock = Mock()
         response_mock.json.return_value = response_data
 
-        async def mock_post(*args: Any, **kwargs: Any) -> Mock:
+        async def mock_post(*_args: Any, **_kwargs: Any) -> Mock:
             return response_mock
 
-        cast(Mock, mock_async_base_client._post).side_effect = mock_post
+        cast("Mock", mock_async_base_client._post).side_effect = mock_post
 
         result = await attachments_api._register(
             "tx_00008zIcpb1TB4yeIFXMzx",
@@ -225,7 +227,7 @@ class TestAsyncAttachmentsAPI:
             "image/jpeg",
         )
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
+        cast("Mock", mock_async_base_client._post).assert_called_once_with(
             "/attachment/register",
             data={
                 "external_id": "tx_00008zIcpb1TB4yeIFXMzx",
@@ -249,11 +251,11 @@ class TestAsyncAttachmentsAPI:
             attachments_api: Async attachments API fixture.
             mock_async_base_client: Mock async base client fixture.
         """
-        cast(Mock, mock_async_base_client._post).return_value = AsyncMock()
+        cast("Mock", mock_async_base_client._post).return_value = AsyncMock()
 
         await attachments_api.deregister("attach_00009238aOZ8rp29FlJDQc")
 
-        cast(Mock, mock_async_base_client._post).assert_called_once_with(
+        cast("Mock", mock_async_base_client._post).assert_called_once_with(
             "/attachment/deregister", data={"id": "attach_00009238aOZ8rp29FlJDQc"}
         )
 

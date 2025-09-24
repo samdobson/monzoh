@@ -1,6 +1,6 @@
 """Main Monzo API client."""
 
-from typing import Any
+import types
 
 import httpx
 
@@ -28,7 +28,11 @@ def _load_cached_token() -> str | None:
         from rich.console import Console
 
         from .auth import MonzoOAuth
-        from .cli import load_env_credentials, load_token_from_cache, try_refresh_token
+        from .cli import (
+            load_env_credentials,
+            load_token_from_cache,
+            try_refresh_token,
+        )
 
         cached_token = load_token_from_cache()
         if cached_token and isinstance(cached_token, dict):
@@ -56,8 +60,9 @@ def _load_cached_token() -> str | None:
                 if refreshed_token:
                     return refreshed_token
 
-        return None
     except (ImportError, AttributeError, TypeError, ValueError, KeyError):
+        return None
+    else:
         return None
 
 
@@ -100,7 +105,12 @@ class MonzoClient:
         self._base_client.__enter__()
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Context manager exit.
 
         Args:

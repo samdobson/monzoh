@@ -1,8 +1,9 @@
 """Tests for CLI token caching functionality."""
 
 import json
+import os
 import tempfile
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
@@ -54,7 +55,7 @@ class TestTokenCache:
 
             assert cache_path.exists()
 
-            with open(cache_path) as f:
+            with cache_path.open() as f:
                 data = json.load(f)
 
             assert data["access_token"] == "test_access"
@@ -77,7 +78,7 @@ class TestTokenCache:
         with (
             patch(
                 "monzoh.cli.token_cache.get_token_cache_path",
-                side_effect=Exception("Permission denied"),
+                side_effect=PermissionError("Permission denied"),
             ),
             patch.object(console, "print") as mock_print,
         ):
@@ -89,7 +90,7 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            expires_at = datetime.now() + timedelta(hours=1)
+            expires_at = datetime.now(tz=timezone.utc) + timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
                 "refresh_token": "test_refresh",
@@ -98,7 +99,7 @@ class TestTokenCache:
                 "client_id": "client123",
             }
 
-            with open(cache_path, "w") as f:
+            with cache_path.open("w") as f:
                 json.dump(cache_data, f)
 
             with patch(
@@ -114,7 +115,7 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            expires_at = datetime.now() - timedelta(hours=1)
+            expires_at = datetime.now(tz=timezone.utc) - timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
                 "refresh_token": "test_refresh",
@@ -123,7 +124,7 @@ class TestTokenCache:
                 "client_id": "client123",
             }
 
-            with open(cache_path, "w") as f:
+            with cache_path.open("w") as f:
                 json.dump(cache_data, f)
 
             with patch(
@@ -138,7 +139,7 @@ class TestTokenCache:
         with tempfile.TemporaryDirectory() as temp_dir:
             cache_path = Path(temp_dir) / "tokens.json"
 
-            expires_at = datetime.now() - timedelta(hours=1)
+            expires_at = datetime.now(tz=timezone.utc) - timedelta(hours=1)
             cache_data = {
                 "access_token": "test_access",
                 "refresh_token": "test_refresh",
@@ -147,7 +148,7 @@ class TestTokenCache:
                 "client_id": "client123",
             }
 
-            with open(cache_path, "w") as f:
+            with cache_path.open("w") as f:
                 json.dump(cache_data, f)
 
             with patch(
@@ -231,7 +232,7 @@ class TestTryRefreshToken:
         oauth_mock = Mock()
         console = Console()
 
-        oauth_mock.refresh_token.side_effect = Exception("Refresh failed")
+        oauth_mock.refresh_token.side_effect = ValueError("Refresh failed")
         oauth_mock.__enter__ = Mock(return_value=oauth_mock)
         oauth_mock.__exit__ = Mock(return_value=None)
 
@@ -257,9 +258,6 @@ class TestTryRefreshToken:
 
     def test_get_token_cache_path_windows(self) -> None:
         """Test get_token_cache_path on Windows."""
-        import os
-        import tempfile
-
         with (
             tempfile.TemporaryDirectory() as temp_dir,
             patch("platform.system", return_value="Windows"),
@@ -271,9 +269,6 @@ class TestTryRefreshToken:
 
     def test_get_token_cache_path_linux(self) -> None:
         """Test get_token_cache_path on Linux."""
-        import os
-        import tempfile
-
         with (
             tempfile.TemporaryDirectory() as temp_dir,
             patch("platform.system", return_value="Linux"),

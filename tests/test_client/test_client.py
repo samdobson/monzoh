@@ -36,14 +36,12 @@ class TestMonzoClient:
     def test_whoami(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test whoami endpoint.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(
@@ -262,7 +260,7 @@ class TestMockResponse:
         """Test raise_for_status with error status code."""
         response = MockResponse({}, status_code=400)
 
-        with pytest.raises(Exception) as exc_info:
+        with pytest.raises(MonzoError) as exc_info:
             response.raise_for_status()
 
         assert "HTTP 400 error" in str(exc_info.value)
@@ -567,10 +565,8 @@ class TestClientTokenLoading:
     @patch("monzoh.cli.load_env_credentials")
     @patch("monzoh.cli.try_refresh_token")
     @patch("monzoh.client.MonzoOAuth")
-    @patch("rich.console.Console")
     def test_load_cached_token_refresh_attempt(
         self,
-        mock_console_class: Mock,
         mock_oauth_class: Mock,
         mock_refresh: Mock,
         mock_credentials: Mock,

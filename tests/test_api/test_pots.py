@@ -14,7 +14,6 @@ class TestPotsAPI:
     def test_list_pots(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
@@ -22,7 +21,6 @@ class TestPotsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_pot: Sample pot data fixture.
         """
@@ -45,7 +43,6 @@ class TestPotsAPI:
     def test_deposit(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
@@ -53,7 +50,6 @@ class TestPotsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_pot: Sample pot data fixture.
         """
@@ -83,7 +79,6 @@ class TestPotsAPI:
     def test_withdraw(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
@@ -91,7 +86,6 @@ class TestPotsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_pot: Sample pot data fixture.
         """
@@ -121,7 +115,6 @@ class TestPotsAPI:
     def test_deposit_auto_dedupe_id(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
@@ -129,7 +122,6 @@ class TestPotsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_pot: Sample pot data fixture.
         """
@@ -163,7 +155,6 @@ class TestPotsAPI:
     def test_withdraw_auto_dedupe_id(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_pot: dict[str, Any],
     ) -> None:
@@ -171,7 +162,6 @@ class TestPotsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_pot: Sample pot data fixture.
         """

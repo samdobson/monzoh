@@ -5,6 +5,8 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import Mock, patch
 
+import pytest
+
 from monzoh.api.attachments import AttachmentsAPI
 from monzoh.models import Attachment
 
@@ -26,7 +28,6 @@ class TestAttachmentsAPI:
         self,
         mock_httpx_client_class: Any,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test simplified upload process.
@@ -34,7 +35,6 @@ class TestAttachmentsAPI:
         Args:
             mock_httpx_client_class: Mock httpx client class fixture.
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         upload_data = {
@@ -88,7 +88,6 @@ class TestAttachmentsAPI:
         self,
         mock_httpx_client_class: Any,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test upload with file path.
@@ -96,7 +95,6 @@ class TestAttachmentsAPI:
         Args:
             mock_httpx_client_class: Mock httpx client class fixture.
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         with tempfile.NamedTemporaryFile(
@@ -170,23 +168,18 @@ class TestAttachmentsAPI:
         """
         api = AttachmentsAPI(monzo_client._base_client)
 
-        try:
+        with pytest.raises(ValueError, match="Either file_path must be provided"):
             api.upload(transaction_id="tx_123")
-            raise AssertionError("Expected ValueError")
-        except ValueError as e:
-            assert "Either file_path must be provided" in str(e)
 
     def test_private_register(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test private register method.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         attachment_data = {
@@ -215,14 +208,12 @@ class TestAttachmentsAPI:
     def test_deregister(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test deregister.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})

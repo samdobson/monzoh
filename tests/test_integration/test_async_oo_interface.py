@@ -1,6 +1,6 @@
 """Tests for async object-oriented interface."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
@@ -19,7 +19,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
 
         with pytest.raises(RuntimeError, match="No client available"):
@@ -31,12 +31,10 @@ class TestAsyncAccountOOInterface:
         with pytest.raises(RuntimeError, match="No client available"):
             await account.alist_pots()
 
-        with pytest.raises(RuntimeError, match="No client available"):
-            from monzoh.models.feed import FeedItemParams
+        from monzoh.models.feed import FeedItemParams
 
-            params = FeedItemParams(
-                title="Test", image_url="https://example.com/image.jpg"
-            )
+        params = FeedItemParams(title="Test", image_url="https://example.com/image.jpg")
+        with pytest.raises(RuntimeError, match="No client available"):
             await account.acreate_feed_item(params)
 
     @pytest.mark.asyncio
@@ -59,7 +57,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -85,12 +83,12 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_sync_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on account with sync client"
+            TypeError, match="Async method called on account with sync client"
         ):
             await account.aget_balance()
 
@@ -107,7 +105,7 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_client)
 
@@ -144,13 +142,13 @@ class TestAsyncAccountOOInterface:
         account = Account(
             id="acc_123",
             description="Test Account",
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
         )
         account._set_client(mock_sync_client)
 
         params = FeedItemParams(title="Test", image_url="https://example.com/image.jpg")
         with pytest.raises(
-            RuntimeError, match="Async method called on account with sync client"
+            TypeError, match="Async method called on account with sync client"
         ):
             await account.acreate_feed_item(params)
 
@@ -169,8 +167,8 @@ class TestAsyncPotOOInterface:
             "style": "beach_ball",
             "balance": 11000,
             "currency": "GBP",
-            "created": datetime.now().isoformat(),
-            "updated": datetime.now().isoformat(),
+            "created": datetime.now(tz=timezone.utc).isoformat(),
+            "updated": datetime.now(tz=timezone.utc).isoformat(),
             "deleted": False,
         }
         mock_client._put = AsyncMock(return_value=mock_response)
@@ -181,8 +179,8 @@ class TestAsyncPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
             deleted=False,
         )
         pot._set_client(mock_client)
@@ -214,15 +212,15 @@ class TestAsyncPotOOInterface:
             style="beach_ball",
             balance=10000,
             currency="GBP",
-            created=datetime.now(),
-            updated=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
+            updated=datetime.now(tz=timezone.utc),
             deleted=False,
         )
         pot._set_client(mock_sync_client)
         pot._source_account_id = "acc_123"
 
         with pytest.raises(
-            RuntimeError, match="Async method called on pot with sync client"
+            TypeError, match="Async method called on pot with sync client"
         ):
             await pot.adeposit(10.00)
 
@@ -239,7 +237,7 @@ class TestAsyncTransactionOOInterface:
             "transaction": {
                 "id": "tx_123",
                 "amount": -1000,
-                "created": datetime.now().isoformat(),
+                "created": datetime.now(tz=timezone.utc).isoformat(),
                 "currency": "GBP",
                 "description": "Test Transaction",
                 "metadata": {"category": "food"},
@@ -250,7 +248,7 @@ class TestAsyncTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
@@ -277,13 +275,13 @@ class TestAsyncTransactionOOInterface:
         transaction = Transaction(
             id="tx_123",
             amount=-1000,
-            created=datetime.now(),
+            created=datetime.now(tz=timezone.utc),
             currency="GBP",
             description="Test Transaction",
         )
         transaction._set_client(mock_sync_client)
 
         with pytest.raises(
-            RuntimeError, match="Async method called on transaction with sync client"
+            TypeError, match="Async method called on transaction with sync client"
         ):
             await transaction.aannotate({"category": "food"})

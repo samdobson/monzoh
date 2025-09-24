@@ -2,9 +2,11 @@
 
 from pathlib import Path
 
-from ..core import BaseSyncClient
-from ..models import Attachment, AttachmentResponse, AttachmentUpload
-from ..utils import infer_file_type, read_file_data
+import httpx
+
+from monzoh.core import BaseSyncClient
+from monzoh.models import Attachment, AttachmentResponse, AttachmentUpload
+from monzoh.utils import infer_file_type, read_file_data
 
 
 class AttachmentsAPI:
@@ -51,10 +53,11 @@ class AttachmentsAPI:
             actual_file_type = file_type or "application/octet-stream"
             actual_file_data = file_data
         else:
-            raise ValueError(
+            msg = (
                 "Either file_path must be provided, or both file_name and file_data "
                 "must be provided"
             )
+            raise ValueError(msg)
 
         upload_info = self._get_upload_url(
             file_name=actual_file_name,
@@ -68,12 +71,11 @@ class AttachmentsAPI:
             file_type=actual_file_type,
         )
 
-        attachment = self._register(
+        return self._register(
             external_id=transaction_id,
             file_url=upload_info.file_url,
             file_type=actual_file_type,
         )
-        return attachment
 
     def _get_upload_url(
         self, file_name: str, file_type: str, content_length: int
@@ -144,8 +146,6 @@ class AttachmentsAPI:
         Returns:
             None
         """
-        import httpx
-
         headers = {
             "Content-Type": file_type,
             "Content-Length": str(len(file_data)),

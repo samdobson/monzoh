@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from decimal import Decimal
+from datetime import datetime  # noqa: TC003
+from decimal import Decimal  # noqa: TC003
 from typing import TYPE_CHECKING, Any, cast
 from uuid import uuid4
 
@@ -12,8 +12,8 @@ from pydantic import BaseModel, Field, field_validator
 from .base import convert_amount_from_minor_units, convert_amount_to_minor_units
 
 if TYPE_CHECKING:
-    from ..core import BaseSyncClient
-    from ..core.async_base import BaseAsyncClient
+    from monzoh.core import BaseSyncClient
+    from monzoh.core.async_base import BaseAsyncClient
 
 
 class Pot(BaseModel):
@@ -62,7 +62,7 @@ class Pot(BaseModel):
     currency: str = Field(..., description="ISO 4217 currency code")
     created: datetime = Field(..., description="Pot creation timestamp")
     updated: datetime = Field(..., description="Last pot update timestamp")
-    deleted: bool = Field(False, description="Whether the pot is deleted")
+    deleted: bool = Field(default=False, description="Whether the pot is deleted")
     account_id: str | None = Field(None, description="Associated account identifier")
     goal_amount: Decimal | None = Field(
         None,
@@ -100,7 +100,7 @@ class Pot(BaseModel):
         self._client: BaseSyncClient | BaseAsyncClient | None = None
         self._source_account_id: str | None = None
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
 
@@ -121,10 +121,11 @@ class Pot(BaseModel):
     def _ensure_client(self) -> BaseSyncClient | BaseAsyncClient:
         """Ensure client is available for API calls."""
         if self._client is None:
-            raise RuntimeError(
+            msg = (
                 "No client available. Pot must be retrieved from MonzoClient "
                 "to use methods."
             )
+            raise RuntimeError(msg)
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Pot:
@@ -138,12 +139,11 @@ class Pot(BaseModel):
             return self._source_account_id
         if self.account_id:
             return self.account_id
-        raise RuntimeError(
-            "No source account ID available. Cannot perform pot operations."
-        )
+        msg = "No source account ID available. Cannot perform pot operations."
+        raise RuntimeError(msg)
 
     def deposit(
-        self, amount: int | float | Decimal | str, dedupe_id: str | None = None
+        self, amount: float | Decimal | str, dedupe_id: str | None = None
     ) -> Pot:
         """Deposit money into this pot.
 
@@ -177,7 +177,7 @@ class Pot(BaseModel):
 
     def withdraw(
         self,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         destination_account_id: str | None = None,
         dedupe_id: str | None = None,
     ) -> Pot:
@@ -216,7 +216,7 @@ class Pot(BaseModel):
         return updated_pot
 
     async def adeposit(
-        self, amount: int | float | Decimal | str, dedupe_id: str | None = None
+        self, amount: float | Decimal | str, dedupe_id: str | None = None
     ) -> Pot:
         """Deposit money into this pot (async version).
 
@@ -231,14 +231,15 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on pot with sync client. "
                 "Use deposit() instead or retrieve pot from AsyncMonzoClient."
             )
+            raise TypeError(msg)
         source_account_id = self._get_source_account_id()
 
         if dedupe_id is None:
@@ -260,7 +261,7 @@ class Pot(BaseModel):
 
     async def awithdraw(
         self,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         destination_account_id: str | None = None,
         dedupe_id: str | None = None,
     ) -> Pot:
@@ -279,14 +280,15 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on pot with sync client. "
                 "Use withdraw() instead or retrieve pot from AsyncMonzoClient."
             )
+            raise TypeError(msg)
 
         if destination_account_id is None:
             destination_account_id = self._get_source_account_id()

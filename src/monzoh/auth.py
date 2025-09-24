@@ -1,7 +1,7 @@
 """OAuth2 authentication client for Monzo API."""
 
 import contextlib
-from typing import Any
+import types
 from urllib.parse import urlencode
 
 import httpx
@@ -59,7 +59,12 @@ class MonzoOAuth:
         """
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Context manager exit.
 
         Args:
@@ -126,9 +131,8 @@ class MonzoOAuth:
             return OAuthToken(**response.json())
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(
-                f"Network error during token exchange: {e}"
-            ) from e
+            msg = f"Network error during token exchange: {e}"
+            raise MonzoAuthenticationError(msg) from e
 
     def refresh_token(self, refresh_token: str) -> OAuthToken:
         """Refresh an access token.
@@ -166,9 +170,8 @@ class MonzoOAuth:
             return OAuthToken(**response.json())
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(
-                f"Network error during token refresh: {e}"
-            ) from e
+            msg = f"Network error during token refresh: {e}"
+            raise MonzoAuthenticationError(msg) from e
 
     def logout(self, access_token: str) -> None:
         """Invalidate an access token.
@@ -196,4 +199,5 @@ class MonzoOAuth:
                 )
 
         except httpx.RequestError as e:
-            raise MonzoAuthenticationError(f"Network error during logout: {e}") from e
+            msg = f"Network error during logout: {e}"
+            raise MonzoAuthenticationError(msg) from e

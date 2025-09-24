@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from typing import Any, cast
-from unittest.mock import Mock
+from unittest.mock import Mock  # noqa: TC003
 
 import pytest
 
@@ -39,13 +39,13 @@ class TestAsyncAccountsAPI:
             mock_async_base_client: Mock async base client fixture.
             sample_account: Sample account data fixture.
         """
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
+        cast("Mock", mock_async_base_client._get).return_value.json.return_value = {
             "accounts": [sample_account]
         }
 
         accounts = await accounts_api.list()
 
-        cast(Mock, mock_async_base_client._get).assert_called_once_with(
+        cast("Mock", mock_async_base_client._get).assert_called_once_with(
             "/accounts", params={}
         )
         assert len(accounts) == 1
@@ -65,13 +65,13 @@ class TestAsyncAccountsAPI:
             mock_async_base_client: Mock async base client fixture.
             sample_account: Sample account data fixture.
         """
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
+        cast("Mock", mock_async_base_client._get).return_value.json.return_value = {
             "accounts": [sample_account]
         }
 
         accounts = await accounts_api.list(account_type="uk_retail")
 
-        cast(Mock, mock_async_base_client._get).assert_called_once_with(
+        cast("Mock", mock_async_base_client._get).assert_called_once_with(
             "/accounts", params={"account_type": "uk_retail"}
         )
         assert len(accounts) == 1
@@ -91,12 +91,12 @@ class TestAsyncAccountsAPI:
             sample_balance: Sample balance data fixture.
         """
         cast(
-            Mock, mock_async_base_client._get
+            "Mock", mock_async_base_client._get
         ).return_value.json.return_value = sample_balance
 
         balance = await accounts_api.get_balance("test_account_id")
 
-        cast(Mock, mock_async_base_client._get).assert_called_once_with(
+        cast("Mock", mock_async_base_client._get).assert_called_once_with(
             "/balance", params={"account_id": "test_account_id"}
         )
         assert balance.balance == Decimal("50.00")

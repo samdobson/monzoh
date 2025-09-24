@@ -1,7 +1,7 @@
 """Receipts API endpoints."""
 
-from ..core import BaseSyncClient
-from ..models import Receipt, ReceiptResponse
+from monzoh.core import BaseSyncClient
+from monzoh.models import Receipt, ReceiptResponse
 
 
 class ReceiptsAPI:

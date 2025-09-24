@@ -12,7 +12,6 @@ class TestAccountsAPI:
     def test_list_accounts(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_account: dict[str, Any],
     ) -> None:
@@ -20,7 +19,6 @@ class TestAccountsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_account: Sample account data fixture.
         """
@@ -41,7 +39,6 @@ class TestAccountsAPI:
     def test_list_accounts_with_filter(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_account: dict[str, Any],
     ) -> None:
@@ -49,7 +46,6 @@ class TestAccountsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_account: Sample account data fixture.
         """
@@ -67,7 +63,6 @@ class TestAccountsAPI:
     def test_get_balance(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_balance: dict[str, Any],
     ) -> None:
@@ -75,7 +70,6 @@ class TestAccountsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_balance: Sample balance data fixture.
         """

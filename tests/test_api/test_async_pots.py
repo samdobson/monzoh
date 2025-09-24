@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from typing import Any, cast
-from unittest.mock import Mock
+from unittest.mock import Mock  # noqa: TC003
 
 import pytest
 
@@ -40,13 +40,13 @@ class TestAsyncPotsAPI:
             mock_async_base_client: Mock async base client fixture.
             sample_pot: Sample pot data fixture.
         """
-        cast(Mock, mock_async_base_client._get).return_value.json.return_value = {
+        cast("Mock", mock_async_base_client._get).return_value.json.return_value = {
             "pots": [sample_pot]
         }
 
         pots = await pots_api.list("acc_123")
 
-        cast(Mock, mock_async_base_client._get).assert_called_once_with(
+        cast("Mock", mock_async_base_client._get).assert_called_once_with(
             "/pots", params={"current_account_id": "acc_123"}
         )
         assert len(pots) == 1
@@ -73,7 +73,7 @@ class TestAsyncPotsAPI:
         updated_pot["balance"] = 150000
 
         cast(
-            Mock, mock_async_base_client._put
+            "Mock", mock_async_base_client._put
         ).return_value.json.return_value = updated_pot
 
         pot = await pots_api.deposit(
@@ -83,7 +83,7 @@ class TestAsyncPotsAPI:
             dedupe_id="deposit_123",
         )
 
-        cast(Mock, mock_async_base_client._put).assert_called_once_with(
+        cast("Mock", mock_async_base_client._put).assert_called_once_with(
             "/pots/pot_123/deposit",
             data={
                 "source_account_id": "acc_123",
@@ -112,7 +112,7 @@ class TestAsyncPotsAPI:
         updated_pot["balance"] = 120000
 
         cast(
-            Mock, mock_async_base_client._put
+            "Mock", mock_async_base_client._put
         ).return_value.json.return_value = updated_pot
 
         pot = await pots_api.withdraw(
@@ -122,7 +122,7 @@ class TestAsyncPotsAPI:
             dedupe_id="withdraw_123",
         )
 
-        cast(Mock, mock_async_base_client._put).assert_called_once_with(
+        cast("Mock", mock_async_base_client._put).assert_called_once_with(
             "/pots/pot_123/withdraw",
             data={
                 "destination_account_id": "acc_123",

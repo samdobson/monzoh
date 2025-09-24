@@ -3,20 +3,20 @@
 import contextlib
 import json
 import os
-from datetime import datetime, timedelta
+import platform
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Any
 
 from rich.console import Console
 
-from ..auth import MonzoOAuth
-from ..models import OAuthToken
+from monzoh.auth import MonzoOAuth
+from monzoh.exceptions import MonzoError
+from monzoh.models import OAuthToken
 
 
 def get_token_cache_path() -> Path:
     """Get path for token cache file."""
-    import platform
-
     system = platform.system()
 
     if system == "Windows":
@@ -38,7 +38,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
     try:
         cache_path = get_token_cache_path()
 
-        expires_at = datetime.now() + timedelta(seconds=token.expires_in)
+        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=token.expires_in)
 
         cache_data = {
             "access_token": token.access_token,
@@ -48,7 +48,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
             "client_id": token.client_id,
         }
 
-        with open(cache_path, "w") as f:
+        with cache_path.open("w") as f:
             json.dump(cache_data, f, indent=2)
 
         with contextlib.suppress(OSError):
@@ -56,11 +56,11 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
 
         console.print(f"💾 Token cached to [green]{cache_path}[/green]")
 
-    except Exception as e:
+    except (OSError, ValueError, TypeError, KeyError, PermissionError) as e:
         console.print(f"⚠️  [yellow]Warning: Could not cache token: {e}[/yellow]")
 
 
-def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | None:
+def load_token_from_cache(*, include_expired: bool = False) -> dict[str, Any] | None:
     """Load token from cache file.
 
     Args:
@@ -75,18 +75,18 @@ def load_token_from_cache(include_expired: bool = False) -> dict[str, Any] | Non
         if not cache_path.exists():
             return None
 
-        with open(cache_path) as f:
+        with cache_path.open() as f:
             cache_data: dict[str, Any] = json.load(f)
 
         if not include_expired:
             expires_at = datetime.fromisoformat(cache_data["expires_at"])
-            if datetime.now() >= expires_at - timedelta(minutes=5):
+            if datetime.now(tz=timezone.utc) >= expires_at - timedelta(minutes=5):
                 return None
-
-        return cache_data
 
     except (OSError, ValueError, TypeError, KeyError, FileNotFoundError):
         return None
+    else:
+        return cache_data
 
 
 def clear_token_cache() -> None:
@@ -114,9 +114,10 @@ def try_refresh_token(
 
         save_token_to_cache(new_token, console)
         console.print("✅ [green]Token refreshed successfully![/green]")
-        return new_token.access_token
 
-    except Exception as e:
+    except (MonzoError, OSError, ValueError, TypeError, KeyError) as e:
         console.print(f"⚠️  [yellow]Token refresh failed: {e}[/yellow]")
         clear_token_cache()
         return None
+    else:
+        return new_token.access_token

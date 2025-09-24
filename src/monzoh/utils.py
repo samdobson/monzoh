@@ -28,5 +28,5 @@ def read_file_data(file_path: str | Path) -> bytes:
         File binary data
     """
     path = Path(file_path)
-    with open(path, "rb") as f:
+    with path.open("rb") as f:
         return f.read()

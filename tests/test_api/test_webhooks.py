@@ -21,14 +21,12 @@ class TestWebhooksAPI:
     def test_register(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test register webhook.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         webhook_data = {
@@ -53,14 +51,12 @@ class TestWebhooksAPI:
     def test_list(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test list webhooks.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         webhook_data = [
@@ -91,14 +87,12 @@ class TestWebhooksAPI:
     def test_list_empty(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test list webhooks with empty result.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         response_data: dict[str, Any] = {"webhooks": []}
@@ -114,14 +108,12 @@ class TestWebhooksAPI:
     def test_delete(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test delete webhook.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})

@@ -2,9 +2,9 @@
 
 from decimal import Decimal
 
-from ..core.async_base import BaseAsyncClient
-from ..models import Pot, PotsResponse
-from ..models.base import convert_amount_to_minor_units
+from monzoh.core.async_base import BaseAsyncClient
+from monzoh.models import Pot, PotsResponse
+from monzoh.models.base import convert_amount_to_minor_units
 
 
 class AsyncPotsAPI:
@@ -41,7 +41,7 @@ class AsyncPotsAPI:
         self,
         pot_id: str,
         source_account_id: str,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         dedupe_id: str,
     ) -> Pot:
         """Deposit money into a pot.
@@ -73,7 +73,7 @@ class AsyncPotsAPI:
         self,
         pot_id: str,
         destination_account_id: str,
-        amount: int | float | Decimal | str,
+        amount: float | Decimal | str,
         dedupe_id: str,
     ) -> Pot:
         """Withdraw money from a pot.

@@ -4,20 +4,36 @@ from __future__ import annotations
 
 import contextlib
 import json
-from typing import Any
+from typing import TYPE_CHECKING, Any, TypedDict
+
+if TYPE_CHECKING:
+    import types
 
 import httpx
 from httpx import QueryParams
+from typing_extensions import Self, Unpack
 
-from ..exceptions import (
+from monzoh.exceptions import (
     MonzoAuthenticationError,
+    MonzoError,
     MonzoNetworkError,
     create_error_from_response,
 )
-from ..models import WhoAmI
+from monzoh.models import WhoAmI
+
 from .mock_data import get_mock_response
 
 QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
+
+
+class RequestOptions(TypedDict, total=False):
+    """Optional parameters for HTTP requests."""
+
+    params: QueryParamsType
+    data: dict[str, Any] | None
+    json_data: dict[str, Any] | None
+    files: dict[str, Any] | None
+    headers: dict[str, str] | None
 
 
 class MockResponse:
@@ -28,7 +44,7 @@ class MockResponse:
         status_code: HTTP status code to simulate
     """
 
-    def __init__(self, json_data: dict[str, Any], status_code: int = 200):
+    def __init__(self, json_data: dict[str, Any], status_code: int = 200) -> None:
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
@@ -49,10 +65,11 @@ class MockResponse:
         """Mock implementation of raise_for_status.
 
         Raises:
-            Exception: If status code indicates an error (>= 400)
+            MonzoError: If status code indicates an error (>= 400)
         """
         if self.status_code >= 400:
-            raise Exception(f"HTTP {self.status_code} error")
+            msg = f"HTTP {self.status_code} error"
+            raise MonzoError(msg, status_code=self.status_code)
 
 
 class BaseSyncClient:
@@ -104,7 +121,8 @@ class BaseSyncClient:
             MonzoAuthenticationError: If access token is not set
         """
         if not self.access_token:
-            raise MonzoAuthenticationError("Access token is not set.")
+            msg = "Access token is not set."
+            raise MonzoAuthenticationError(msg)
         return {"Authorization": f"Bearer {self.access_token}"}
 
     @property
@@ -116,7 +134,7 @@ class BaseSyncClient:
         """
         return self.access_token == "test"  # noqa: S105
 
-    def __enter__(self) -> BaseSyncClient:
+    def __enter__(self) -> Self:
         """Context manager entry.
 
         Returns:
@@ -124,7 +142,12 @@ class BaseSyncClient:
         """
         return self
 
-    def __exit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Context manager exit.
 
         Args:
@@ -139,22 +162,14 @@ class BaseSyncClient:
         self,
         method: str,
         endpoint: str,
-        params: QueryParamsType = None,
-        data: dict[str, Any] | None = None,
-        json_data: dict[str, Any] | None = None,
-        files: dict[str, Any] | None = None,
-        headers: dict[str, str] | None = None,
+        **options: Unpack[RequestOptions],
     ) -> httpx.Response | MockResponse:
         """Make HTTP request.
 
         Args:
             method: HTTP method
             endpoint: API endpoint (without base URL)
-            params: URL parameters
-            data: Form data
-            json_data: JSON data
-            files: File uploads
-            headers: Additional headers
+            **options: Request options including params, data, json_data, files, headers
 
         Returns:
             HTTP response
@@ -163,6 +178,12 @@ class BaseSyncClient:
             MonzoNetworkError: If network request fails
             create_error_from_response: If API returns an error response
         """
+        params: QueryParamsType | None = options.get("params")
+        data: dict[str, Any] | None = options.get("data")
+        json_data: dict[str, Any] | None = options.get("json_data")
+        files: dict[str, Any] | None = options.get("files")
+        headers: dict[str, str] | None = options.get("headers")
+
         if self.is_mock_mode:
             mock_data = get_mock_response(
                 endpoint, method, params=params, data=data, json_data=json_data
@@ -197,10 +218,11 @@ class BaseSyncClient:
                     error_data,
                 )
 
-            return response
-
         except httpx.RequestError as e:
-            raise MonzoNetworkError(f"Network error: {e}") from e
+            msg = f"Network error: {e}"
+            raise MonzoNetworkError(msg) from e
+        else:
+            return response
 
     def _get(
         self,

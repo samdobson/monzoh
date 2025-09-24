@@ -227,7 +227,7 @@ class SpendingAlerts:
         from datetime import datetime, timedelta
         
         # Start of current week (Monday)
-        today = datetime.now()
+        today = datetime.now(tz=datetime.timezone.utc)
         start_of_week = today - timedelta(days=today.weekday())
         
         transactions = self.client.transactions.list(
@@ -325,7 +325,7 @@ class FinancialAchievements:
         # Get last month's transactions
         from datetime import datetime, timedelta
         
-        last_month = datetime.now() - timedelta(days=30)
+        last_month = datetime.now(tz=datetime.timezone.utc) - timedelta(days=30)
         transactions = self.client.transactions.list(
             account_id=account_id,
             since=last_month,
@@ -342,7 +342,7 @@ class FinancialAchievements:
         
         if dining_transactions:
             latest_dining = max(dining_transactions, key=lambda x: x.created)
-            days_since = (datetime.now() - datetime.fromisoformat(
+            days_since = (datetime.now(tz=datetime.timezone.utc) - datetime.fromisoformat(
                 latest_dining.created.replace('Z', '+00:00')
             )).days
             
@@ -455,7 +455,7 @@ class WeeklySummary:
         # Get this week's data
         from datetime import datetime, timedelta
         
-        today = datetime.now()
+        today = datetime.now(tz=datetime.timezone.utc)
         start_of_week = today - timedelta(days=today.weekday())
         
         transactions = self.client.transactions.list(

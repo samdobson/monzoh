@@ -237,7 +237,7 @@ class AutoSavings:
         """Check emergency fund status and suggest contributions."""
         
         # Calculate monthly expenses from recent transactions
-        since = datetime.now() - timedelta(days=30)
+        since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=30)
         transactions = self.client.transactions.list(
             account_id=self.current_account.id,
             since=since,
@@ -324,7 +324,7 @@ class PotTracker:
     def record_snapshot(self):
         """Record current pot balances."""
         pots = self.client.pots.list()
-        timestamp = datetime.now().isoformat()
+        timestamp = datetime.now(tz=datetime.timezone.utc).isoformat()
         
         snapshot = {}
         for pot in pots:
@@ -348,7 +348,7 @@ class PotTracker:
             return
         
         # Get timestamps within the date range
-        cutoff_date = datetime.now() - timedelta(days=days)
+        cutoff_date = datetime.now(tz=datetime.timezone.utc) - timedelta(days=days)
         recent_timestamps = [
             ts for ts in self.history.keys()
             if datetime.fromisoformat(ts) >= cutoff_date
@@ -409,7 +409,7 @@ class PotTracker:
         current_account = accounts[0]
         
         # Get last month's transactions
-        since = datetime.now() - timedelta(days=30)
+        since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=30)
         transactions = self.client.transactions.list(
             account_id=current_account.id,
             since=since,

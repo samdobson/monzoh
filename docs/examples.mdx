@@ -25,7 +25,7 @@ def create_dashboard():
         # Verify authentication
         whoami = client.whoami()
         print(f"🔐 Authenticated as: {whoami.user_id}")
-        print(f"📅 Dashboard generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"📅 Dashboard generated: {datetime.now(tz=datetime.timezone.utc).strftime('%Y-%m-%d %H:%M:%S')}")
         print("\n" + "="*60)
         
         # Get all accounts
@@ -119,7 +119,7 @@ def analyze_spending(days=30):
     print("="*50)
     
     # Get transactions
-    since = datetime.now() - timedelta(days=days)
+    since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=days)
     transactions = current_account.list_transactions(
         since=since.isoformat(),
         limit=200
@@ -182,11 +182,11 @@ def analyze_spending(days=30):
     if len(daily_spending) > 7:
         recent_week = sum(
             amount for date, amount in daily_spending.items()
-            if date >= (datetime.now().date() - timedelta(days=7))
+            if date >= (datetime.now(tz=datetime.timezone.utc).date() - timedelta(days=7))
         )
         previous_week = sum(
             amount for date, amount in daily_spending.items()
-            if (datetime.now().date() - timedelta(days=14)) <= date < (datetime.now().date() - timedelta(days=7))
+            if (datetime.now(tz=datetime.timezone.utc).date() - timedelta(days=14)) <= date < (datetime.now(tz=datetime.timezone.utc).date() - timedelta(days=7))
         )
         
         if previous_week > 0:
@@ -443,7 +443,7 @@ async def handle_transaction_created(transaction_data):
     print(f"💳 New transaction: {description}")
     print(f"   Amount: £{amount:.2f}")
     print(f"   Merchant: {merchant_name}")
-    print(f"   Time: {datetime.now()}")
+    print(f"   Time: {datetime.now(tz=datetime.timezone.utc)}")
     
     # Custom logic for transaction events
     if amount < -50:  # Large spending
@@ -613,7 +613,7 @@ class ReceiptManager:
         
         # Get recent transactions
         from datetime import timedelta
-        since = datetime.now() - timedelta(days=days)
+        since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=days)
         
         transactions = current_account.list_transactions(
             since=since.isoformat(),
@@ -726,7 +726,7 @@ class BudgetTracker:
         current_account = accounts[0]
         
         # Get transactions for current month
-        now = datetime.now()
+        now = datetime.now(tz=datetime.timezone.utc)
         start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
         
         transactions = current_account.list_transactions(
@@ -753,7 +753,7 @@ class BudgetTracker:
         
         print("💰 Monthly Budget Status")
         print("="*50)
-        print(f"📅 Month: {datetime.now().strftime('%B %Y')}")
+        print(f"📅 Month: {datetime.now(tz=datetime.timezone.utc).strftime('%B %Y')}")
         print(f"💸 Total Spent: £{total_spending:.2f}")
         print(f"🎯 Total Budget: £{self.budget['total_monthly_limit']:.2f}")
         
@@ -847,7 +847,7 @@ class BudgetTracker:
         current_account = accounts[0]
         
         # Get last 7 days of transactions
-        since = datetime.now() - timedelta(days=7)
+        since = datetime.now(tz=datetime.timezone.utc) - timedelta(days=7)
         
         transactions = current_account.list_transactions(
             since=since.isoformat(),

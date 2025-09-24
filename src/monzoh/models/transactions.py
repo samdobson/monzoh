@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime  # noqa: TC003
+from pathlib import Path  # noqa: TC003
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
 
 if TYPE_CHECKING:
-    from ..core import BaseSyncClient
-    from ..core.async_base import BaseAsyncClient
+    from monzoh.core import BaseSyncClient
+    from monzoh.core.async_base import BaseAsyncClient
+
     from .attachments import Attachment
 
 
@@ -112,7 +113,9 @@ class Transaction(BaseModel):
             "'income', 'savings', 'transfers')"
         ),
     )
-    is_load: bool = Field(False, description="Whether this is a top-up transaction")
+    is_load: bool = Field(
+        default=False, description="Whether this is a top-up transaction"
+    )
     settled: datetime | None = Field(
         None, description="Settlement timestamp (when transaction completed)"
     )
@@ -155,7 +158,7 @@ class Transaction(BaseModel):
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:
         """Post-init hook to set up client if available.
 
         Args:
@@ -173,10 +176,11 @@ class Transaction(BaseModel):
             RuntimeError: If no client is available
         """
         if self._client is None:
-            raise RuntimeError(
+            msg = (
                 "No client available. Transaction must be retrieved from MonzoClient "
                 "to use methods."
             )
+            raise RuntimeError(msg)
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Transaction:
@@ -210,16 +214,17 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or if using async client
         """
-        from ..api.attachments import AttachmentsAPI
-        from ..core import BaseSyncClient
+        from monzoh.api.attachments import AttachmentsAPI
+        from monzoh.core import BaseSyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseSyncClient):
-            raise RuntimeError(
+            msg = (
                 "Sync method called on transaction with async client. "
                 "Use aupload_attachment() instead or retrieve transaction "
                 "from MonzoClient."
             )
+            raise TypeError(msg)
 
         attachments_api = AttachmentsAPI(client)
         return attachments_api.upload(
@@ -290,16 +295,19 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or if using sync client
         """
-        from ..api.async_attachments import AsyncAttachmentsAPI
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.api.async_attachments import AsyncAttachmentsAPI
+        from monzoh.core.async_base import (
+            BaseAsyncClient,
+        )
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on transaction with sync client. "
                 "Use upload_attachment() instead or retrieve transaction "
                 "from AsyncMonzoClient."
             )
+            raise TypeError(msg)
 
         attachments_api = AsyncAttachmentsAPI(client)
         return await attachments_api.upload(
@@ -321,14 +329,15 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on transaction with sync client. "
                 "Use annotate() instead or retrieve transaction from AsyncMonzoClient."
             )
+            raise TypeError(msg)
 
         data = {}
         for key, value in metadata.items():
@@ -355,14 +364,15 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on transaction with sync client. "
                 "Use refresh() instead or retrieve transaction from AsyncMonzoClient."
             )
+            raise TypeError(msg)
         expand_params = client._prepare_expand_params(expand)
 
         response = await client._get(f"/transactions/{self.id}", params=expand_params)

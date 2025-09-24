@@ -226,7 +226,7 @@ async def handle_transaction_created(transaction_data):
     print(f"   Description: {description}")
     print(f"   Amount: £{amount:.2f}")
     print(f"   Account: {account_id}")
-    print(f"   Time: {datetime.now()}")
+    print(f"   Time: {datetime.now(tz=datetime.timezone.utc)}")
     
     # Custom business logic
     await process_transaction_event(transaction_data)
@@ -469,7 +469,7 @@ def test_webhook_endpoint(webhook_url):
             "currency": "GBP",
             "description": "Test Coffee Shop",
             "category": "eating_out",
-            "created": datetime.now().isoformat() + "Z",
+            "created": datetime.now(tz=datetime.timezone.utc).isoformat() + "Z",
             "merchant": {
                 "name": "Test Coffee Shop",
                 "category": "coffee"
@@ -537,7 +537,7 @@ class RateLimiter:
         self.requests = defaultdict(list)
     
     def is_allowed(self, client_ip):
-        now = datetime.now()
+        now = datetime.now(tz=datetime.timezone.utc)
         
         # Clean old requests
         self.requests[client_ip] = [

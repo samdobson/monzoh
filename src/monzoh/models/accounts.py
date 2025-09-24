@@ -2,9 +2,8 @@
 
 from __future__ import annotations
 
-import builtins
-from datetime import datetime
-from decimal import Decimal
+from datetime import datetime  # noqa: TC003
+from decimal import Decimal  # noqa: TC003
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
@@ -12,8 +11,11 @@ from pydantic import BaseModel, Field, field_validator
 from .base import convert_amount_from_minor_units
 
 if TYPE_CHECKING:
-    from ..core import BaseSyncClient
-    from ..core.async_base import BaseAsyncClient
+    import builtins
+
+    from monzoh.core import BaseSyncClient
+    from monzoh.core.async_base import BaseAsyncClient
+
     from .feed import FeedItemParams
     from .pots import Pot
     from .transactions import Transaction
@@ -50,7 +52,7 @@ class Account(BaseModel):
     id: str = Field(..., description="Unique account identifier")
     description: str = Field(..., description="Human-readable account description")
     created: datetime = Field(..., description="Account creation timestamp")
-    closed: bool = Field(False, description="Whether the account is closed")
+    closed: bool = Field(default=False, description="Whether the account is closed")
     type: str | None = Field(None, description="Account type")
     currency: str | None = Field(None, description="Account currency")
     country_code: str | None = Field(None, description="Country code")
@@ -62,7 +64,7 @@ class Account(BaseModel):
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
-    def model_post_init(self, __context: Any) -> None:
+    def model_post_init(self, __context: Any, /) -> None:
         """Post-init hook to set up client if available.
 
         Args:
@@ -80,10 +82,11 @@ class Account(BaseModel):
             RuntimeError: If no client is available
         """
         if self._client is None:
-            raise RuntimeError(
+            msg = (
                 "No client available. Account must be retrieved from MonzoClient "
                 "to use methods."
             )
+            raise RuntimeError(msg)
         return self._client
 
     def _set_client(self, client: BaseSyncClient | BaseAsyncClient) -> Account:
@@ -205,14 +208,15 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use get_balance() instead or retrieve account from AsyncMonzoClient."
             )
+            raise TypeError(msg)
         params = {"account_id": self.id}
         response = await client._get("/balance", params=params)
         return Balance(**response.json())
@@ -238,16 +242,18 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
+
         from .transactions import TransactionsResponse
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use list_transactions() instead or retrieve account from "
                 "AsyncMonzoClient."
             )
+            raise TypeError(msg)
         params = {"account_id": self.id}
 
         pagination_params = client._prepare_pagination_params(
@@ -278,15 +284,17 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
+
         from .pots import PotsResponse
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use list_pots() instead or retrieve account from AsyncMonzoClient."
             )
+            raise TypeError(msg)
         params = {"current_account_id": self.id}
 
         response = await client._get("/pots", params=params)
@@ -310,15 +318,16 @@ class Account(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from ..core.async_base import BaseAsyncClient
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
-            raise RuntimeError(
+            msg = (
                 "Async method called on account with sync client. "
                 "Use create_feed_item() instead or retrieve account from "
                 "AsyncMonzoClient."
             )
+            raise TypeError(msg)
         data = {
             "account_id": self.id,
             "type": "basic",

@@ -1,6 +1,6 @@
 """Async Monzo API client."""
 
-from typing import Any
+import types
 
 import httpx
 
@@ -30,10 +30,11 @@ def _load_cached_token() -> str | None:
         if cached_token and isinstance(cached_token, dict):
             access_token = cached_token.get("access_token")
             return access_token if isinstance(access_token, str) else None
-        return None
     except ImportError:
         return None
     except (AttributeError, TypeError, ValueError, KeyError):
+        return None
+    else:
         return None
 
 
@@ -60,10 +61,11 @@ class AsyncMonzoClient:
         if access_token is None:
             access_token = _load_cached_token()
             if access_token is None:
-                raise MonzoAuthenticationError(
+                msg = (
                     "No access token provided and none found in cache. "
                     "Run 'monzoh-auth' to authenticate first."
                 )
+                raise MonzoAuthenticationError(msg)
 
         self._base_client = BaseAsyncClient(
             access_token=access_token, http_client=http_client, timeout=timeout
@@ -86,7 +88,12 @@ class AsyncMonzoClient:
         await self._base_client.__aenter__()
         return self
 
-    async def __aexit__(self, exc_type: Any, exc_val: Any, exc_tb: Any) -> None:
+    async def __aexit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc_val: BaseException | None,
+        exc_tb: types.TracebackType | None,
+    ) -> None:
         """Async context manager exit.
 
         Args:

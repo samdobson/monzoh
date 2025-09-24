@@ -1,7 +1,7 @@
 """Feed Items API endpoints."""
 
-from ..core import BaseSyncClient
-from ..models.feed import FeedItemParams
+from monzoh.core import BaseSyncClient
+from monzoh.models.feed import FeedItemParams
 
 
 class FeedAPI:

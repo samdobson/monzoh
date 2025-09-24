@@ -1,6 +1,6 @@
 """Tests for transactions API."""
 
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 from monzoh.models import Transaction
@@ -12,7 +12,6 @@ class TestTransactionsAPI:
     def test_list_transactions(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -20,7 +19,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -42,7 +40,6 @@ class TestTransactionsAPI:
     def test_list_transactions_with_expand(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -50,7 +47,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -74,7 +70,6 @@ class TestTransactionsAPI:
     def test_list_transactions_with_pagination(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -82,14 +77,13 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
         mock_response = mock_response(json_data={"transactions": [sample_transaction]})
         monzo_client._base_client._get.return_value = mock_response
 
-        since_time = datetime(2023, 1, 1, 12, 0, 0)
+        since_time = datetime(2023, 1, 1, 12, 0, 0, tzinfo=timezone.utc)
         transactions = monzo_client.transactions.list(
             account_id="acc_123", limit=50, since=since_time
         )
@@ -106,7 +100,6 @@ class TestTransactionsAPI:
     def test_retrieve_transaction(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -114,7 +107,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -133,7 +125,6 @@ class TestTransactionsAPI:
     def test_annotate_transaction(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -141,7 +132,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """

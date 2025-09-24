@@ -1,7 +1,7 @@
 """Async webhooks API endpoints."""
 
-from ..core.async_base import BaseAsyncClient
-from ..models import Webhook, WebhookResponse, WebhooksResponse
+from monzoh.core.async_base import BaseAsyncClient
+from monzoh.models import Webhook, WebhookResponse, WebhooksResponse
 
 
 class AsyncWebhooksAPI:
