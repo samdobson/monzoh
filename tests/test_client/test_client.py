@@ -565,7 +565,6 @@ class TestClientTokenLoading:
     @patch("monzoh.cli.load_env_credentials")
     @patch("monzoh.cli.try_refresh_token")
     @patch("monzoh.client.MonzoOAuth")
-    @patch("rich.console.Console")
     def test_load_cached_token_refresh_attempt(
         self,
         mock_oauth_class: Mock,
