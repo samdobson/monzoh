@@ -229,7 +229,7 @@ class Pot(BaseModel):
             Updated pot
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 
@@ -278,7 +278,7 @@ class Pot(BaseModel):
             Updated pot
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 

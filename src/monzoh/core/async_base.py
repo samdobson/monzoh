@@ -60,7 +60,7 @@ class AsyncMockResponse:
         """Mock implementation of raise_for_status.
 
         Raises:
-            MonzoError: If status code indicates an error (>= 400)
+            create_error_from_response: If status code indicates an error (>= 400)
         """
         if self.status_code >= 400:
             msg = f"HTTP {self.status_code} error"

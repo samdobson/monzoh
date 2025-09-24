@@ -149,8 +149,8 @@ def get_mock_response(
 
     Args:
         endpoint: API endpoint path
-        method: HTTP method
-        **kwargs: Additional parameters (params, data, json_data, etc.)
+        _method: HTTP method
+        **_kwargs: Additional parameters (params, data, json_data, etc.)
 
     Returns:
         Mock response data
