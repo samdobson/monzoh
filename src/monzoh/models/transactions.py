@@ -214,8 +214,8 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or if using async client
         """
-        from monzoh.api.attachments import AttachmentsAPI  # noqa: PLC0415
-        from monzoh.core import BaseSyncClient  # noqa: PLC0415
+        from monzoh.api.attachments import AttachmentsAPI
+        from monzoh.core import BaseSyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseSyncClient):
@@ -295,7 +295,7 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or if using sync client
         """
-        from monzoh.api.async_attachments import AsyncAttachmentsAPI  # noqa: PLC0415
+        from monzoh.api.async_attachments import AsyncAttachmentsAPI
         from monzoh.core.async_base import (
             BaseAsyncClient,
         )
@@ -329,7 +329,7 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from monzoh.core.async_base import BaseAsyncClient  # noqa: PLC0415
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
@@ -364,7 +364,7 @@ class Transaction(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from monzoh.core.async_base import BaseAsyncClient  # noqa: PLC0415
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):

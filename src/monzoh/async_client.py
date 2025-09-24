@@ -24,7 +24,7 @@ def _load_cached_token() -> str | None:
         Access token if available, None otherwise
     """
     try:
-        from .cli import load_token_from_cache  # noqa: PLC0415
+        from .cli import load_token_from_cache
 
         cached_token = load_token_from_cache()
         if cached_token and isinstance(cached_token, dict):

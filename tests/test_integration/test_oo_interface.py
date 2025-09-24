@@ -33,9 +33,7 @@ class TestAccountOOInterface:
 
         from monzoh.models.feed import FeedItemParams
 
-        params = FeedItemParams(
-            title="Test", image_url="https://example.com/image.jpg"
-        )
+        params = FeedItemParams(title="Test", image_url="https://example.com/image.jpg")
         with pytest.raises(RuntimeError, match="No client available"):
             account.create_feed_item(params)
 

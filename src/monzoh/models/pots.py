@@ -231,7 +231,7 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from monzoh.core.async_base import BaseAsyncClient  # noqa: PLC0415
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):
@@ -280,7 +280,7 @@ class Pot(BaseModel):
         Raises:
             RuntimeError: If no client is available or wrong client type
         """
-        from monzoh.core.async_base import BaseAsyncClient  # noqa: PLC0415
+        from monzoh.core.async_base import BaseAsyncClient
 
         client = self._ensure_client()
         if not isinstance(client, BaseAsyncClient):

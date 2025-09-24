@@ -25,10 +25,10 @@ def _load_cached_token() -> str | None:
         Access token if available, None otherwise
     """
     try:
-        from rich.console import Console  # noqa: PLC0415
+        from rich.console import Console
 
-        from .auth import MonzoOAuth  # noqa: PLC0415
-        from .cli import (  # noqa: PLC0415
+        from .auth import MonzoOAuth
+        from .cli import (
             load_env_credentials,
             load_token_from_cache,
             try_refresh_token,
