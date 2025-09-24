@@ -3,13 +3,13 @@
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-MOCK_WHOAMI = {
+MOCK_WHOAMI: dict[str, Any] = {
     "authenticated": True,
     "client_id": "test_client_id",
     "user_id": "test_user_id",
 }
 
-MOCK_ACCOUNTS = {
+MOCK_ACCOUNTS: dict[str, Any] = {
     "accounts": [
         {
             "id": "acc_test_account_1",
@@ -28,14 +28,14 @@ MOCK_ACCOUNTS = {
     ]
 }
 
-MOCK_BALANCE = {
+MOCK_BALANCE: dict[str, Any] = {
     "balance": 285043,
     "total_balance": 295043,
     "currency": "GBP",
     "spend_today": 1250,
 }
 
-MOCK_TRANSACTIONS = {
+MOCK_TRANSACTIONS: dict[str, Any] = {
     "transactions": [
         {
             "id": "tx_test_transaction_1",
@@ -102,7 +102,7 @@ MOCK_TRANSACTIONS = {
     ]
 }
 
-MOCK_POTS = {
+MOCK_POTS: dict[str, Any] = {
     "pots": [
         {
             "id": "pot_test_holiday",
@@ -131,7 +131,7 @@ MOCK_POTS = {
     ]
 }
 
-MOCK_WEBHOOKS = {
+MOCK_WEBHOOKS: dict[str, Any] = {
     "webhooks": [
         {
             "id": "webhook_test_1",

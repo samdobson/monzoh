@@ -9,7 +9,7 @@ from typing import Any, TypedDict
 
 import httpx
 from httpx import QueryParams
-from typing_extensions import Self
+from typing_extensions import Self, Unpack
 
 from monzoh.exceptions import (
     MonzoAuthenticationError,
@@ -160,7 +160,7 @@ class BaseSyncClient:
         self,
         method: str,
         endpoint: str,
-        **options: RequestOptions,
+        **options: Unpack[RequestOptions],
     ) -> httpx.Response | MockResponse:
         """Make HTTP request.
 
@@ -176,11 +176,11 @@ class BaseSyncClient:
             MonzoNetworkError: If network request fails
             create_error_from_response: If API returns an error response
         """
-        params = options.get("params")
-        data = options.get("data")
-        json_data = options.get("json_data")
-        files = options.get("files")
-        headers = options.get("headers")
+        params: QueryParamsType | None = options.get("params")
+        data: dict[str, Any] | None = options.get("data")
+        json_data: dict[str, Any] | None = options.get("json_data")
+        files: dict[str, Any] | None = options.get("files")
+        headers: dict[str, str] | None = options.get("headers")
 
         if self.is_mock_mode:
             mock_data = get_mock_response(
