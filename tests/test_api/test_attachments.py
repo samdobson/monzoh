@@ -28,7 +28,6 @@ class TestAttachmentsAPI:
         self,
         mock_httpx_client_class: Any,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test simplified upload process.
@@ -36,7 +35,6 @@ class TestAttachmentsAPI:
         Args:
             mock_httpx_client_class: Mock httpx client class fixture.
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         upload_data = {
@@ -90,7 +88,6 @@ class TestAttachmentsAPI:
         self,
         mock_httpx_client_class: Any,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test upload with file path.
@@ -98,7 +95,6 @@ class TestAttachmentsAPI:
         Args:
             mock_httpx_client_class: Mock httpx client class fixture.
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         with tempfile.NamedTemporaryFile(
@@ -178,14 +174,12 @@ class TestAttachmentsAPI:
     def test_private_register(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test private register method.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         attachment_data = {
@@ -214,14 +208,12 @@ class TestAttachmentsAPI:
     def test_deregister(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test deregister.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})

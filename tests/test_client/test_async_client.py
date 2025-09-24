@@ -44,14 +44,12 @@ class TestAsyncMonzoClient:
     async def test_whoami(
         self,
         async_monzo_client: Any,
-        mock_async_http_client: Any,
         mock_async_response: Any,
     ) -> None:
         """Test whoami endpoint.
 
         Args:
             async_monzo_client: Async Monzo client fixture.
-            mock_async_http_client: Mock async HTTP client fixture.
             mock_async_response: Mock async response fixture.
         """
         mock_response = mock_async_response(

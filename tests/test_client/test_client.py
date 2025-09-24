@@ -36,14 +36,12 @@ class TestMonzoClient:
     def test_whoami(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test whoami endpoint.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(
@@ -570,7 +568,6 @@ class TestClientTokenLoading:
     @patch("rich.console.Console")
     def test_load_cached_token_refresh_attempt(
         self,
-        mock_console_class: Mock,
         mock_oauth_class: Mock,
         mock_refresh: Mock,
         mock_credentials: Mock,

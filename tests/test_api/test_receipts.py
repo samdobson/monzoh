@@ -21,14 +21,12 @@ class TestReceiptsAPI:
     def test_create(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test create receipt.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         response_data = {"receipt_id": "receipt_123"}
@@ -75,14 +73,12 @@ class TestReceiptsAPI:
     def test_create_no_receipt_id(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test create receipt with no receipt_id returned.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         response_data: dict[str, Any] = {}
@@ -109,14 +105,12 @@ class TestReceiptsAPI:
     def test_create_non_string_receipt_id(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test create receipt with non-string receipt_id.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         response_data = {"receipt_id": 12345}
@@ -143,14 +137,12 @@ class TestReceiptsAPI:
     def test_retrieve(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test retrieve receipt.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         receipt_data = {
@@ -181,14 +173,12 @@ class TestReceiptsAPI:
     def test_delete(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
     ) -> None:
         """Test delete receipt.
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})

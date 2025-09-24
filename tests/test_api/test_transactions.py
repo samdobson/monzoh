@@ -12,7 +12,6 @@ class TestTransactionsAPI:
     def test_list_transactions(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -20,7 +19,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -42,7 +40,6 @@ class TestTransactionsAPI:
     def test_list_transactions_with_expand(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -50,7 +47,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -74,7 +70,6 @@ class TestTransactionsAPI:
     def test_list_transactions_with_pagination(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -82,7 +77,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -106,7 +100,6 @@ class TestTransactionsAPI:
     def test_retrieve_transaction(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -114,7 +107,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
@@ -133,7 +125,6 @@ class TestTransactionsAPI:
     def test_annotate_transaction(
         self,
         monzo_client: Any,
-        mock_http_client: Any,
         mock_response: Any,
         sample_transaction: Any,
     ) -> None:
@@ -141,7 +132,6 @@ class TestTransactionsAPI:
 
         Args:
             monzo_client: Monzo client fixture.
-            mock_http_client: Mock HTTP client fixture.
             mock_response: Mock response fixture.
             sample_transaction: Sample transaction data fixture.
         """
