@@ -4,6 +4,7 @@ import secrets
 import urllib.parse
 import webbrowser
 
+import httpx
 from rich.console import Console
 from rich.panel import Panel
 from rich.text import Text
@@ -40,7 +41,7 @@ def _try_cached_token(console: Console) -> str | None:
             whoami = client.whoami()
             console.print(f"✅ [green]Using cached token for: {whoami.user_id}[/green]")
             return cached_token["access_token"]
-    except Exception:
+    except (MonzoError, httpx.RequestError, OSError, ValueError):
         console.print("❌ Error during authentication: Token is invalid")
 
         # Try to refresh the token before giving up
