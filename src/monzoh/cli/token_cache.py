@@ -83,10 +83,10 @@ def load_token_from_cache(*, include_expired: bool = False) -> dict[str, Any] | 
             if datetime.now(tz=timezone.utc) >= expires_at - timedelta(minutes=5):
                 return None
 
-        return cache_data
-
     except (OSError, ValueError, TypeError, KeyError, FileNotFoundError):
         return None
+    else:
+        return cache_data
 
 
 def clear_token_cache() -> None:
@@ -114,9 +114,10 @@ def try_refresh_token(
 
         save_token_to_cache(new_token, console)
         console.print("✅ [green]Token refreshed successfully![/green]")
-        return new_token.access_token
 
     except (MonzoError, OSError, ValueError, TypeError, KeyError) as e:
         console.print(f"⚠️  [yellow]Token refresh failed: {e}[/yellow]")
         clear_token_cache()
         return None
+    else:
+        return new_token.access_token

@@ -205,11 +205,11 @@ class BaseAsyncClient:
                     error_data,
                 )
 
-            return response
-
         except httpx.RequestError as e:
             msg = f"Network error: {e}"
             raise MonzoNetworkError(msg) from e
+        else:
+            return response
 
     async def _get(
         self,

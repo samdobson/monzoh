@@ -30,10 +30,11 @@ def _load_cached_token() -> str | None:
         if cached_token and isinstance(cached_token, dict):
             access_token = cached_token.get("access_token")
             return access_token if isinstance(access_token, str) else None
-        return None
     except ImportError:
         return None
     except (AttributeError, TypeError, ValueError, KeyError):
+        return None
+    else:
         return None
 
 
