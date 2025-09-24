@@ -186,11 +186,11 @@ def test_main_failure() -> None:
     with (
         patch("monzoh.cli.authenticate") as mock_authenticate,
         patch("builtins.print"),
-        pytest.raises(SystemExit),
     ):
         mock_authenticate.return_value = None
 
-        main()
+        with pytest.raises(SystemExit):
+            main()
 
 
 def test_main_keyboard_interrupt() -> None:
@@ -198,11 +198,11 @@ def test_main_keyboard_interrupt() -> None:
     with (
         patch("monzoh.cli.authenticate") as mock_authenticate,
         patch("builtins.print"),
-        pytest.raises(SystemExit),
     ):
         mock_authenticate.side_effect = KeyboardInterrupt()
 
-        main()
+        with pytest.raises(SystemExit):
+            main()
 
 
 class TestAuthenticateErrorHandling:

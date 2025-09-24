@@ -31,12 +31,12 @@ class TestAccountOOInterface:
         with pytest.raises(RuntimeError, match="No client available"):
             account.list_pots()
 
-        with pytest.raises(RuntimeError, match="No client available"):
-            from monzoh.models.feed import FeedItemParams
+        from monzoh.models.feed import FeedItemParams
 
-            params = FeedItemParams(
-                title="Test", image_url="https://example.com/image.jpg"
-            )
+        params = FeedItemParams(
+            title="Test", image_url="https://example.com/image.jpg"
+        )
+        with pytest.raises(RuntimeError, match="No client available"):
             account.create_feed_item(params)
 
     def test_account_get_balance(self) -> None:
