@@ -2,7 +2,7 @@
 
 from decimal import Decimal
 from typing import Any, cast
-from unittest.mock import Mock
+from unittest.mock import Mock  # noqa: TC003
 
 import pytest
 

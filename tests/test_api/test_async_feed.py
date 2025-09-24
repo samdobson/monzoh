@@ -1,7 +1,7 @@
 """Tests for async feed API."""
 
 from typing import cast
-from unittest.mock import Mock
+from unittest.mock import Mock  # noqa: TC003
 
 import pytest
 

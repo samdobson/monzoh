@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import datetime
-from pathlib import Path
+from datetime import datetime  # noqa: TC003
+from pathlib import Path  # noqa: TC003
 from typing import TYPE_CHECKING, Any, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
