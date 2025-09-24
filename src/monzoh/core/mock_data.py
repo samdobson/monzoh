@@ -157,28 +157,35 @@ def get_mock_response(
     """
     params = _kwargs.get("params", {})
 
-    if endpoint == "/ping/whoami":
-        return MOCK_WHOAMI
-    if endpoint == "/accounts":
-        return MOCK_ACCOUNTS
+    endpoint_mappings = {
+        "/ping/whoami": MOCK_WHOAMI,
+        "/accounts": MOCK_ACCOUNTS,
+        "/transactions": MOCK_TRANSACTIONS,
+        "/pots": MOCK_POTS,
+        "/webhooks": MOCK_WEBHOOKS,
+    }
+
+    if endpoint in endpoint_mappings:
+        return endpoint_mappings[endpoint]
+
     if endpoint == "/balance" or (
         endpoint.startswith("/accounts/") and endpoint.endswith("/balance")
     ):
         return MOCK_BALANCE
-    if endpoint == "/transactions" or (
-        endpoint.startswith("/accounts/") and "transactions" in endpoint
-    ):
+
+    if endpoint.startswith("/accounts/") and "transactions" in endpoint:
         return MOCK_TRANSACTIONS
-    if endpoint == "/pots":
-        return MOCK_POTS
-    if endpoint == "/webhooks":
-        return MOCK_WEBHOOKS
-    if endpoint.startswith("/transactions/") and not endpoint.endswith("/transactions"):
-        return {"transaction": MOCK_TRANSACTIONS["transactions"][0]}
-    if endpoint.startswith("/pots/") and not endpoint.endswith("/pots"):
-        return {"pot": MOCK_POTS["pots"][0]}
-    if endpoint.startswith("/webhooks/") and not endpoint.endswith("/webhooks"):
-        return {"webhook": MOCK_WEBHOOKS["webhooks"][0]}
+
+    individual_resource_patterns = [
+        ("/transactions/", "transaction", MOCK_TRANSACTIONS["transactions"][0]),
+        ("/pots/", "pot", MOCK_POTS["pots"][0]),
+        ("/webhooks/", "webhook", MOCK_WEBHOOKS["webhooks"][0]),
+    ]
+
+    for prefix, key, mock_data in individual_resource_patterns:
+        if endpoint.startswith(prefix) and not endpoint.endswith(prefix.rstrip("/")):
+            return {key: mock_data}
+
     return {
         "message": "Mock endpoint not implemented",
         "endpoint": endpoint,
