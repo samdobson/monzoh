@@ -351,9 +351,15 @@ class Account(BaseModel):
 class AccountType(BaseModel):
     """Account type filter."""
 
-    account_type: Literal["uk_retail", "uk_retail_joint"] = Field(
-        ..., description="Type of account"
-    )
+    account_type: Literal[
+        "uk_prepaid",
+        "uk_retail",
+        "uk_rewards",
+        "uk_business",
+        "uk_loan",
+        "uk_monzo_flex",
+        "uk_retail_joint",
+    ] = Field(..., description="Type of account")
 
 
 class Balance(BaseModel):
