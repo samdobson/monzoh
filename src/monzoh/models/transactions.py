@@ -83,6 +83,7 @@ class Transaction(BaseModel):
         metadata: Custom key-value metadata
         notes: User-added notes for the transaction (optional)
         decline_reason: Reason for transaction decline (optional, declined only)
+        counterparty: Counterparty information (optional)
         model_config: Pydantic model configuration
     """
 
@@ -212,7 +213,7 @@ class Transaction(BaseModel):
             The uploaded attachment
 
         Raises:
-            RuntimeError: If no client is available or if using async client
+            TypeError: If using async client
         """
         from monzoh.api.attachments import AttachmentsAPI
         from monzoh.core import BaseSyncClient
@@ -293,7 +294,7 @@ class Transaction(BaseModel):
             The uploaded attachment
 
         Raises:
-            RuntimeError: If no client is available or if using sync client
+            TypeError: If using sync client
         """
         from monzoh.api.async_attachments import AsyncAttachmentsAPI
         from monzoh.core.async_base import (
@@ -327,7 +328,7 @@ class Transaction(BaseModel):
             Updated transaction
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 
@@ -362,7 +363,7 @@ class Transaction(BaseModel):
             Refreshed transaction
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 

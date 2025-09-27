@@ -46,6 +46,10 @@ class Account(BaseModel):
         description: Human-readable account description
         created: Account creation timestamp
         closed: Whether the account is closed
+        type: Account type
+        currency: Account currency
+        country_code: Country code
+        owners: Account owners
         model_config: Pydantic model configuration
     """
 
@@ -206,7 +210,7 @@ class Account(BaseModel):
             Account balance information
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 
@@ -240,7 +244,7 @@ class Account(BaseModel):
             List of transactions
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 
@@ -282,7 +286,7 @@ class Account(BaseModel):
             List of pots
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 
@@ -316,7 +320,7 @@ class Account(BaseModel):
             params: Feed item parameters
 
         Raises:
-            RuntimeError: If no client is available or wrong client type
+            TypeError: If no client is available or wrong client type
         """
         from monzoh.core.async_base import BaseAsyncClient
 
