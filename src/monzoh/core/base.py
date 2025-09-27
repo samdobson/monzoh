@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     import types
     from datetime import datetime
 
+    from monzoh.types import JSONObject
+
 import httpx
 from httpx import QueryParams
 from typing_extensions import Self, Unpack
@@ -25,18 +27,11 @@ from monzoh.models import WhoAmI
 
 from .mock_data import get_mock_response
 
-if TYPE_CHECKING:
-    from monzoh.types import JSONObject
-
 QueryParamsType = (
     QueryParams
-    | Mapping[
-        str, str | int | float | bool | None | Sequence[str | int | float | bool | None]
-    ]
+    | Mapping[str, str | int | float | bool | None]
     | list[tuple[str, str | int | float | bool | None]]
-    | tuple[tuple[str, str | int | float | bool | None], ...]
     | str
-    | bytes
     | None
 )
 

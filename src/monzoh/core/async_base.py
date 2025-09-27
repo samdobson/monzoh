@@ -24,13 +24,9 @@ from .mock_data import get_mock_response
 
 QueryParamsType = (
     QueryParams
-    | Mapping[
-        str, str | int | float | bool | None | Sequence[str | int | float | bool | None]
-    ]
+    | Mapping[str, str | int | float | bool | None]
     | list[tuple[str, str | int | float | bool | None]]
-    | tuple[tuple[str, str | int | float | bool | None], ...]
     | str
-    | bytes
     | None
 )
 
