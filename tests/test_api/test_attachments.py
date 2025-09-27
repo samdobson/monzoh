@@ -2,19 +2,20 @@
 
 import tempfile
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 from unittest.mock import Mock, patch
 
 import pytest
 
 from monzoh.api.attachments import AttachmentsAPI
+from monzoh.client import MonzoClient
 from monzoh.models import Attachment
 
 
 class TestAttachmentsAPI:
     """Test AttachmentsAPI."""
 
-    def test_init(self, monzo_client: Any) -> None:
+    def test_init(self, monzo_client: MonzoClient) -> None:
         """Test client initialization.
 
         Args:
@@ -27,8 +28,8 @@ class TestAttachmentsAPI:
     def test_upload(
         self,
         mock_httpx_client_class: Any,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test simplified upload process.
 
@@ -53,7 +54,7 @@ class TestAttachmentsAPI:
 
         upload_response = mock_response(json_data=upload_data)
         register_response = mock_response(json_data=register_response_data)
-        monzo_client._base_client._post.side_effect = [
+        cast("Mock", monzo_client._base_client._post).side_effect = [
             upload_response,
             register_response,
         ]
@@ -87,8 +88,8 @@ class TestAttachmentsAPI:
     def test_upload_with_file_path(
         self,
         mock_httpx_client_class: Any,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test upload with file path.
 
@@ -121,7 +122,7 @@ class TestAttachmentsAPI:
 
             upload_response = mock_response(json_data=upload_data)
             register_response = mock_response(json_data=register_response_data)
-            monzo_client._base_client._post.side_effect = [
+            cast("Mock", monzo_client._base_client._post).side_effect = [
                 upload_response,
                 register_response,
             ]
@@ -148,7 +149,7 @@ class TestAttachmentsAPI:
             )
 
             expected_file_name = Path(tmp_file_path).name
-            monzo_client._base_client._post.assert_any_call(
+            cast("Mock", monzo_client._base_client._post).assert_any_call(
                 "/attachment/upload",
                 data={
                     "file_name": expected_file_name,
@@ -160,7 +161,7 @@ class TestAttachmentsAPI:
         finally:
             Path(tmp_file_path).unlink()
 
-    def test_upload_validation_error(self, monzo_client: Any) -> None:
+    def test_upload_validation_error(self, monzo_client: MonzoClient) -> None:
         """Test upload validation when neither file_path nor required args provided.
 
         Args:
@@ -173,8 +174,8 @@ class TestAttachmentsAPI:
 
     def test_private_register(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test private register method.
 
@@ -192,7 +193,7 @@ class TestAttachmentsAPI:
         }
         response_data = {"attachment": attachment_data}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._post.return_value = mock_response
+        cast("Mock", monzo_client._base_client._post).return_value = mock_response
 
         api = AttachmentsAPI(monzo_client._base_client)
         result = api._register(
@@ -207,8 +208,8 @@ class TestAttachmentsAPI:
 
     def test_deregister(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test deregister.
 
@@ -217,14 +218,14 @@ class TestAttachmentsAPI:
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
-        monzo_client._base_client._post.return_value = mock_response
+        cast("Mock", monzo_client._base_client._post).return_value = mock_response
 
         api = AttachmentsAPI(monzo_client._base_client)
         api.deregister("attach_00009238aOZ8rp29FlJDQc")
 
     @patch("httpx.Client")
     def test_private_upload_file_to_url(
-        self, mock_httpx_client_class: Any, monzo_client: Any
+        self, mock_httpx_client_class: Any, monzo_client: MonzoClient
     ) -> None:
         """Test private file upload to URL method.
 

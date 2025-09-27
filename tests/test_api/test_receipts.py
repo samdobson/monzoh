@@ -1,15 +1,17 @@
 """Tests for receipts API."""
 
-from typing import Any
+from typing import Any, cast
+from unittest.mock import Mock
 
 from monzoh.api.receipts import ReceiptsAPI
+from monzoh.client import MonzoClient
 from monzoh.models import Receipt, ReceiptItem
 
 
 class TestReceiptsAPI:
     """Test ReceiptsAPI."""
 
-    def test_init(self, monzo_client: Any) -> None:
+    def test_init(self, monzo_client: MonzoClient) -> None:
         """Test client initialization.
 
         Args:
@@ -20,8 +22,8 @@ class TestReceiptsAPI:
 
     def test_create(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test create receipt.
 
@@ -31,7 +33,7 @@ class TestReceiptsAPI:
         """
         response_data = {"receipt_id": "receipt_123"}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         api = ReceiptsAPI(monzo_client._base_client)
         receipt = Receipt(
@@ -68,12 +70,12 @@ class TestReceiptsAPI:
         result = api.create(receipt)
 
         assert result == "receipt_123"
-        monzo_client._base_client._put.assert_called_once()
+        cast("Mock", monzo_client._base_client._put).assert_called_once()
 
     def test_create_no_receipt_id(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test create receipt with no receipt_id returned.
 
@@ -83,7 +85,7 @@ class TestReceiptsAPI:
         """
         response_data: dict[str, Any] = {}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         api = ReceiptsAPI(monzo_client._base_client)
         receipt = Receipt(
@@ -104,8 +106,8 @@ class TestReceiptsAPI:
 
     def test_create_non_string_receipt_id(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test create receipt with non-string receipt_id.
 
@@ -115,7 +117,7 @@ class TestReceiptsAPI:
         """
         response_data = {"receipt_id": 12345}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         api = ReceiptsAPI(monzo_client._base_client)
         receipt = Receipt(
@@ -136,8 +138,8 @@ class TestReceiptsAPI:
 
     def test_retrieve(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test retrieve receipt.
 
@@ -161,7 +163,7 @@ class TestReceiptsAPI:
         }
         response_data = {"receipt": receipt_data}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._get.return_value = mock_response
+        cast("Mock", monzo_client._base_client._get).return_value = mock_response
 
         api = ReceiptsAPI(monzo_client._base_client)
         result = api.retrieve("tx_00008zIcpb1TB4yeIFXMzx")
@@ -172,8 +174,8 @@ class TestReceiptsAPI:
 
     def test_delete(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test delete receipt.
 
@@ -182,8 +184,8 @@ class TestReceiptsAPI:
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
-        monzo_client._base_client._delete.return_value = mock_response
+        cast("Mock", monzo_client._base_client._delete).return_value = mock_response
 
         api = ReceiptsAPI(monzo_client._base_client)
         api.delete("tx_00008zIcpb1TB4yeIFXMzx")
-        monzo_client._base_client._delete.assert_called_once()
+        cast("Mock", monzo_client._base_client._delete).assert_called_once()

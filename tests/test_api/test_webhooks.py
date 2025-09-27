@@ -1,15 +1,17 @@
 """Tests for webhooks API."""
 
-from typing import Any
+from typing import Any, cast
+from unittest.mock import Mock
 
 from monzoh.api.webhooks import WebhooksAPI
+from monzoh.client import MonzoClient
 from monzoh.models import Webhook
 
 
 class TestWebhooksAPI:
     """Test WebhooksAPI."""
 
-    def test_init(self, monzo_client: Any) -> None:
+    def test_init(self, monzo_client: MonzoClient) -> None:
         """Test client initialization.
 
         Args:
@@ -20,8 +22,8 @@ class TestWebhooksAPI:
 
     def test_register(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test register webhook.
 
@@ -36,7 +38,7 @@ class TestWebhooksAPI:
         }
         response_data = {"webhook": webhook_data}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._post.return_value = mock_response
+        cast("Mock", monzo_client._base_client._post).return_value = mock_response
 
         api = WebhooksAPI(monzo_client._base_client)
         result = api.register(
@@ -50,8 +52,8 @@ class TestWebhooksAPI:
 
     def test_list(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test list webhooks.
 
@@ -73,7 +75,7 @@ class TestWebhooksAPI:
         ]
         response_data = {"webhooks": webhook_data}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._get.return_value = mock_response
+        cast("Mock", monzo_client._base_client._get).return_value = mock_response
 
         api = WebhooksAPI(monzo_client._base_client)
         result = api.list("acc_00009237aqC8c5umZmrRdh")
@@ -86,8 +88,8 @@ class TestWebhooksAPI:
 
     def test_list_empty(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test list webhooks with empty result.
 
@@ -97,7 +99,7 @@ class TestWebhooksAPI:
         """
         response_data: dict[str, Any] = {"webhooks": []}
         mock_response = mock_response(json_data=response_data)
-        monzo_client._base_client._get.return_value = mock_response
+        cast("Mock", monzo_client._base_client._get).return_value = mock_response
 
         api = WebhooksAPI(monzo_client._base_client)
         result = api.list("acc_00009237aqC8c5umZmrRdh")
@@ -107,8 +109,8 @@ class TestWebhooksAPI:
 
     def test_delete(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test delete webhook.
 
@@ -117,10 +119,10 @@ class TestWebhooksAPI:
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
-        monzo_client._base_client._delete.return_value = mock_response
+        cast("Mock", monzo_client._base_client._delete).return_value = mock_response
 
         api = WebhooksAPI(monzo_client._base_client)
         api.delete("webhook_000091yhhOmrXQaVZ1Irsv")
-        monzo_client._base_client._delete.assert_called_once_with(
+        cast("Mock", monzo_client._base_client._delete).assert_called_once_with(
             "/webhooks/webhook_000091yhhOmrXQaVZ1Irsv"
         )

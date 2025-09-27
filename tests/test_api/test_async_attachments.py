@@ -33,7 +33,7 @@ class TestAsyncAttachmentsAPI:
     @pytest.mark.asyncio
     async def test_upload(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         attachments_api: AsyncAttachmentsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
@@ -100,7 +100,7 @@ class TestAsyncAttachmentsAPI:
     @pytest.mark.asyncio
     async def test_upload_with_file_path(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         attachments_api: AsyncAttachmentsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
@@ -263,7 +263,7 @@ class TestAsyncAttachmentsAPI:
     @pytest.mark.asyncio
     async def test_private_upload_file_to_url(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         attachments_api: AsyncAttachmentsAPI,
     ) -> None:
         """Test private file upload to URL method.

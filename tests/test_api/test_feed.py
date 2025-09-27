@@ -1,15 +1,17 @@
 """Tests for feed API."""
 
-from typing import Any
+from typing import cast
+from unittest.mock import Mock
 
 from monzoh.api.feed import FeedAPI
+from monzoh.client import MonzoClient
 from monzoh.models.feed import FeedItemParams
 
 
 class TestFeedAPI:
     """Test FeedAPI."""
 
-    def test_init(self, monzo_client: Any) -> None:
+    def test_init(self, monzo_client: MonzoClient) -> None:
         """Test client initialization.
 
         Args:
@@ -20,8 +22,8 @@ class TestFeedAPI:
 
     def test_create_item_minimal(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test create item with minimal parameters.
 
@@ -30,7 +32,7 @@ class TestFeedAPI:
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
-        monzo_client._base_client._post.return_value = mock_response
+        cast("Mock", monzo_client._base_client._post).return_value = mock_response
 
         api = FeedAPI(monzo_client._base_client)
         params = FeedItemParams(
@@ -38,7 +40,7 @@ class TestFeedAPI:
         )
         api.create_item("acc_00009237aqC8c5umZmrRdh", params)
 
-        monzo_client._base_client._post.assert_called_once_with(
+        cast("Mock", monzo_client._base_client._post).assert_called_once_with(
             "/feed",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -50,8 +52,8 @@ class TestFeedAPI:
 
     def test_create_item_full(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test create item with all parameters.
 
@@ -60,7 +62,7 @@ class TestFeedAPI:
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
-        monzo_client._base_client._post.return_value = mock_response
+        cast("Mock", monzo_client._base_client._post).return_value = mock_response
 
         api = FeedAPI(monzo_client._base_client)
         params = FeedItemParams(
@@ -74,7 +76,7 @@ class TestFeedAPI:
         )
         api.create_item("acc_00009237aqC8c5umZmrRdh", params)
 
-        monzo_client._base_client._post.assert_called_once_with(
+        cast("Mock", monzo_client._base_client._post).assert_called_once_with(
             "/feed",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",
@@ -91,8 +93,8 @@ class TestFeedAPI:
 
     def test_create_item_partial(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test create item with some optional parameters.
 
@@ -101,7 +103,7 @@ class TestFeedAPI:
             mock_response: Mock response fixture.
         """
         mock_response = mock_response(json_data={})
-        monzo_client._base_client._post.return_value = mock_response
+        cast("Mock", monzo_client._base_client._post).return_value = mock_response
 
         api = FeedAPI(monzo_client._base_client)
         params = FeedItemParams(
@@ -112,7 +114,7 @@ class TestFeedAPI:
         )
         api.create_item("acc_00009237aqC8c5umZmrRdh", params)
 
-        monzo_client._base_client._post.assert_called_once_with(
+        cast("Mock", monzo_client._base_client._post).assert_called_once_with(
             "/feed",
             data={
                 "account_id": "acc_00009237aqC8c5umZmrRdh",

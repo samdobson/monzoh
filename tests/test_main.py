@@ -1,6 +1,5 @@
 """Tests for main.py functionality."""
 
-from typing import Any
 from unittest.mock import Mock, patch
 
 import pytest
@@ -22,7 +21,7 @@ class TestLoadCachedToken:
 class TestMonzoClient:
     """Tests for MonzoClient main functionality."""
 
-    def test_init_with_token(self, mock_http_client: Any) -> None:
+    def test_init_with_token(self, mock_http_client: Mock) -> None:
         """Test initialization with provided token.
 
         Args:
@@ -41,7 +40,7 @@ class TestMonzoClient:
 
     @patch("monzoh.client._load_cached_token")
     def test_init_without_token_cached_available(
-        self, mock_load_token: Any, mock_http_client: Any
+        self, mock_load_token: Mock, mock_http_client: Mock
     ) -> None:
         """Test initialization without token when cached token is available.
 
@@ -58,7 +57,7 @@ class TestMonzoClient:
 
     @patch("monzoh.client._load_cached_token")
     def test_init_without_token_no_cache(
-        self, mock_load_token: Any, mock_http_client: Any
+        self, mock_load_token: Mock, mock_http_client: Mock
     ) -> None:
         """Test initialization without token when no cached token is available.
 
@@ -77,7 +76,7 @@ class TestMonzoClient:
 
     @patch("monzoh.client._load_cached_token")
     def test_set_access_token(
-        self, mock_load_token: Any, mock_http_client: Any
+        self, mock_load_token: Mock, mock_http_client: Mock
     ) -> None:
         """Test setting access token after client creation.
 
@@ -93,7 +92,7 @@ class TestMonzoClient:
         client.set_access_token("new_token")
         assert client._base_client.access_token == "new_token"
 
-    def test_init_with_custom_timeout(self, mock_http_client: Any) -> None:
+    def test_init_with_custom_timeout(self, mock_http_client: Mock) -> None:
         """Test initialization with custom timeout.
 
         Args:
@@ -103,7 +102,7 @@ class TestMonzoClient:
 
         assert client._base_client._timeout == 60.0
 
-    def test_context_manager(self, mock_http_client: Any) -> None:
+    def test_context_manager(self, mock_http_client: Mock) -> None:
         """Test context manager functionality.
 
         Args:
@@ -121,7 +120,7 @@ class TestMonzoClient:
 
             mock_exit.assert_called_once()
 
-    def test_whoami(self, mock_http_client: Any) -> None:
+    def test_whoami(self, mock_http_client: Mock) -> None:
         """Test whoami method.
 
         Args:
@@ -172,7 +171,7 @@ class TestMonzoClient:
         assert oauth_client.redirect_uri == "https://example.com/callback"
         assert oauth_client._http_client is None
 
-    def test_api_endpoints_initialization(self, mock_http_client: Any) -> None:
+    def test_api_endpoints_initialization(self, mock_http_client: Mock) -> None:
         """Test that all API endpoints are properly initialized.
 
         Args:
