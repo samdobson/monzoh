@@ -1,8 +1,13 @@
 """Tests for async base client."""
 
+from typing import TYPE_CHECKING
+
 import pytest
 
 from monzoh.core.async_base import AsyncMockResponse
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
 
 
 class TestAsyncMockResponse:
@@ -10,7 +15,7 @@ class TestAsyncMockResponse:
 
     def test_async_mock_response_json(self) -> None:
         """Test AsyncMockResponse json method."""
-        data: dict[str, object] = {"test": "data"}
+        data: JSONObject = {"test": "data"}
         response = AsyncMockResponse(data, 200)
 
         assert response.json() == data

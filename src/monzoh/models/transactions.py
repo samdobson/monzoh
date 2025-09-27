@@ -8,6 +8,8 @@ from typing import TYPE_CHECKING, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
 
+from monzoh.types import Metadata  # noqa: TC001
+
 if TYPE_CHECKING:
     from monzoh.core import BaseSyncClient
     from monzoh.core.async_base import BaseAsyncClient
@@ -49,7 +51,7 @@ class Merchant(BaseModel):
     disable_feedback: bool | None = Field(
         None, description="Whether feedback is disabled"
     )
-    metadata: dict[str, object] | None = Field(None, description="Merchant metadata")
+    metadata: Metadata | None = Field(None, description="Merchant metadata")
     suggested_tags: list[str] | None = Field(None, description="Suggested tags")
 
 
@@ -122,7 +124,7 @@ class Transaction(BaseModel):
     merchant: str | Merchant | None = Field(
         None, description="Merchant ID or expanded merchant object"
     )
-    metadata: dict[str, object] = Field(
+    metadata: Metadata = Field(
         default_factory=dict, description="Custom key-value metadata"
     )
     notes: str | None = Field(None, description="User-added notes for the transaction")
@@ -234,7 +236,7 @@ class Transaction(BaseModel):
             file_type=file_type,
         )
 
-    def annotate(self, metadata: dict[str, object]) -> Transaction:
+    def annotate(self, metadata: Metadata) -> Transaction:
         """Add annotations to this transaction.
 
         Args:
@@ -317,7 +319,7 @@ class Transaction(BaseModel):
             file_type=file_type,
         )
 
-    async def aannotate(self, metadata: dict[str, object]) -> Transaction:
+    async def aannotate(self, metadata: Metadata) -> Transaction:
         """Add annotations to this transaction (async version).
 
         Args:
@@ -407,3 +409,9 @@ class TransactionResponse(BaseModel):
     """Single transaction response."""
 
     transaction: Transaction = Field(..., description="Single transaction object")
+
+
+# Rebuild models to resolve forward references
+Transaction.model_rebuild()
+TransactionsResponse.model_rebuild()
+TransactionResponse.model_rebuild()

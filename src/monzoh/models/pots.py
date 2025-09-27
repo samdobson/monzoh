@@ -315,3 +315,8 @@ class PotsResponse(BaseModel):
     """Pots list response."""
 
     pots: list[Pot] = Field(..., description="List of user pots")
+
+
+# Rebuild models to resolve forward references
+Pot.model_rebuild()
+PotsResponse.model_rebuild()

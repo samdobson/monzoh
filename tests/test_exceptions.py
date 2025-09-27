@@ -1,5 +1,7 @@
 """Tests for exceptions."""
 
+from typing import TYPE_CHECKING
+
 from monzoh.exceptions import (
     MonzoAuthenticationError,
     MonzoBadRequestError,
@@ -10,6 +12,9 @@ from monzoh.exceptions import (
     MonzoServerError,
     create_error_from_response,
 )
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
 
 
 class TestExceptions:
@@ -23,7 +28,7 @@ class TestExceptions:
 
     def test_monzo_error_with_response_data(self) -> None:
         """Test MonzoError with response data."""
-        response_data: dict[str, object] = {
+        response_data: JSONObject = {
             "message": "Custom API message",
             "code": "invalid_request",
         }
@@ -36,7 +41,7 @@ class TestExceptions:
 
     def test_monzo_error_with_simple_data(self) -> None:
         """Test MonzoError with simple response data."""
-        response_data: dict[str, object] = {"code": "bad_request"}
+        response_data: JSONObject = {"code": "bad_request"}
         error = MonzoError("API Error", response_data=response_data)
 
         assert str(error) == "API error: bad_request"

@@ -1,6 +1,6 @@
 """Tests for the main client."""
 
-from typing import cast
+from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock, patch
 
 import httpx
@@ -9,6 +9,9 @@ import pytest
 from monzoh import MonzoClient, MonzoOAuth
 from monzoh.core.base import BaseSyncClient, MockResponse
 from monzoh.exceptions import MonzoBadRequestError, MonzoError, MonzoNetworkError
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
 
 
 class TestMonzoClient:
@@ -226,7 +229,7 @@ class TestMockResponse:
 
     def test_init(self) -> None:
         """Test MockResponse initialization."""
-        json_data: dict[str, object] = {"test": "data"}
+        json_data: JSONObject = {"test": "data"}
         response = MockResponse(json_data, status_code=201)
 
         assert response._json_data == json_data
@@ -239,14 +242,14 @@ class TestMockResponse:
 
     def test_init_default_status(self) -> None:
         """Test MockResponse with default status code."""
-        json_data: dict[str, object] = {"test": "data"}
+        json_data: JSONObject = {"test": "data"}
         response = MockResponse(json_data)
 
         assert response.status_code == 200
 
     def test_json_method(self) -> None:
         """Test json method returns correct data."""
-        json_data = {"key": "value", "number": 123}
+        json_data: JSONObject = {"key": "value", "number": 123}
         response = MockResponse(json_data)
 
         assert response.json() == json_data

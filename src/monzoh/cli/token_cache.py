@@ -13,6 +13,7 @@ from rich.console import Console
 from monzoh.auth import MonzoOAuth
 from monzoh.exceptions import MonzoError
 from monzoh.models import OAuthToken
+from monzoh.types import JSONObject
 
 
 def get_token_cache_path() -> Path:
@@ -60,7 +61,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
         console.print(f"⚠️  [yellow]Warning: Could not cache token: {e}[/yellow]")
 
 
-def load_token_from_cache(*, include_expired: bool = False) -> dict[str, object] | None:
+def load_token_from_cache(*, include_expired: bool = False) -> JSONObject | None:
     """Load token from cache file.
 
     Args:
@@ -76,7 +77,7 @@ def load_token_from_cache(*, include_expired: bool = False) -> dict[str, object]
             return None
 
         with cache_path.open() as f:
-            cache_data: dict[str, object] = json.load(f)
+            cache_data: JSONObject = json.load(f)
 
         if not include_expired:
             expires_at = datetime.fromisoformat(cast("str", cache_data["expires_at"]))
@@ -100,7 +101,7 @@ def clear_token_cache() -> None:
 
 
 def try_refresh_token(
-    cached_token: dict[str, object], oauth: MonzoOAuth, console: Console
+    cached_token: JSONObject, oauth: MonzoOAuth, console: Console
 ) -> str | None:
     """Try to refresh an expired token."""
     if not cached_token.get("refresh_token"):

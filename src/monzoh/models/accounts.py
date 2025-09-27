@@ -407,3 +407,9 @@ class AccountsResponse(BaseModel):
     """Accounts list response."""
 
     accounts: list[Account] = Field(..., description="List of user accounts")
+
+
+# Rebuild models to resolve forward references
+Account.model_rebuild()
+Balance.model_rebuild()
+AccountsResponse.model_rebuild()

@@ -1,15 +1,20 @@
 """Mock data for testing purposes when using 'test' access token."""
 
-from datetime import datetime, timedelta, timezone
-from typing import cast
+from __future__ import annotations
 
-MOCK_WHOAMI: dict[str, object] = {
+from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
+
+MOCK_WHOAMI: JSONObject = {
     "authenticated": True,
     "client_id": "test_client_id",
     "user_id": "test_user_id",
 }
 
-MOCK_ACCOUNTS: dict[str, object] = {
+MOCK_ACCOUNTS: JSONObject = {
     "accounts": [
         {
             "id": "acc_test_account_1",
@@ -28,14 +33,14 @@ MOCK_ACCOUNTS: dict[str, object] = {
     ]
 }
 
-MOCK_BALANCE: dict[str, object] = {
+MOCK_BALANCE: JSONObject = {
     "balance": 285043,
     "total_balance": 295043,
     "currency": "GBP",
     "spend_today": 1250,
 }
 
-MOCK_TRANSACTIONS: dict[str, object] = {
+MOCK_TRANSACTIONS: JSONObject = {
     "transactions": [
         {
             "id": "tx_test_transaction_1",
@@ -102,7 +107,7 @@ MOCK_TRANSACTIONS: dict[str, object] = {
     ]
 }
 
-MOCK_POTS: dict[str, object] = {
+MOCK_POTS: JSONObject = {
     "pots": [
         {
             "id": "pot_test_holiday",
@@ -131,7 +136,7 @@ MOCK_POTS: dict[str, object] = {
     ]
 }
 
-MOCK_WEBHOOKS: dict[str, object] = {
+MOCK_WEBHOOKS: JSONObject = {
     "webhooks": [
         {
             "id": "webhook_test_1",
@@ -144,7 +149,7 @@ MOCK_WEBHOOKS: dict[str, object] = {
 
 def get_mock_response(
     endpoint: str, _method: str = "GET", **_kwargs: object
-) -> dict[str, object]:
+) -> JSONObject:
     """Get mock response data for a given endpoint.
 
     Args:
@@ -193,5 +198,5 @@ def get_mock_response(
     return {
         "message": "Mock endpoint not implemented",
         "endpoint": endpoint,
-        "params": params,
+        "params": params if isinstance(params, dict) else {},
     }

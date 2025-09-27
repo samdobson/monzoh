@@ -11,6 +11,8 @@ if TYPE_CHECKING:
     import types
     from datetime import datetime
 
+    from monzoh.types import JSONObject
+
 import httpx
 from httpx import QueryParams
 from typing_extensions import Self, Unpack
@@ -38,7 +40,7 @@ class RequestOptions(TypedDict, total=False):
 
     params: QueryParamsType
     data: Mapping[str, str | int | float | bool | list[str]] | None
-    json_data: Mapping[str, object] | None
+    json_data: JSONObject | None
     files: Mapping[str, tuple[str, bytes, str]] | None
     headers: dict[str, str] | None
 
@@ -51,7 +53,7 @@ class AsyncMockResponse:
         status_code: HTTP status code to simulate
     """
 
-    def __init__(self, json_data: dict[str, object], status_code: int = 200) -> None:
+    def __init__(self, json_data: JSONObject, status_code: int = 200) -> None:
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
@@ -60,7 +62,7 @@ class AsyncMockResponse:
         self.url = ""
         self.request = None
 
-    def json(self) -> dict[str, object]:
+    def json(self) -> JSONObject:
         """Return JSON data from the response.
 
         Returns:
@@ -183,7 +185,7 @@ class BaseAsyncClient:
         data: Mapping[str, str | int | float | bool | list[str]] | None = options.get(
             "data"
         )
-        json_data: Mapping[str, object] | None = options.get("json_data")
+        json_data: JSONObject | None = options.get("json_data")
         files: Mapping[str, tuple[str, bytes, str]] | None = options.get("files")
         headers: dict[str, str] | None = options.get("headers")
 
@@ -249,7 +251,7 @@ class BaseAsyncClient:
         self,
         endpoint: str,
         data: Mapping[str, str | int | float | bool | list[str]] | None = None,
-        json_data: Mapping[str, object] | None = None,
+        json_data: JSONObject | None = None,
         files: Mapping[str, tuple[str, bytes, str]] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
@@ -278,7 +280,7 @@ class BaseAsyncClient:
         self,
         endpoint: str,
         data: Mapping[str, str | int | float | bool | list[str]] | None = None,
-        json_data: Mapping[str, object] | None = None,
+        json_data: JSONObject | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
         """Make PUT request.

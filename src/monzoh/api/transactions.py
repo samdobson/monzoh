@@ -9,6 +9,8 @@ if TYPE_CHECKING:
     from datetime import datetime
 
     from monzoh.core import BaseSyncClient
+    from monzoh.types import Metadata
+
 from monzoh.models import Transaction, TransactionResponse, TransactionsResponse
 
 
@@ -83,7 +85,7 @@ class TransactionsAPI:
         transaction_response.transaction._set_client(self.client)
         return transaction_response.transaction
 
-    def annotate(self, transaction_id: str, metadata: dict[str, object]) -> Transaction:
+    def annotate(self, transaction_id: str, metadata: Metadata) -> Transaction:
         """Add annotations to a transaction.
 
         Args:
