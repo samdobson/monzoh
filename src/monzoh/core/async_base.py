@@ -75,6 +75,7 @@ class BaseAsyncClient:
         access_token: OAuth access token
         http_client: Optional httpx async client to use
         timeout: Request timeout in seconds
+        retry_config: Optional retry configuration
 
     Attributes:
         BASE_URL: Base URL for Monzo API endpoints
@@ -165,10 +166,6 @@ class BaseAsyncClient:
 
         Returns:
             HTTP response
-
-        Raises:
-            MonzoNetworkError: If network request fails
-            create_error_from_response: If API returns an error response
         """
         params: QueryParamsType | None = options.get("params")
         data: dict[str, Any] | None = options.get("data")
@@ -208,10 +205,6 @@ class BaseAsyncClient:
 
         Returns:
             HTTP response
-
-        Raises:
-            MonzoNetworkError: If network request fails
-            create_error_from_response: If API returns an error response
         """
         params: QueryParamsType | None = options.get("params")
         data: dict[str, Any] | None = options.get("data")

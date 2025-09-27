@@ -11,6 +11,7 @@ class MonzoError(Exception):
         message: Error message
         status_code: HTTP status code if available
         response_data: API response data if available
+        response_headers: HTTP response headers if available
     """
 
     def __init__(
