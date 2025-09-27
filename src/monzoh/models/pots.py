@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003
 from decimal import Decimal  # noqa: TC003
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, cast
 from uuid import uuid4
 
 from pydantic import BaseModel, Field, field_validator
@@ -95,12 +95,12 @@ class Pot(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    def __init__(self, **data: Any) -> None:
+    def __init__(self, **data: object) -> None:
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
         self._source_account_id: str | None = None
 
-    def model_post_init(self, __context: Any, /) -> None:
+    def model_post_init(self, __context: object, /) -> None:
         """Post-init hook to set up client if available."""
         super().model_post_init(__context)
 
@@ -315,3 +315,8 @@ class PotsResponse(BaseModel):
     """Pots list response."""
 
     pots: list[Pot] = Field(..., description="List of user pots")
+
+
+# Rebuild models to resolve forward references
+Pot.model_rebuild()
+PotsResponse.model_rebuild()

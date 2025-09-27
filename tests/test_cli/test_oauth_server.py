@@ -1,7 +1,6 @@
 """Tests for CLI OAuth server functionality."""
 
 from threading import Event
-from typing import Any
 from unittest.mock import Mock, patch
 
 from monzoh.cli.oauth_server import (
@@ -74,7 +73,7 @@ class TestOAuthCallbackServer:
     """Tests for OAuth callback server."""
 
     @patch("monzoh.cli.oauth_server.HTTPServer.__init__")
-    def test_init(self, mock_init: Any) -> None:
+    def test_init(self, mock_init: Mock) -> None:
         """Test server initialization.
 
         Args:
@@ -101,7 +100,7 @@ class TestStartCallbackServer:
     @patch("monzoh.cli.oauth_server.Thread")
     @patch("monzoh.cli.oauth_server.OAuthCallbackServer")
     def test_start_callback_server(
-        self, mock_server_class: Any, mock_thread: Any
+        self, mock_server_class: Mock, mock_thread: Mock
     ) -> None:
         """Test starting callback server.
 

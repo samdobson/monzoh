@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import contextlib
 import json
-from typing import TYPE_CHECKING, Any, TypedDict
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
     import types
+    from datetime import datetime
+
+    from monzoh.types import JSONObject
 
 import httpx
 from httpx import QueryParams
@@ -23,16 +27,22 @@ from monzoh.models import WhoAmI
 
 from .mock_data import get_mock_response
 
-QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
+QueryParamsType = (
+    QueryParams
+    | Mapping[str, str | int | float | bool | None]
+    | list[tuple[str, str | int | float | bool | None]]
+    | str
+    | None
+)
 
 
 class RequestOptions(TypedDict, total=False):
     """Optional parameters for HTTP requests."""
 
     params: QueryParamsType
-    data: dict[str, Any] | None
-    json_data: dict[str, Any] | None
-    files: dict[str, Any] | None
+    data: Mapping[str, str | int | float | bool | list[str]] | None
+    json_data: JSONObject | None
+    files: Mapping[str, tuple[str, bytes, str]] | None
     headers: dict[str, str] | None
 
 
@@ -44,7 +54,7 @@ class MockResponse:
         status_code: HTTP status code to simulate
     """
 
-    def __init__(self, json_data: dict[str, Any], status_code: int = 200) -> None:
+    def __init__(self, json_data: JSONObject, status_code: int = 200) -> None:
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
@@ -53,7 +63,7 @@ class MockResponse:
         self.url = ""
         self.request = None
 
-    def json(self) -> dict[str, Any]:
+    def json(self) -> JSONObject:
         """Return JSON data from the response.
 
         Returns:
@@ -179,9 +189,11 @@ class BaseSyncClient:
             create_error_from_response: If API returns an error response
         """
         params: QueryParamsType | None = options.get("params")
-        data: dict[str, Any] | None = options.get("data")
-        json_data: dict[str, Any] | None = options.get("json_data")
-        files: dict[str, Any] | None = options.get("files")
+        data: Mapping[str, str | int | float | bool | list[str]] | None = options.get(
+            "data"
+        )
+        json_data: JSONObject | None = options.get("json_data")
+        files: Mapping[str, tuple[str, bytes, str]] | None = options.get("files")
         headers: dict[str, str] | None = options.get("headers")
 
         if self.is_mock_mode:
@@ -245,9 +257,9 @@ class BaseSyncClient:
     def _post(
         self,
         endpoint: str,
-        data: dict[str, Any] | None = None,
-        json_data: dict[str, Any] | None = None,
-        files: dict[str, Any] | None = None,
+        data: Mapping[str, str | int | float | bool | list[str]] | None = None,
+        json_data: JSONObject | None = None,
+        files: Mapping[str, tuple[str, bytes, str]] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
         """Make POST request.
@@ -274,8 +286,8 @@ class BaseSyncClient:
     def _put(
         self,
         endpoint: str,
-        data: dict[str, Any] | None = None,
-        json_data: dict[str, Any] | None = None,
+        data: Mapping[str, str | int | float | bool | list[str]] | None = None,
+        json_data: JSONObject | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
         """Make PUT request.
@@ -296,7 +308,7 @@ class BaseSyncClient:
     def _patch(
         self,
         endpoint: str,
-        data: dict[str, Any] | None = None,
+        data: Mapping[str, str | int | float | bool | list[str]] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | MockResponse:
         """Make PATCH request.
@@ -339,8 +351,8 @@ class BaseSyncClient:
         return WhoAmI(**response.json())
 
     def _prepare_expand_params(
-        self, expand: list[str] | None = None
-    ) -> list[tuple[str, str]] | None:
+        self, expand: Sequence[str] | None = None
+    ) -> list[tuple[str, str | int | float | bool | None]] | None:
         """Prepare expand parameters for requests.
 
         Args:
@@ -357,9 +369,9 @@ class BaseSyncClient:
     def _prepare_pagination_params(
         self,
         limit: int | None = None,
-        since: str | Any | None = None,
-        before: str | Any | None = None,
-    ) -> dict[str, Any]:
+        since: str | datetime | None = None,
+        before: str | datetime | None = None,
+    ) -> dict[str, str]:
         """Prepare pagination parameters.
 
         Args:

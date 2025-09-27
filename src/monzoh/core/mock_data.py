@@ -1,15 +1,20 @@
 """Mock data for testing purposes when using 'test' access token."""
 
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from __future__ import annotations
 
-MOCK_WHOAMI: dict[str, Any] = {
+from datetime import datetime, timedelta, timezone
+from typing import TYPE_CHECKING, cast
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
+
+MOCK_WHOAMI: JSONObject = {
     "authenticated": True,
     "client_id": "test_client_id",
     "user_id": "test_user_id",
 }
 
-MOCK_ACCOUNTS: dict[str, Any] = {
+MOCK_ACCOUNTS: JSONObject = {
     "accounts": [
         {
             "id": "acc_test_account_1",
@@ -28,14 +33,14 @@ MOCK_ACCOUNTS: dict[str, Any] = {
     ]
 }
 
-MOCK_BALANCE: dict[str, Any] = {
+MOCK_BALANCE: JSONObject = {
     "balance": 285043,
     "total_balance": 295043,
     "currency": "GBP",
     "spend_today": 1250,
 }
 
-MOCK_TRANSACTIONS: dict[str, Any] = {
+MOCK_TRANSACTIONS: JSONObject = {
     "transactions": [
         {
             "id": "tx_test_transaction_1",
@@ -102,7 +107,7 @@ MOCK_TRANSACTIONS: dict[str, Any] = {
     ]
 }
 
-MOCK_POTS: dict[str, Any] = {
+MOCK_POTS: JSONObject = {
     "pots": [
         {
             "id": "pot_test_holiday",
@@ -131,7 +136,7 @@ MOCK_POTS: dict[str, Any] = {
     ]
 }
 
-MOCK_WEBHOOKS: dict[str, Any] = {
+MOCK_WEBHOOKS: JSONObject = {
     "webhooks": [
         {
             "id": "webhook_test_1",
@@ -143,8 +148,8 @@ MOCK_WEBHOOKS: dict[str, Any] = {
 
 
 def get_mock_response(
-    endpoint: str, _method: str = "GET", **_kwargs: Any
-) -> dict[str, Any]:
+    endpoint: str, _method: str = "GET", **_kwargs: object
+) -> JSONObject:
     """Get mock response data for a given endpoint.
 
     Args:
@@ -177,9 +182,13 @@ def get_mock_response(
         return MOCK_TRANSACTIONS
 
     individual_resource_patterns = [
-        ("/transactions/", "transaction", MOCK_TRANSACTIONS["transactions"][0]),
-        ("/pots/", "pot", MOCK_POTS["pots"][0]),
-        ("/webhooks/", "webhook", MOCK_WEBHOOKS["webhooks"][0]),
+        (
+            "/transactions/",
+            "transaction",
+            cast("list", MOCK_TRANSACTIONS["transactions"])[0],
+        ),
+        ("/pots/", "pot", cast("list", MOCK_POTS["pots"])[0]),
+        ("/webhooks/", "webhook", cast("list", MOCK_WEBHOOKS["webhooks"])[0]),
     ]
 
     for prefix, key, mock_data in individual_resource_patterns:
@@ -189,5 +198,5 @@ def get_mock_response(
     return {
         "message": "Mock endpoint not implemented",
         "endpoint": endpoint,
-        "params": params,
+        "params": params if isinstance(params, dict) else {},
     }

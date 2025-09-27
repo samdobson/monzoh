@@ -5,7 +5,7 @@ import os
 import tempfile
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 from unittest.mock import Mock, patch
 
 from rich.console import Console
@@ -18,6 +18,9 @@ from monzoh.cli.token_cache import (
     try_refresh_token,
 )
 from monzoh.models import OAuthToken
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
 
 
 class TestTokenCache:
@@ -201,7 +204,7 @@ class TestTryRefreshToken:
 
     def test_refresh_token_success(self) -> None:
         """Test successful token refresh."""
-        cached_token = {"refresh_token": "test_refresh"}
+        cached_token: JSONObject = {"refresh_token": "test_refresh"}
         oauth_mock = Mock()
         console = Console()
 
@@ -228,7 +231,7 @@ class TestTryRefreshToken:
 
     def test_refresh_token_failure(self) -> None:
         """Test failed token refresh."""
-        cached_token = {"refresh_token": "test_refresh"}
+        cached_token: JSONObject = {"refresh_token": "test_refresh"}
         oauth_mock = Mock()
         console = Console()
 

@@ -33,7 +33,7 @@ class TestAsyncAttachmentsAPI:
     @pytest.mark.asyncio
     async def test_upload(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         attachments_api: AsyncAttachmentsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
@@ -63,7 +63,7 @@ class TestAsyncAttachmentsAPI:
         register_response = Mock()
         register_response.json.return_value = register_response_data
 
-        async def mock_post_side_effect(*args: Any, **_kwargs: Any) -> Mock:
+        async def mock_post_side_effect(*args: str, **_kwargs: dict[str, Any]) -> Mock:
             if args[0] == "/attachment/upload":
                 return upload_response
             if args[0] == "/attachment/register":
@@ -100,7 +100,7 @@ class TestAsyncAttachmentsAPI:
     @pytest.mark.asyncio
     async def test_upload_with_file_path(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         attachments_api: AsyncAttachmentsAPI,
         mock_async_base_client: BaseAsyncClient,
     ) -> None:
@@ -138,7 +138,9 @@ class TestAsyncAttachmentsAPI:
             register_response = Mock()
             register_response.json.return_value = register_response_data
 
-            async def mock_post_side_effect(*args: Any, **_kwargs: Any) -> Mock:
+            async def mock_post_side_effect(
+                *args: str, **_kwargs: dict[str, Any]
+            ) -> Mock:
                 if args[0] == "/attachment/upload":
                     return upload_response
                 if args[0] == "/attachment/register":
@@ -216,7 +218,7 @@ class TestAsyncAttachmentsAPI:
         response_mock = Mock()
         response_mock.json.return_value = response_data
 
-        async def mock_post(*_args: Any, **_kwargs: Any) -> Mock:
+        async def mock_post(*_args: str, **_kwargs: dict[str, Any]) -> Mock:
             return response_mock
 
         cast("Mock", mock_async_base_client._post).side_effect = mock_post
@@ -263,7 +265,7 @@ class TestAsyncAttachmentsAPI:
     @pytest.mark.asyncio
     async def test_private_upload_file_to_url(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         attachments_api: AsyncAttachmentsAPI,
     ) -> None:
         """Test private file upload to URL method.

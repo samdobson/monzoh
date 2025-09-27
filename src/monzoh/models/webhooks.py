@@ -1,6 +1,6 @@
 """Webhook-related models."""
 
-from typing import Any
+from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
@@ -17,7 +17,7 @@ class WebhookEvent(BaseModel):
     """Webhook event."""
 
     type: str = Field(..., description="Event type (e.g., 'transaction.created')")
-    data: dict[str, Any] = Field(..., description="Event data payload")
+    data: dict[str, object] = Field(..., description="Event data payload")
 
 
 class WebhooksResponse(BaseModel):
