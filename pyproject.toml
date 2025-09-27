@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "monzoh"
 version = "1.2.0"
-description = "A Python library for the Monzo Developer API"
+description = "Python library for the Monzo Developer API"
 readme = "README.md"
 license = {text = "MIT"}
 authors = [
@@ -46,6 +46,7 @@ dev = [
 monzoh-auth = "monzoh.cli:main"
 
 [project.urls]
+Documentation = "https://sjd333-organization.mintlify.app/docs/introduction"
 Homepage = "https://github.com/samdobson/monzoh"
 Repository = "https://github.com/samdobson/monzoh.git"
 Issues = "https://github.com/samdobson/monzoh/issues"
@@ -58,15 +59,33 @@ target-version = "py310"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["D107", "SLF001", "PLC0415", "COM812"]
+ignore = [
+    "COM812",  # Trailing comma missing - conflicts with formatter
+    "D107",    # Missing docstring in __init__ - covered by class docstring
+    "PLC0415", # Import outside top-level - avoids circular imports
+    "SLF001",  # Private member accessed - part of library design
+]
 pydocstyle.convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
-"src/monzoh/cli/*" = ["T201"]
-"tests/*" = ["S101", "S105", "S106", "PLR2004"]
-"**/auth.py" = ["PLR2004"]
-"**/core/*.py" = ["PLR2004"]
-"**/exceptions.py" = ["PLR2004"]
+"src/monzoh/cli/*" = [
+    "T201",  # Print found - acceptable for CLI output
+]
+"tests/*" = [
+    "S101",    # Use of assert - standard in pytest
+    "S105",    # Hardcoded password - test fixtures only
+    "S106",    # Hardcoded password in function - test fixtures only
+    "PLR2004", # Magic value - acceptable in test constants
+]
+"**/auth.py" = [
+    "PLR2004", # Magic value - HTTP status codes
+]
+"**/core/*.py" = [
+    "PLR2004", # Magic value - HTTP status codes
+]
+"**/exceptions.py" = [
+    "PLR2004", # Magic value - HTTP status codes
+]
 
 [tool.mypy]
 python_version = "3.10"
@@ -75,30 +94,13 @@ plugins = ["pydantic.mypy"]
 [tool.pytest.ini_options]
 minversion = "7.0"
 addopts = "-ra -q --cov=monzoh --cov-report=term-missing"
-testpaths = [
-    "tests",
-]
+testpaths = ["tests",]
 asyncio_default_fixture_loop_scope = "function"
 
 [tool.coverage.run]
 source = ["src/monzoh"]
 
-[tool.coverage.report]
-exclude_lines = [
-    "pragma: no cover",
-    "def __repr__",
-    "if self.debug:",
-    "if settings.DEBUG",
-    "raise AssertionError",
-    "raise NotImplementedError",
-    "if 0:",
-    "if __name__ == .__main__.:",
-    "class .*\\(Protocol\\):",
-    "@(abc\\\\.)?abstractmethod",
-]
-
 [tool.pydoclint]
 style = "google"
 arg-type-hints-in-docstring = false
 check-return-types = false
-
