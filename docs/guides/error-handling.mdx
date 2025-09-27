@@ -168,7 +168,7 @@ except MonzoRateLimitError as e:
     # You only see this error if all retry attempts fail
 ```
 
-**Note:** As of version 1.2.0, Monzoh automatically retries rate limit errors with exponential backoff. See the [Retry Handling](/guides/retry-handling) guide for configuration options.
+**Note:** As of version 2.0.0, Monzoh automatically retries rate limit errors with exponential backoff. See the [Retry Handling](/guides/retry-handling) guide for configuration options.
 
 **Common causes:**
 - Making too many requests in a short time period
@@ -192,7 +192,7 @@ except MonzoServerError as e:
     # Consider fallback to cached data if all retries fail
 ```
 
-**Note:** As of version 1.2.0, Monzoh automatically retries server errors with exponential backoff. See the [Retry Handling](/guides/retry-handling) guide for configuration options.
+**Note:** As of version 2.0.0, Monzoh automatically retries server errors with exponential backoff. See the [Retry Handling](/guides/retry-handling) guide for configuration options.
 
 **Common causes:**
 - Temporary API server issues
