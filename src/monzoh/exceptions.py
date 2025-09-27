@@ -18,10 +18,12 @@ class MonzoError(Exception):
         message: str,
         status_code: int | None = None,
         response_data: dict[str, Any] | None = None,
+        response_headers: dict[str, str] | None = None,
     ) -> None:
         self.original_message = message
         self.status_code = status_code
         self.response_data = response_data or {}
+        self.response_headers = response_headers or {}
 
         friendly_message = self._create_friendly_message()
         super().__init__(friendly_message)
@@ -152,7 +154,10 @@ class MonzoValidationError(MonzoError):
 
 
 def create_error_from_response(
-    status_code: int, message: str, response_data: dict[str, Any] | None = None
+    status_code: int,
+    message: str,
+    response_data: dict[str, Any] | None = None,
+    response_headers: dict[str, str] | None = None,
 ) -> MonzoError:
     """Create appropriate exception based on HTTP status code.
 
@@ -160,6 +165,7 @@ def create_error_from_response(
         status_code: HTTP status code
         message: Error message
         response_data: Optional API response data
+        response_headers: Optional HTTP response headers
 
     Returns:
         Appropriate exception instance based on status code
@@ -177,4 +183,4 @@ def create_error_from_response(
     }
 
     error_class = error_map.get(status_code, MonzoError)
-    return error_class(message, status_code, response_data)
+    return error_class(message, status_code, response_data, response_headers)

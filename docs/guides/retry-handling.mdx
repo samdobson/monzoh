@@ -1,0 +1,241 @@
+---
+title: "Retry Handling"
+description: "Learn how to configure automatic retry behavior for transient API errors"
+---
+
+# Retry Handling
+
+The Monzoh library includes built-in retry functionality to automatically handle transient API errors like rate limits, server errors, and network issues. This guide covers how to configure and use the retry system.
+
+## Overview
+
+By default, the library automatically retries failed requests for certain types of errors:
+
+- **Rate limit errors (429)** - When you've exceeded the API rate limit
+- **Server errors (500)** - When the Monzo API experiences internal errors
+- **Timeout errors (504)** - When requests time out
+- **Network errors** - When there are connection issues
+
+The retry system uses exponential backoff with jitter to avoid thundering herd problems and respects `Retry-After` headers from rate limit responses.
+
+## Default Behavior
+
+Without any configuration, the library will:
+
+- Retry up to **3 times** for transient errors
+- Start with a **1 second** delay, doubling each time (1s, 2s, 4s)
+- Add random jitter to delays (±50%)
+- Respect `Retry-After` headers from 429 responses
+- Cap delays at **60 seconds** maximum
+
+```python
+from monzoh import MonzoClient
+
+# Uses default retry configuration
+client = MonzoClient(access_token="your_token")
+
+# This will automatically retry on transient errors
+accounts = client.accounts.list()
+```
+
+## Custom Retry Configuration
+
+You can customize retry behavior using the `RetryConfig` class:
+
+```python
+from monzoh import MonzoClient, RetryConfig
+
+# Custom retry configuration
+retry_config = RetryConfig(
+    max_retries=5,          # Retry up to 5 times
+    base_delay=2.0,         # Start with 2 second delay
+    backoff_multiplier=1.5, # Multiply delay by 1.5 each time
+    max_delay=30.0,         # Cap delays at 30 seconds
+    jitter=True,            # Add random jitter (recommended)
+)
+
+client = MonzoClient(
+    access_token="your_token",
+    retry_config=retry_config
+)
+```
+
+### Configuration Options
+
+| Parameter | Default | Description |
+|-----------|---------|-------------|
+| `max_retries` | `3` | Maximum number of retry attempts |
+| `base_delay` | `1.0` | Initial delay in seconds before first retry |
+| `backoff_multiplier` | `2.0` | Multiplier for exponential backoff |
+| `max_delay` | `60.0` | Maximum delay between retries in seconds |
+| `jitter` | `True` | Add random jitter to delays (recommended) |
+| `retryable_exceptions` | See below | Tuple of exception types to retry |
+
+### Default Retryable Exceptions
+
+By default, the following exceptions trigger retries:
+
+- `MonzoRateLimitError` - API rate limit exceeded (429)
+- `MonzoServerError` - Internal server error (500)
+- `MonzoTimeoutError` - Gateway timeout (504)
+- `MonzoNetworkError` - Network connection issues
+
+## Disabling Retries
+
+To disable retries entirely:
+
+```python
+from monzoh import MonzoClient, RetryConfig
+
+# Disable all retries
+no_retry_config = RetryConfig(max_retries=0)
+
+client = MonzoClient(
+    access_token="your_token",
+    retry_config=no_retry_config
+)
+```
+
+## Custom Retryable Exceptions
+
+You can specify which exception types should trigger retries:
+
+```python
+from monzoh import MonzoClient, RetryConfig
+from monzoh.exceptions import MonzoRateLimitError, MonzoServerError
+
+# Only retry on rate limits and server errors
+custom_config = RetryConfig(
+    max_retries=3,
+    retryable_exceptions=(MonzoRateLimitError, MonzoServerError)
+)
+
+client = MonzoClient(
+    access_token="your_token",
+    retry_config=custom_config
+)
+```
+
+## Rate Limit Handling
+
+The retry system has special handling for rate limit errors:
+
+### Retry-After Headers
+
+When the API returns a 429 status with a `Retry-After` header, the library will use that delay instead of the calculated exponential backoff:
+
+```python
+# If API returns: 429 with "Retry-After: 30"
+# The library will wait exactly 30 seconds before retrying
+# (subject to max_delay limit)
+```
+
+### Rate Limit Best Practices
+
+- Keep the default `jitter=True` to avoid synchronized retries
+- Set reasonable `max_delay` values for your use case
+- Consider your application's timeout requirements when setting `max_retries`
+
+## Async Usage
+
+Retry configuration works identically with async clients:
+
+```python
+from monzoh import AsyncMonzoClient, RetryConfig
+
+retry_config = RetryConfig(
+    max_retries=3,
+    base_delay=1.0
+)
+
+async with AsyncMonzoClient(
+    access_token="your_token",
+    retry_config=retry_config
+) as client:
+    accounts = await client.accounts.list()
+```
+
+## Examples
+
+### Conservative Retry Policy
+
+For applications that prefer quick failures:
+
+```python
+conservative_config = RetryConfig(
+    max_retries=2,
+    base_delay=0.5,
+    max_delay=5.0,
+    backoff_multiplier=1.5
+)
+```
+
+### Aggressive Retry Policy
+
+For batch processing where retries are preferred:
+
+```python
+aggressive_config = RetryConfig(
+    max_retries=10,
+    base_delay=1.0,
+    max_delay=120.0,
+    backoff_multiplier=2.0
+)
+```
+
+### Rate Limit Only Retries
+
+To only retry on rate limits:
+
+```python
+from monzoh.exceptions import MonzoRateLimitError
+
+rate_limit_only = RetryConfig(
+    max_retries=5,
+    retryable_exceptions=(MonzoRateLimitError,)
+)
+```
+
+## Monitoring and Logging
+
+The retry system integrates with Python's standard logging. To see retry attempts:
+
+```python
+import logging
+
+# Enable debug logging to see retry attempts
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger('monzoh')
+```
+
+## Error Handling
+
+After all retries are exhausted, the original exception is raised:
+
+```python
+from monzoh.exceptions import MonzoRateLimitError
+
+try:
+    accounts = client.accounts.list()
+except MonzoRateLimitError as e:
+    print(f"Rate limit exceeded after all retries: {e}")
+    # Handle the error appropriately
+```
+
+## Performance Considerations
+
+- Retries add latency to failed requests
+- Consider your application's timeout requirements
+- Use reasonable `max_retries` values to avoid excessive delays
+- Enable jitter to prevent synchronized retries across clients
+
+## Best Practices
+
+1. **Use default configuration** for most applications
+2. **Enable jitter** to avoid thundering herd problems
+3. **Set appropriate timeouts** at the application level
+4. **Monitor retry rates** to identify API issues
+5. **Handle final failures** gracefully in your application
+6. **Consider circuit breaker patterns** for sustained API issues
+
+The retry system is designed to handle temporary API issues transparently while giving you full control over the retry behavior when needed.

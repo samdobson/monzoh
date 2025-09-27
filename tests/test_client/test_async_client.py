@@ -196,7 +196,10 @@ class TestBaseAsyncClient:
             access_token="test_token", http_client=mock_async_http_client
         )
 
-        with pytest.raises(MonzoNetworkError):
+        with (
+            patch("asyncio.sleep"),  # Speed up retry delays
+            pytest.raises(MonzoNetworkError),
+        ):
             await client._request("GET", "/test")
 
     @pytest.mark.asyncio
@@ -210,6 +213,7 @@ class TestBaseAsyncClient:
         error_response.status_code = 400
         error_response.text = "Bad request"
         error_response.json.return_value = {"error": "invalid_request"}
+        error_response.headers = {}
 
         mock_async_http_client.request.return_value = error_response
 

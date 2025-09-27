@@ -15,6 +15,7 @@ from .api import (
 )
 from .auth import MonzoOAuth
 from .core import BaseSyncClient
+from .core.retry import RetryConfig
 from .models import WhoAmI
 
 
@@ -74,6 +75,7 @@ class MonzoClient:
             load from cache.
         http_client: Optional httpx client to use
         timeout: Request timeout in seconds
+        retry_config: Retry configuration for handling transient errors
     """
 
     def __init__(
@@ -81,11 +83,15 @@ class MonzoClient:
         access_token: str | None = None,
         http_client: httpx.Client | None = None,
         timeout: float = 30.0,
+        retry_config: RetryConfig | None = None,
     ) -> None:
         effective_token = access_token or _load_cached_token()
 
         self._base_client = BaseSyncClient(
-            access_token=effective_token, http_client=http_client, timeout=timeout
+            access_token=effective_token,
+            http_client=http_client,
+            timeout=timeout,
+            retry_config=retry_config,
         )
 
         self.accounts = AccountsAPI(self._base_client)

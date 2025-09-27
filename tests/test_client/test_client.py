@@ -407,6 +407,7 @@ class TestBaseSyncClient:
         mock_response.status_code = 400
         mock_response.text = "Bad Request"
         mock_response.json.return_value = {"error": "invalid_request"}
+        mock_response.headers = {}
         mock_http_client.request.return_value = mock_response
 
         client = BaseSyncClient("real_token", http_client=mock_http_client)
@@ -421,11 +422,15 @@ class TestBaseSyncClient:
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
         mock_response.json.side_effect = ValueError("Invalid JSON")
+        mock_response.headers = {}
         mock_http_client.request.return_value = mock_response
 
         client = BaseSyncClient("real_token", http_client=mock_http_client)
 
-        with pytest.raises(MonzoError):
+        with (
+            patch("time.sleep"),  # Speed up retry delays
+            pytest.raises(MonzoError),
+        ):
             client._request("GET", "/test")
 
     def test_request_network_error(self) -> None:
@@ -435,7 +440,10 @@ class TestBaseSyncClient:
 
         client = BaseSyncClient("real_token", http_client=mock_http_client)
 
-        with pytest.raises(MonzoNetworkError):
+        with (
+            patch("time.sleep"),  # Speed up retry delays
+            pytest.raises(MonzoNetworkError),
+        ):
             client._request("GET", "/test")
 
     def test_convenience_methods(self) -> None:
