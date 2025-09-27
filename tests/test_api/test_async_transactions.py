@@ -160,7 +160,7 @@ class TestAsyncTransactionsAPI:
             "transaction": sample_transaction
         }
 
-        metadata = {"category": "lunch", "notes": "Business meal"}
+        metadata: dict[str, object] = {"category": "lunch", "notes": "Business meal"}
         transaction = await transactions_api.annotate("test_transaction_id", metadata)
 
         expected_data = {
@@ -190,7 +190,7 @@ class TestAsyncTransactionsAPI:
             "transaction": sample_transaction
         }
 
-        metadata = {"category": ""}
+        metadata: dict[str, object] = {"category": ""}
         await transactions_api.annotate("test_transaction_id", metadata)
 
         expected_data = {"metadata[category]": ""}

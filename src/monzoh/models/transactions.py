@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003
 from pathlib import Path  # noqa: TC003
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -49,7 +49,7 @@ class Merchant(BaseModel):
     disable_feedback: bool | None = Field(
         None, description="Whether feedback is disabled"
     )
-    metadata: dict[str, Any] | None = Field(None, description="Merchant metadata")
+    metadata: dict[str, object] | None = Field(None, description="Merchant metadata")
     suggested_tags: list[str] | None = Field(None, description="Suggested tags")
 
 
@@ -122,7 +122,7 @@ class Transaction(BaseModel):
     merchant: str | Merchant | None = Field(
         None, description="Merchant ID or expanded merchant object"
     )
-    metadata: dict[str, Any] = Field(
+    metadata: dict[str, object] = Field(
         default_factory=dict, description="Custom key-value metadata"
     )
     notes: str | None = Field(None, description="User-added notes for the transaction")
@@ -154,11 +154,11 @@ class Transaction(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    def __init__(self, **data: Any) -> None:
+    def __init__(self, **data: object) -> None:
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
-    def model_post_init(self, __context: Any, /) -> None:
+    def model_post_init(self, __context: object, /) -> None:
         """Post-init hook to set up client if available.
 
         Args:
@@ -234,7 +234,7 @@ class Transaction(BaseModel):
             file_type=file_type,
         )
 
-    def annotate(self, metadata: dict[str, Any]) -> Transaction:
+    def annotate(self, metadata: dict[str, object]) -> Transaction:
         """Add annotations to this transaction.
 
         Args:
@@ -317,7 +317,7 @@ class Transaction(BaseModel):
             file_type=file_type,
         )
 
-    async def aannotate(self, metadata: dict[str, Any]) -> Transaction:
+    async def aannotate(self, metadata: dict[str, object]) -> Transaction:
         """Add annotations to this transaction (async version).
 
         Args:

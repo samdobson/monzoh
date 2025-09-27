@@ -3,6 +3,7 @@
 import secrets
 import urllib.parse
 import webbrowser
+from typing import cast
 
 import httpx
 from rich.console import Console
@@ -37,10 +38,10 @@ def _try_cached_token(console: Console) -> str | None:
     console.print("🧪 Testing cached token...")
 
     try:
-        with MonzoClient(cached_token["access_token"]) as client:
+        with MonzoClient(cast("str", cached_token["access_token"])) as client:
             whoami = client.whoami()
             console.print(f"✅ [green]Using cached token for: {whoami.user_id}[/green]")
-            return cached_token["access_token"]
+            return cast("str", cached_token["access_token"])
     except (MonzoError, httpx.RequestError, OSError, ValueError):
         console.print("❌ Error during authentication: Token is invalid")
 

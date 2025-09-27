@@ -3,7 +3,6 @@
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, HTTPServer
 from threading import Event, Thread
-from typing import Any
 
 
 class OAuthCallbackHandler(BaseHTTPRequestHandler):
@@ -56,7 +55,7 @@ class OAuthCallbackHandler(BaseHTTPRequestHandler):
 
         self.server.callback_received.set()
 
-    def log_message(self, fmt: str, *args: Any) -> None:
+    def log_message(self, fmt: str, *args: object) -> None:
         """Override to suppress request logging."""
 
 

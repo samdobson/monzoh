@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime  # noqa: TC003
 from decimal import Decimal  # noqa: TC003
-from typing import TYPE_CHECKING, Any, Literal, cast
+from typing import TYPE_CHECKING, Literal, cast
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -60,11 +60,11 @@ class Account(BaseModel):
 
     model_config = {"arbitrary_types_allowed": True}
 
-    def __init__(self, **data: Any) -> None:
+    def __init__(self, **data: object) -> None:
         super().__init__(**data)
         self._client: BaseSyncClient | BaseAsyncClient | None = None
 
-    def model_post_init(self, __context: Any, /) -> None:
+    def model_post_init(self, __context: object, /) -> None:
         """Post-init hook to set up client if available.
 
         Args:

@@ -6,7 +6,7 @@ import os
 import platform
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
-from typing import Any
+from typing import cast
 
 from rich.console import Console
 
@@ -60,7 +60,7 @@ def save_token_to_cache(token: OAuthToken, console: Console) -> None:
         console.print(f"⚠️  [yellow]Warning: Could not cache token: {e}[/yellow]")
 
 
-def load_token_from_cache(*, include_expired: bool = False) -> dict[str, Any] | None:
+def load_token_from_cache(*, include_expired: bool = False) -> dict[str, object] | None:
     """Load token from cache file.
 
     Args:
@@ -76,10 +76,10 @@ def load_token_from_cache(*, include_expired: bool = False) -> dict[str, Any] | 
             return None
 
         with cache_path.open() as f:
-            cache_data: dict[str, Any] = json.load(f)
+            cache_data: dict[str, object] = json.load(f)
 
         if not include_expired:
-            expires_at = datetime.fromisoformat(cache_data["expires_at"])
+            expires_at = datetime.fromisoformat(cast("str", cache_data["expires_at"]))
             if datetime.now(tz=timezone.utc) >= expires_at - timedelta(minutes=5):
                 return None
 
@@ -100,7 +100,7 @@ def clear_token_cache() -> None:
 
 
 def try_refresh_token(
-    cached_token: dict[str, Any], oauth: MonzoOAuth, console: Console
+    cached_token: dict[str, object], oauth: MonzoOAuth, console: Console
 ) -> str | None:
     """Try to refresh an expired token."""
     if not cached_token.get("refresh_token"):
@@ -110,7 +110,7 @@ def try_refresh_token(
         console.print("🔄 Refreshing expired access token...")
 
         with oauth:
-            new_token = oauth.refresh_token(cached_token["refresh_token"])
+            new_token = oauth.refresh_token(cast("str", cached_token["refresh_token"]))
 
         save_token_to_cache(new_token, console)
         console.print("✅ [green]Token refreshed successfully![/green]")

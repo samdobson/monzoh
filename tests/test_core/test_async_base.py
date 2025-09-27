@@ -10,7 +10,7 @@ class TestAsyncMockResponse:
 
     def test_async_mock_response_json(self) -> None:
         """Test AsyncMockResponse json method."""
-        data = {"test": "data"}
+        data: dict[str, object] = {"test": "data"}
         response = AsyncMockResponse(data, 200)
 
         assert response.json() == data

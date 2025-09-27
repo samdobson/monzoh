@@ -1,15 +1,15 @@
 """Mock data for testing purposes when using 'test' access token."""
 
 from datetime import datetime, timedelta, timezone
-from typing import Any
+from typing import cast
 
-MOCK_WHOAMI: dict[str, Any] = {
+MOCK_WHOAMI: dict[str, object] = {
     "authenticated": True,
     "client_id": "test_client_id",
     "user_id": "test_user_id",
 }
 
-MOCK_ACCOUNTS: dict[str, Any] = {
+MOCK_ACCOUNTS: dict[str, object] = {
     "accounts": [
         {
             "id": "acc_test_account_1",
@@ -28,14 +28,14 @@ MOCK_ACCOUNTS: dict[str, Any] = {
     ]
 }
 
-MOCK_BALANCE: dict[str, Any] = {
+MOCK_BALANCE: dict[str, object] = {
     "balance": 285043,
     "total_balance": 295043,
     "currency": "GBP",
     "spend_today": 1250,
 }
 
-MOCK_TRANSACTIONS: dict[str, Any] = {
+MOCK_TRANSACTIONS: dict[str, object] = {
     "transactions": [
         {
             "id": "tx_test_transaction_1",
@@ -102,7 +102,7 @@ MOCK_TRANSACTIONS: dict[str, Any] = {
     ]
 }
 
-MOCK_POTS: dict[str, Any] = {
+MOCK_POTS: dict[str, object] = {
     "pots": [
         {
             "id": "pot_test_holiday",
@@ -131,7 +131,7 @@ MOCK_POTS: dict[str, Any] = {
     ]
 }
 
-MOCK_WEBHOOKS: dict[str, Any] = {
+MOCK_WEBHOOKS: dict[str, object] = {
     "webhooks": [
         {
             "id": "webhook_test_1",
@@ -143,8 +143,8 @@ MOCK_WEBHOOKS: dict[str, Any] = {
 
 
 def get_mock_response(
-    endpoint: str, _method: str = "GET", **_kwargs: Any
-) -> dict[str, Any]:
+    endpoint: str, _method: str = "GET", **_kwargs: object
+) -> dict[str, object]:
     """Get mock response data for a given endpoint.
 
     Args:
@@ -177,9 +177,13 @@ def get_mock_response(
         return MOCK_TRANSACTIONS
 
     individual_resource_patterns = [
-        ("/transactions/", "transaction", MOCK_TRANSACTIONS["transactions"][0]),
-        ("/pots/", "pot", MOCK_POTS["pots"][0]),
-        ("/webhooks/", "webhook", MOCK_WEBHOOKS["webhooks"][0]),
+        (
+            "/transactions/",
+            "transaction",
+            cast("list", MOCK_TRANSACTIONS["transactions"])[0],
+        ),
+        ("/pots/", "pot", cast("list", MOCK_POTS["pots"])[0]),
+        ("/webhooks/", "webhook", cast("list", MOCK_WEBHOOKS["webhooks"])[0]),
     ]
 
     for prefix, key, mock_data in individual_resource_patterns:

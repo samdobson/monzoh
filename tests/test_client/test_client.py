@@ -226,7 +226,7 @@ class TestMockResponse:
 
     def test_init(self) -> None:
         """Test MockResponse initialization."""
-        json_data = {"test": "data"}
+        json_data: dict[str, object] = {"test": "data"}
         response = MockResponse(json_data, status_code=201)
 
         assert response._json_data == json_data
@@ -239,7 +239,7 @@ class TestMockResponse:
 
     def test_init_default_status(self) -> None:
         """Test MockResponse with default status code."""
-        json_data = {"test": "data"}
+        json_data: dict[str, object] = {"test": "data"}
         response = MockResponse(json_data)
 
         assert response.status_code == 200
@@ -384,7 +384,7 @@ class TestBaseSyncClient:
             params={"param": "value"},
             data={"key": "value"},
             json_data={"json": "data"},
-            files={"file": "content"},
+            files={"file": ("file.txt", b"content", "text/plain")},
             headers={"Custom": "Header"},
         )
 
@@ -396,7 +396,7 @@ class TestBaseSyncClient:
             params={"param": "value"},
             data={"key": "value"},
             json={"json": "data"},
-            files={"file": "content"},
+            files={"file": ("file.txt", b"content", "text/plain")},
             headers={"Authorization": "Bearer real_token", "Custom": "Header"},
         )
 
@@ -456,7 +456,7 @@ class TestBaseSyncClient:
                 "/test",
                 data={"d": "v"},
                 json_data={"j": "v"},
-                files={"f": "v"},
+                files={"f": ("f.txt", b"v", "text/plain")},
                 headers={"h": "v"},
             )
             assert result is mock_response
@@ -465,7 +465,7 @@ class TestBaseSyncClient:
                 "/test",
                 data={"d": "v"},
                 json_data={"j": "v"},
-                files={"f": "v"},
+                files={"f": ("f.txt", b"v", "text/plain")},
                 headers={"h": "v"},
             )
 

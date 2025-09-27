@@ -23,7 +23,10 @@ class TestExceptions:
 
     def test_monzo_error_with_response_data(self) -> None:
         """Test MonzoError with response data."""
-        response_data = {"message": "Custom API message", "code": "invalid_request"}
+        response_data: dict[str, object] = {
+            "message": "Custom API message",
+            "code": "invalid_request",
+        }
         error = MonzoError("API Error", status_code=400, response_data=response_data)
 
         assert error.original_message == "API Error"
@@ -33,7 +36,7 @@ class TestExceptions:
 
     def test_monzo_error_with_simple_data(self) -> None:
         """Test MonzoError with simple response data."""
-        response_data = {"code": "bad_request"}
+        response_data: dict[str, object] = {"code": "bad_request"}
         error = MonzoError("API Error", response_data=response_data)
 
         assert str(error) == "API error: bad_request"

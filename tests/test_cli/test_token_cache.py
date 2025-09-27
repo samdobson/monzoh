@@ -201,7 +201,7 @@ class TestTryRefreshToken:
 
     def test_refresh_token_success(self) -> None:
         """Test successful token refresh."""
-        cached_token = {"refresh_token": "test_refresh"}
+        cached_token: dict[str, object] = {"refresh_token": "test_refresh"}
         oauth_mock = Mock()
         console = Console()
 
@@ -228,7 +228,7 @@ class TestTryRefreshToken:
 
     def test_refresh_token_failure(self) -> None:
         """Test failed token refresh."""
-        cached_token = {"refresh_token": "test_refresh"}
+        cached_token: dict[str, object] = {"refresh_token": "test_refresh"}
         oauth_mock = Mock()
         console = Console()
 

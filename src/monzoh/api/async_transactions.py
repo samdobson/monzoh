@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import builtins
@@ -84,7 +84,7 @@ class AsyncTransactionsAPI:
         return transaction_response.transaction
 
     async def annotate(
-        self, transaction_id: str, metadata: dict[str, Any]
+        self, transaction_id: str, metadata: dict[str, object]
     ) -> Transaction:
         """Add annotations to a transaction.
 
