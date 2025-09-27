@@ -15,7 +15,7 @@ class TestTransactionsAPI:
         self,
         monzo_client: MonzoClient,
         mock_response: Mock,
-        sample_transaction: Any,
+        sample_transaction: dict[str, Any],
     ) -> None:
         """Test listing transactions.
 
@@ -43,7 +43,7 @@ class TestTransactionsAPI:
         self,
         monzo_client: MonzoClient,
         mock_response: Mock,
-        sample_transaction: Any,
+        sample_transaction: dict[str, Any],
     ) -> None:
         """Test listing transactions with expand.
 
@@ -73,7 +73,7 @@ class TestTransactionsAPI:
         self,
         monzo_client: MonzoClient,
         mock_response: Mock,
-        sample_transaction: Any,
+        sample_transaction: dict[str, Any],
     ) -> None:
         """Test listing transactions with pagination.
 
@@ -103,7 +103,7 @@ class TestTransactionsAPI:
         self,
         monzo_client: MonzoClient,
         mock_response: Mock,
-        sample_transaction: Any,
+        sample_transaction: dict[str, Any],
     ) -> None:
         """Test retrieving a single transaction.
 
@@ -128,7 +128,7 @@ class TestTransactionsAPI:
         self,
         monzo_client: MonzoClient,
         mock_response: Mock,
-        sample_transaction: Any,
+        sample_transaction: dict[str, Any],
     ) -> None:
         """Test annotating a transaction.
 

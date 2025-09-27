@@ -2,7 +2,7 @@
 
 import tempfile
 from pathlib import Path
-from typing import Any, cast
+from typing import cast
 from unittest.mock import Mock, patch
 
 import pytest
@@ -27,7 +27,7 @@ class TestAttachmentsAPI:
     @patch("httpx.Client")
     def test_upload(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         monzo_client: MonzoClient,
         mock_response: Mock,
     ) -> None:
@@ -87,7 +87,7 @@ class TestAttachmentsAPI:
     @patch("httpx.Client")
     def test_upload_with_file_path(
         self,
-        mock_httpx_client_class: Any,
+        mock_httpx_client_class: Mock,
         monzo_client: MonzoClient,
         mock_response: Mock,
     ) -> None:
@@ -225,7 +225,7 @@ class TestAttachmentsAPI:
 
     @patch("httpx.Client")
     def test_private_upload_file_to_url(
-        self, mock_httpx_client_class: Any, monzo_client: MonzoClient
+        self, mock_httpx_client_class: Mock, monzo_client: MonzoClient
     ) -> None:
         """Test private file upload to URL method.
 
