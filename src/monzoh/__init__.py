@@ -3,6 +3,7 @@
 from .async_client import AsyncMonzoClient
 from .auth import MonzoOAuth
 from .client import MonzoClient
+from .core.retry import RetryConfig
 from .exceptions import (
     MonzoAuthenticationError,
     MonzoBadRequestError,
@@ -50,6 +51,7 @@ __all__ = [
     "OAuthToken",
     "Pot",
     "Receipt",
+    "RetryConfig",
     "Transaction",
     "Webhook",
     "WebhookParseError",

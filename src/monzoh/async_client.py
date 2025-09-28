@@ -13,6 +13,7 @@ from .api.async_transactions import AsyncTransactionsAPI
 from .api.async_webhooks import AsyncWebhooksAPI
 from .auth import MonzoOAuth
 from .core.async_base import BaseAsyncClient
+from .core.retry import RetryConfig
 from .exceptions import MonzoAuthenticationError
 from .models import WhoAmI
 
@@ -46,6 +47,7 @@ class AsyncMonzoClient:
             load from cache.
         http_client: Optional httpx async client to use
         timeout: Request timeout in seconds
+        retry_config: Retry configuration for handling transient errors
 
     Raises:
         MonzoAuthenticationError: If no access token is provided and none can
@@ -57,6 +59,7 @@ class AsyncMonzoClient:
         access_token: str | None = None,
         http_client: httpx.AsyncClient | None = None,
         timeout: float = 30.0,
+        retry_config: RetryConfig | None = None,
     ) -> None:
         if access_token is None:
             access_token = _load_cached_token()
@@ -68,7 +71,10 @@ class AsyncMonzoClient:
                 raise MonzoAuthenticationError(msg)
 
         self._base_client = BaseAsyncClient(
-            access_token=access_token, http_client=http_client, timeout=timeout
+            access_token=access_token,
+            http_client=http_client,
+            timeout=timeout,
+            retry_config=retry_config,
         )
 
         self.accounts = AsyncAccountsAPI(self._base_client)

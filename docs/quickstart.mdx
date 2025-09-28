@@ -200,4 +200,65 @@ print(f"Mock accounts: {len(accounts)}")
   </Card>
 </CardGroup>
 
-You're now ready to build amazing applications with the Monzo API! Check out the [API Reference](/api-reference/introduction) for detailed documentation on all available methods.
+## Built-in Reliability Features
+
+Monzoh includes automatic retry functionality to handle temporary API issues:
+
+```python
+from monzoh import MonzoClient, RetryConfig
+
+# Default behavior: automatically retries rate limits, server errors, etc.
+client = MonzoClient()
+
+# Custom retry configuration for production environments
+retry_config = RetryConfig(
+    max_retries=5,          # Retry up to 5 times
+    base_delay=2.0,         # Start with 2 second delay
+    max_delay=30.0          # Cap delays at 30 seconds
+)
+
+client = MonzoClient(retry_config=retry_config)
+
+# Your API calls are now resilient to transient failures
+accounts = client.accounts.list()  # Will retry automatically on rate limits/errors
+```
+
+The retry system handles:
+- **Rate limits (429)** - Respects Retry-After headers
+- **Server errors (500/502/503/504)** - Uses exponential backoff
+- **Network timeouts** - Automatically retries connection issues
+
+## Next Steps
+
+You're now ready to build amazing applications with the Monzo API!
+
+<CardGroup cols={2}>
+  <Card
+    title="API Reference"
+    icon="book-open"
+    href="/api-reference/introduction"
+  >
+    Detailed documentation on all available methods
+  </Card>
+  <Card
+    title="Retry Handling"
+    icon="arrow-rotate-right"
+    href="/guides/retry-handling"
+  >
+    Configure automatic retry behavior for reliability
+  </Card>
+  <Card
+    title="Error Handling"
+    icon="triangle-exclamation"
+    href="/guides/error-handling"
+  >
+    Handle API errors gracefully in your applications
+  </Card>
+  <Card
+    title="Async Usage"
+    icon="bolt"
+    href="/guides/async-usage"
+  >
+    Use async/await for high-performance applications
+  </Card>
+</CardGroup>

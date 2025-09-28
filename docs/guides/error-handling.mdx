@@ -156,27 +156,19 @@ except MonzoNotFoundError as e:
 Raised when API rate limits are exceeded (HTTP 429):
 
 ```python
-import time
 from monzoh import MonzoClient, MonzoRateLimitError
 
 client = MonzoClient()
 
-def make_request_with_retry():
-    max_retries = 3
-    base_delay = 1
-    
-    for attempt in range(max_retries):
-        try:
-            return client.accounts.list()
-        except MonzoRateLimitError as e:
-            if attempt < max_retries - 1:
-                delay = base_delay * (2 ** attempt)  # Exponential backoff
-                print(f"Rate limited, retrying in {delay} seconds...")
-                time.sleep(delay)
-            else:
-                print("Max retries exceeded")
-                raise
+try:
+    accounts = client.accounts.list()
+except MonzoRateLimitError as e:
+    print(f"Rate limit exceeded: {e}")
+    # The library automatically retries with exponential backoff
+    # You only see this error if all retry attempts fail
 ```
+
+**Note:** As of version 2.0.0, Monzoh automatically retries rate limit errors with exponential backoff. See the [Retry Handling](/guides/retry-handling) guide for configuration options.
 
 **Common causes:**
 - Making too many requests in a short time period
@@ -196,14 +188,41 @@ try:
     accounts = client.accounts.list()
 except MonzoServerError as e:
     print(f"Server error: {e}")
-    # Implement retry logic with backoff
-    # Consider fallback to cached data
+    # The library automatically retries server errors
+    # Consider fallback to cached data if all retries fail
 ```
+
+**Note:** As of version 2.0.0, Monzoh automatically retries server errors with exponential backoff. See the [Retry Handling](/guides/retry-handling) guide for configuration options.
 
 **Common causes:**
 - Temporary API server issues
 - Database connectivity problems
 - Internal server errors
+
+## Automatic Retry Behavior
+
+As of version 1.2.0, Monzoh includes built-in retry functionality for transient errors:
+
+- **Automatic retries** for rate limits, server errors, timeouts, and network issues
+- **Exponential backoff** with jitter to avoid thundering herd problems
+- **Respect for Retry-After headers** from rate limit responses
+- **Configurable retry behavior** to suit your application's needs
+
+```python
+from monzoh import MonzoClient, RetryConfig
+
+# Default retry behavior (3 retries with exponential backoff)
+client = MonzoClient(access_token="your_token")
+
+# Custom retry configuration
+retry_config = RetryConfig(max_retries=5, base_delay=2.0)
+client = MonzoClient(access_token="your_token", retry_config=retry_config)
+
+# The library handles retries automatically
+accounts = client.accounts.list()  # Will retry on transient errors
+```
+
+For complete details on retry configuration, see the [Retry Handling](/guides/retry-handling) guide.
 
 ## Best Practices
 

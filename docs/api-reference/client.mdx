@@ -12,12 +12,13 @@ The `MonzoClient` is the primary interface for all Monzo API operations. It hand
 ```python
 class MonzoClient:
     """Main Monzo API client."""
-    
+
     def __init__(
         self,
         access_token: Optional[str] = None,
         http_client: Optional[httpx.Client] = None,
         timeout: float = 30.0,
+        retry_config: Optional[RetryConfig] = None,
     ) -> None:
 ```
 
@@ -26,13 +27,20 @@ class MonzoClient:
 ### Basic Usage
 
 ```python
-from monzoh import MonzoClient
+from monzoh import MonzoClient, RetryConfig
 
 # Automatic token loading from cache
 client = MonzoClient()
 
 # Explicit token
 client = MonzoClient(access_token="your_access_token_here")
+
+# With custom retry configuration
+retry_config = RetryConfig(max_retries=5, base_delay=2.0)
+client = MonzoClient(
+    access_token="your_access_token_here",
+    retry_config=retry_config
+)
 ```
 
 ### Parameters
@@ -42,6 +50,7 @@ client = MonzoClient(access_token="your_access_token_here")
 | `access_token` | `Optional[str]` | `None` | OAuth2 access token. If not provided, loads from cache |
 | `http_client` | `Optional[httpx.Client]` | `None` | Custom httpx client instance |
 | `timeout` | `float` | `30.0` | Request timeout in seconds |
+| `retry_config` | `Optional[RetryConfig]` | `None` | Retry configuration for handling transient errors |
 
 ### Authentication
 
@@ -175,6 +184,40 @@ oauth_client = MonzoClient.create_oauth_client(
 auth_url = oauth_client.get_authorization_url()
 print(f"Visit: {auth_url}")
 ```
+
+## Retry Configuration
+
+The client includes built-in retry functionality for handling transient errors. You can customize retry behavior using the `retry_config` parameter:
+
+```python
+from monzoh import MonzoClient, RetryConfig
+
+# Default retry behavior (3 retries with exponential backoff)
+client = MonzoClient()
+
+# Custom retry configuration
+retry_config = RetryConfig(
+    max_retries=5,           # Retry up to 5 times
+    base_delay=2.0,          # Start with 2 second delay
+    backoff_multiplier=1.5,  # Multiply delay by 1.5 each time
+    max_delay=30.0,          # Cap delays at 30 seconds
+    jitter=True              # Add random jitter
+)
+
+client = MonzoClient(retry_config=retry_config)
+
+# Disable retries entirely
+no_retry = RetryConfig(max_retries=0)
+client = MonzoClient(retry_config=no_retry)
+```
+
+The retry system automatically handles:
+- Rate limit errors (429) with respect for Retry-After headers
+- Server errors (500)
+- Timeout errors (504)
+- Network connection issues
+
+For complete details, see the [Retry Handling](/guides/retry-handling) guide.
 
 ## Context Manager Support
 

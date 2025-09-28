@@ -26,6 +26,7 @@ from monzoh.exceptions import (
 from monzoh.models import WhoAmI
 
 from .mock_data import get_mock_response
+from .retry import RetryConfig, with_retry
 
 QueryParamsType = (
     QueryParams
@@ -89,6 +90,7 @@ class BaseSyncClient:
         access_token: OAuth access token
         http_client: Optional httpx sync client to use
         timeout: Request timeout in seconds
+        retry_config: Optional retry configuration
 
     Attributes:
         BASE_URL: Base URL for Monzo API endpoints
@@ -101,11 +103,13 @@ class BaseSyncClient:
         access_token: str | None,
         http_client: httpx.Client | None = None,
         timeout: float = 30.0,
+        retry_config: RetryConfig | None = None,
     ) -> None:
         self.access_token = access_token
         self._http_client = http_client
         self._own_client = http_client is None
         self._timeout = timeout
+        self.retry_config = retry_config or RetryConfig()
 
     @property
     def http_client(self) -> httpx.Client:
@@ -174,7 +178,7 @@ class BaseSyncClient:
         endpoint: str,
         **options: Unpack[RequestOptions],
     ) -> httpx.Response | MockResponse:
-        """Make HTTP request.
+        """Make HTTP request with retry logic.
 
         Args:
             method: HTTP method
@@ -183,10 +187,6 @@ class BaseSyncClient:
 
         Returns:
             HTTP response
-
-        Raises:
-            MonzoNetworkError: If network request fails
-            create_error_from_response: If API returns an error response
         """
         params: QueryParamsType | None = options.get("params")
         data: Mapping[str, str | int | float | bool | list[str]] | None = options.get(
@@ -202,39 +202,82 @@ class BaseSyncClient:
             )
             return MockResponse(mock_data)
 
-        url = f"{self.BASE_URL}{endpoint}"
+        # Apply retry logic only for real HTTP requests
+        return self._request_with_retry(
+            method,
+            endpoint,
+            params=params,
+            data=data,
+            json_data=json_data,
+            files=files,
+            headers=headers,
+        )
 
-        all_headers = self.auth_headers.copy()
-        if headers:
-            all_headers.update(headers)
+    def _request_with_retry(
+        self,
+        method: str,
+        endpoint: str,
+        **options: Unpack[RequestOptions],
+    ) -> httpx.Response:
+        """Make HTTP request with retry logic applied.
 
-        try:
-            response = self.http_client.request(
-                method=method,
-                url=url,
-                params=params,
-                data=data,
-                json=json_data,
-                files=files,
-                headers=all_headers,
-            )
+        Args:
+            method: HTTP method
+            endpoint: API endpoint (without base URL)
+            **options: Request options including params, data, json_data, files, headers
 
-            if response.status_code >= 400:
-                error_data = {}
-                with contextlib.suppress(ValueError, KeyError, TypeError):
-                    error_data = response.json()
+        Returns:
+            HTTP response
+        """
+        params: QueryParamsType | None = options.get("params")
+        data: Mapping[str, str | int | float | bool | list[str]] | None = options.get(
+            "data"
+        )
+        json_data: JSONObject | None = options.get("json_data")
+        files: Mapping[str, tuple[str, bytes, str]] | None = options.get("files")
+        headers: dict[str, str] | None = options.get("headers")
 
-                raise create_error_from_response(
-                    response.status_code,
-                    f"API request failed: {response.text}",
-                    error_data,
+        @with_retry(self.retry_config)
+        def _make_request() -> httpx.Response:
+            url = f"{self.BASE_URL}{endpoint}"
+
+            all_headers = self.auth_headers.copy()
+            if headers:
+                all_headers.update(headers)
+
+            try:
+                response = self.http_client.request(
+                    method=method,
+                    url=url,
+                    params=params,
+                    data=data,
+                    json=json_data,
+                    files=files,
+                    headers=all_headers,
                 )
 
-        except httpx.RequestError as e:
-            msg = f"Network error: {e}"
-            raise MonzoNetworkError(msg) from e
-        else:
-            return response
+                if response.status_code >= 400:
+                    error_data = {}
+                    with contextlib.suppress(ValueError, KeyError, TypeError):
+                        error_data = response.json()
+
+                    # Convert headers to dict for easier access
+                    headers_dict = dict(response.headers)
+
+                    raise create_error_from_response(
+                        response.status_code,
+                        f"API request failed: {response.text}",
+                        error_data,
+                        headers_dict,
+                    )
+
+            except httpx.RequestError as e:
+                msg = f"Network error: {e}"
+                raise MonzoNetworkError(msg) from e
+            else:
+                return response
+
+        return _make_request()
 
     def _get(
         self,
