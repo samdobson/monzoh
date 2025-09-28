@@ -4,10 +4,14 @@ from __future__ import annotations
 
 import contextlib
 import json
-from typing import TYPE_CHECKING, Any, TypedDict
+from collections.abc import Mapping, Sequence
+from typing import TYPE_CHECKING, TypedDict
 
 if TYPE_CHECKING:
     import types
+    from datetime import datetime
+
+    from monzoh.types import JSONObject
 
 import httpx
 from httpx import QueryParams
@@ -19,16 +23,22 @@ from monzoh.models import WhoAmI
 from .mock_data import get_mock_response
 from .retry import RetryConfig, with_async_retry
 
-QueryParamsType = QueryParams | dict[str, Any] | list[tuple[str, Any]] | None
+QueryParamsType = (
+    QueryParams
+    | Mapping[str, str | int | float | bool | None]
+    | list[tuple[str, str | int | float | bool | None]]
+    | str
+    | None
+)
 
 
 class RequestOptions(TypedDict, total=False):
     """Optional parameters for HTTP requests."""
 
     params: QueryParamsType
-    data: dict[str, Any] | None
-    json_data: dict[str, Any] | None
-    files: dict[str, Any] | None
+    data: Mapping[str, str | int | float | bool | list[str]] | None
+    json_data: JSONObject | None
+    files: Mapping[str, tuple[str, bytes, str]] | None
     headers: dict[str, str] | None
 
 
@@ -40,7 +50,7 @@ class AsyncMockResponse:
         status_code: HTTP status code to simulate
     """
 
-    def __init__(self, json_data: dict[str, Any], status_code: int = 200) -> None:
+    def __init__(self, json_data: JSONObject, status_code: int = 200) -> None:
         self._json_data = json_data
         self.status_code = status_code
         self.text = json.dumps(json_data)
@@ -49,7 +59,7 @@ class AsyncMockResponse:
         self.url = ""
         self.request = None
 
-    def json(self) -> dict[str, Any]:
+    def json(self) -> JSONObject:
         """Return JSON data from the response.
 
         Returns:
@@ -168,9 +178,11 @@ class BaseAsyncClient:
             HTTP response
         """
         params: QueryParamsType | None = options.get("params")
-        data: dict[str, Any] | None = options.get("data")
-        json_data: dict[str, Any] | None = options.get("json_data")
-        files: dict[str, Any] | None = options.get("files")
+        data: Mapping[str, str | int | float | bool | list[str]] | None = options.get(
+            "data"
+        )
+        json_data: JSONObject | None = options.get("json_data")
+        files: Mapping[str, tuple[str, bytes, str]] | None = options.get("files")
         headers: dict[str, str] | None = options.get("headers")
 
         if self.is_mock_mode:
@@ -207,9 +219,11 @@ class BaseAsyncClient:
             HTTP response
         """
         params: QueryParamsType | None = options.get("params")
-        data: dict[str, Any] | None = options.get("data")
-        json_data: dict[str, Any] | None = options.get("json_data")
-        files: dict[str, Any] | None = options.get("files")
+        data: Mapping[str, str | int | float | bool | list[str]] | None = options.get(
+            "data"
+        )
+        json_data: JSONObject | None = options.get("json_data")
+        files: Mapping[str, tuple[str, bytes, str]] | None = options.get("files")
         headers: dict[str, str] | None = options.get("headers")
 
         @with_async_retry(self.retry_config)
@@ -275,9 +289,9 @@ class BaseAsyncClient:
     async def _post(
         self,
         endpoint: str,
-        data: dict[str, Any] | None = None,
-        json_data: dict[str, Any] | None = None,
-        files: dict[str, Any] | None = None,
+        data: Mapping[str, str | int | float | bool | list[str]] | None = None,
+        json_data: JSONObject | None = None,
+        files: Mapping[str, tuple[str, bytes, str]] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
         """Make POST request.
@@ -304,8 +318,8 @@ class BaseAsyncClient:
     async def _put(
         self,
         endpoint: str,
-        data: dict[str, Any] | None = None,
-        json_data: dict[str, Any] | None = None,
+        data: Mapping[str, str | int | float | bool | list[str]] | None = None,
+        json_data: JSONObject | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
         """Make PUT request.
@@ -326,7 +340,7 @@ class BaseAsyncClient:
     async def _patch(
         self,
         endpoint: str,
-        data: dict[str, Any] | None = None,
+        data: Mapping[str, str | int | float | bool | list[str]] | None = None,
         headers: dict[str, str] | None = None,
     ) -> httpx.Response | AsyncMockResponse:
         """Make PATCH request.
@@ -369,8 +383,8 @@ class BaseAsyncClient:
         return WhoAmI(**response.json())
 
     def _prepare_expand_params(
-        self, expand: list[str] | None = None
-    ) -> list[tuple[str, str]] | None:
+        self, expand: Sequence[str] | None = None
+    ) -> list[tuple[str, str | int | float | bool | None]] | None:
         """Prepare expand parameters for requests.
 
         Args:
@@ -387,9 +401,9 @@ class BaseAsyncClient:
     def _prepare_pagination_params(
         self,
         limit: int | None = None,
-        since: str | Any | None = None,
-        before: str | Any | None = None,
-    ) -> dict[str, Any]:
+        since: str | datetime | None = None,
+        before: str | datetime | None = None,
+    ) -> dict[str, str]:
         """Prepare pagination parameters.
 
         Args:

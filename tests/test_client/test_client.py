@@ -1,6 +1,6 @@
 """Tests for the main client."""
 
-from typing import Any
+from typing import TYPE_CHECKING, cast
 from unittest.mock import Mock, patch
 
 import httpx
@@ -10,11 +10,14 @@ from monzoh import MonzoClient, MonzoOAuth
 from monzoh.core.base import BaseSyncClient, MockResponse
 from monzoh.exceptions import MonzoBadRequestError, MonzoError, MonzoNetworkError
 
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
+
 
 class TestMonzoClient:
     """Test MonzoClient."""
 
-    def test_init(self, mock_http_client: Any) -> None:
+    def test_init(self, mock_http_client: Mock) -> None:
         """Test client initialization.
 
         Args:
@@ -24,7 +27,7 @@ class TestMonzoClient:
         assert client._base_client.access_token == "test_token"
         assert client._base_client._http_client is mock_http_client
 
-    def test_context_manager(self, mock_http_client: Any) -> None:
+    def test_context_manager(self, mock_http_client: Mock) -> None:
         """Test sync context manager.
 
         Args:
@@ -35,8 +38,8 @@ class TestMonzoClient:
 
     def test_whoami(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
     ) -> None:
         """Test whoami endpoint.
 
@@ -51,7 +54,7 @@ class TestMonzoClient:
                 "user_id": "test_user_id",
             }
         )
-        monzo_client._base_client._get.return_value = mock_response
+        cast("Mock", monzo_client._base_client._get).return_value = mock_response
 
         result = monzo_client.whoami()
 
@@ -59,7 +62,7 @@ class TestMonzoClient:
         assert result.client_id == "test_client_id"
         assert result.user_id == "test_user_id"
 
-    def test_create_oauth_client(self, mock_http_client: Any) -> None:
+    def test_create_oauth_client(self, mock_http_client: Mock) -> None:
         """Test OAuth client creation.
 
         Args:
@@ -81,7 +84,7 @@ class TestMonzoClient:
 class TestOAuthClient:
     """Test OAuth client."""
 
-    def test_init(self, mock_http_client: Any) -> None:
+    def test_init(self, mock_http_client: Mock) -> None:
         """Test OAuth client initialization.
 
         Args:
@@ -98,7 +101,7 @@ class TestOAuthClient:
         assert oauth.client_secret == "test_secret"
         assert oauth.redirect_uri == "https://example.com/callback"
 
-    def test_get_authorization_url(self, oauth_client: Any) -> None:
+    def test_get_authorization_url(self, oauth_client: MonzoOAuth) -> None:
         """Test authorization URL generation.
 
         Args:
@@ -114,9 +117,9 @@ class TestOAuthClient:
 
     def test_exchange_code_for_token(
         self,
-        oauth_client: Any,
-        mock_http_client: Any,
-        mock_response: Any,
+        oauth_client: MonzoOAuth,
+        mock_http_client: Mock,
+        mock_response: Mock,
     ) -> None:
         """Test code exchange for token.
 
@@ -150,9 +153,9 @@ class TestOAuthClient:
 
     def test_exchange_code_error(
         self,
-        oauth_client: Any,
-        mock_http_client: Any,
-        mock_response: Any,
+        oauth_client: MonzoOAuth,
+        mock_http_client: Mock,
+        mock_response: Mock,
     ) -> None:
         """Test code exchange error handling.
 
@@ -169,9 +172,9 @@ class TestOAuthClient:
 
     def test_refresh_token(
         self,
-        oauth_client: Any,
-        mock_http_client: Any,
-        mock_response: Any,
+        oauth_client: MonzoOAuth,
+        mock_http_client: Mock,
+        mock_response: Mock,
     ) -> None:
         """Test token refresh.
 
@@ -199,9 +202,9 @@ class TestOAuthClient:
 
     def test_logout(
         self,
-        oauth_client: Any,
-        mock_http_client: Any,
-        mock_response: Any,
+        oauth_client: MonzoOAuth,
+        mock_http_client: Mock,
+        mock_response: Mock,
     ) -> None:
         """Test logout.
 
@@ -226,7 +229,7 @@ class TestMockResponse:
 
     def test_init(self) -> None:
         """Test MockResponse initialization."""
-        json_data = {"test": "data"}
+        json_data: JSONObject = {"test": "data"}
         response = MockResponse(json_data, status_code=201)
 
         assert response._json_data == json_data
@@ -239,14 +242,14 @@ class TestMockResponse:
 
     def test_init_default_status(self) -> None:
         """Test MockResponse with default status code."""
-        json_data = {"test": "data"}
+        json_data: JSONObject = {"test": "data"}
         response = MockResponse(json_data)
 
         assert response.status_code == 200
 
     def test_json_method(self) -> None:
         """Test json method returns correct data."""
-        json_data = {"key": "value", "number": 123}
+        json_data: JSONObject = {"key": "value", "number": 123}
         response = MockResponse(json_data)
 
         assert response.json() == json_data
@@ -384,7 +387,7 @@ class TestBaseSyncClient:
             params={"param": "value"},
             data={"key": "value"},
             json_data={"json": "data"},
-            files={"file": "content"},
+            files={"file": ("file.txt", b"content", "text/plain")},
             headers={"Custom": "Header"},
         )
 
@@ -396,7 +399,7 @@ class TestBaseSyncClient:
             params={"param": "value"},
             data={"key": "value"},
             json={"json": "data"},
-            files={"file": "content"},
+            files={"file": ("file.txt", b"content", "text/plain")},
             headers={"Authorization": "Bearer real_token", "Custom": "Header"},
         )
 
@@ -464,7 +467,7 @@ class TestBaseSyncClient:
                 "/test",
                 data={"d": "v"},
                 json_data={"j": "v"},
-                files={"f": "v"},
+                files={"f": ("f.txt", b"v", "text/plain")},
                 headers={"h": "v"},
             )
             assert result is mock_response
@@ -473,7 +476,7 @@ class TestBaseSyncClient:
                 "/test",
                 data={"d": "v"},
                 json_data={"j": "v"},
-                files={"f": "v"},
+                files={"f": ("f.txt", b"v", "text/plain")},
                 headers={"h": "v"},
             )
 

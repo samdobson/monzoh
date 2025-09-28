@@ -1,6 +1,5 @@
 """Tests for auth API."""
 
-from typing import Any
 from unittest.mock import Mock, patch
 
 import httpx
@@ -14,7 +13,7 @@ from monzoh.models import OAuthToken
 class TestMonzoOAuth:
     """Test MonzoOAuth."""
 
-    def test_init(self, mock_http_client: Any) -> None:
+    def test_init(self, mock_http_client: Mock) -> None:
         """Test OAuth client initialization.
 
         Args:
@@ -45,7 +44,7 @@ class TestMonzoOAuth:
         assert oauth._http_client is None
         assert oauth._own_client is True
 
-    def test_http_client_property(self, mock_http_client: Any) -> None:
+    def test_http_client_property(self, mock_http_client: Mock) -> None:
         """Test http_client property.
 
         Args:
@@ -71,7 +70,7 @@ class TestMonzoOAuth:
         client2 = oauth.http_client
         assert client1 is client2
 
-    def test_context_manager(self, mock_http_client: Any) -> None:
+    def test_context_manager(self, mock_http_client: Mock) -> None:
         """Test sync context manager.
 
         Args:
@@ -86,7 +85,7 @@ class TestMonzoOAuth:
         with oauth as client:
             assert client is oauth
 
-    def test_get_authorization_url(self, mock_http_client: Any) -> None:
+    def test_get_authorization_url(self, mock_http_client: Mock) -> None:
         """Test get_authorization_url method.
 
         Args:
@@ -106,7 +105,7 @@ class TestMonzoOAuth:
         assert "redirect_uri=https%3A%2F%2Fexample.com%2Fcallback" in url
         assert "response_type=code" in url
 
-    def test_get_authorization_url_with_state(self, mock_http_client: Any) -> None:
+    def test_get_authorization_url_with_state(self, mock_http_client: Mock) -> None:
         """Test get_authorization_url method with state.
 
         Args:
@@ -124,7 +123,7 @@ class TestMonzoOAuth:
         assert "state=test_state" in url
 
     def test_exchange_code_for_token(
-        self, mock_http_client: Any, mock_response: Any
+        self, mock_http_client: Mock, mock_response: Mock
     ) -> None:
         """Test exchange_code_for_token method.
 
@@ -157,7 +156,7 @@ class TestMonzoOAuth:
         assert token.refresh_token == "refresh_token_123"
         assert token.user_id == "user_123"
 
-    def test_refresh_token(self, mock_http_client: Any, mock_response: Any) -> None:
+    def test_refresh_token(self, mock_http_client: Mock, mock_response: Mock) -> None:
         """Test refresh_token method.
 
         Args:
@@ -207,7 +206,7 @@ class TestMonzoOAuth:
             mock_client.close.assert_called_once()
 
     def test_context_manager_doesnt_close_provided_client(
-        self, mock_http_client: Any
+        self, mock_http_client: Mock
     ) -> None:
         """Test context manager doesn't close provided HTTP client.
 
@@ -227,7 +226,7 @@ class TestMonzoOAuth:
         mock_http_client.close.assert_not_called()
 
     def test_exchange_code_for_token_http_error(
-        self, mock_http_client: Any, mock_response: Any
+        self, mock_http_client: Mock, mock_response: Mock
     ) -> None:
         """Test exchange_code_for_token with HTTP error.
 
@@ -252,7 +251,7 @@ class TestMonzoOAuth:
             oauth.exchange_code_for_token("invalid_code")
 
     def test_exchange_code_for_token_http_error_no_json(
-        self, mock_http_client: Any, mock_response: Any
+        self, mock_http_client: Mock, mock_response: Mock
     ) -> None:
         """Test exchange_code_for_token with HTTP error and invalid JSON.
 
@@ -275,7 +274,9 @@ class TestMonzoOAuth:
         with pytest.raises(MonzoError):
             oauth.exchange_code_for_token("test_code")
 
-    def test_exchange_code_for_token_network_error(self, mock_http_client: Any) -> None:
+    def test_exchange_code_for_token_network_error(
+        self, mock_http_client: Mock
+    ) -> None:
         """Test exchange_code_for_token with network error.
 
         Args:
@@ -298,7 +299,7 @@ class TestMonzoOAuth:
         )
 
     def test_refresh_token_http_error(
-        self, mock_http_client: Any, mock_response: Any
+        self, mock_http_client: Mock, mock_response: Mock
     ) -> None:
         """Test refresh_token with HTTP error.
 
@@ -326,7 +327,7 @@ class TestMonzoOAuth:
             oauth.refresh_token("invalid_refresh_token")
 
     def test_refresh_token_http_error_no_json(
-        self, mock_http_client: Any, mock_response: Any
+        self, mock_http_client: Mock, mock_response: Mock
     ) -> None:
         """Test refresh_token with HTTP error and invalid JSON.
 
@@ -349,7 +350,7 @@ class TestMonzoOAuth:
         with pytest.raises(MonzoError):
             oauth.refresh_token("test_refresh_token")
 
-    def test_refresh_token_network_error(self, mock_http_client: Any) -> None:
+    def test_refresh_token_network_error(self, mock_http_client: Mock) -> None:
         """Test refresh_token with network error.
 
         Args:
@@ -371,7 +372,7 @@ class TestMonzoOAuth:
             exc_info.value
         )
 
-    def test_logout_success(self, mock_http_client: Any, mock_response: Any) -> None:
+    def test_logout_success(self, mock_http_client: Mock, mock_response: Mock) -> None:
         """Test successful logout.
 
         Args:
@@ -395,7 +396,9 @@ class TestMonzoOAuth:
         assert "oauth2/logout" in call_args[0][0]
         assert call_args[1]["headers"]["Authorization"] == "Bearer test_access_token"
 
-    def test_logout_http_error(self, mock_http_client: Any, mock_response: Any) -> None:
+    def test_logout_http_error(
+        self, mock_http_client: Mock, mock_response: Mock
+    ) -> None:
         """Test logout with HTTP error.
 
         Args:
@@ -422,7 +425,7 @@ class TestMonzoOAuth:
             oauth.logout("invalid_token")
 
     def test_logout_http_error_no_json(
-        self, mock_http_client: Any, mock_response: Any
+        self, mock_http_client: Mock, mock_response: Mock
     ) -> None:
         """Test logout with HTTP error and invalid JSON.
 
@@ -445,7 +448,7 @@ class TestMonzoOAuth:
         with pytest.raises(MonzoError):
             oauth.logout("test_token")
 
-    def test_logout_network_error(self, mock_http_client: Any) -> None:
+    def test_logout_network_error(self, mock_http_client: Mock) -> None:
         """Test logout with network error.
 
         Args:

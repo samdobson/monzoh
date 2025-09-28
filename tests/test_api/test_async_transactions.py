@@ -1,12 +1,15 @@
 """Tests for async transactions API."""
 
-from typing import Any, cast
+from typing import TYPE_CHECKING, Any, cast
 from unittest.mock import Mock  # noqa: TC003
 
 import pytest
 
 from monzoh.api.async_transactions import AsyncTransactionsAPI
 from monzoh.core.async_base import BaseAsyncClient
+
+if TYPE_CHECKING:
+    from monzoh.types import Metadata
 
 
 class TestAsyncTransactionsAPI:
@@ -160,7 +163,7 @@ class TestAsyncTransactionsAPI:
             "transaction": sample_transaction
         }
 
-        metadata = {"category": "lunch", "notes": "Business meal"}
+        metadata: Metadata = {"category": "lunch", "notes": "Business meal"}
         transaction = await transactions_api.annotate("test_transaction_id", metadata)
 
         expected_data = {
@@ -190,7 +193,7 @@ class TestAsyncTransactionsAPI:
             "transaction": sample_transaction
         }
 
-        metadata = {"category": ""}
+        metadata: Metadata = {"category": ""}
         await transactions_api.annotate("test_transaction_id", metadata)
 
         expected_data = {"metadata[category]": ""}

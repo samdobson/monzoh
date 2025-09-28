@@ -1,5 +1,7 @@
 """Tests for mock_data functionality."""
 
+from typing import TYPE_CHECKING, cast
+
 from monzoh.core.mock_data import (
     MOCK_ACCOUNTS,
     MOCK_BALANCE,
@@ -9,6 +11,9 @@ from monzoh.core.mock_data import (
     MOCK_WHOAMI,
     get_mock_response,
 )
+
+if TYPE_CHECKING:
+    from monzoh.types import JSONObject
 
 
 class TestMockConstants:
@@ -29,7 +34,7 @@ class TestMockConstants:
         assert isinstance(MOCK_ACCOUNTS["accounts"], list)
         assert len(MOCK_ACCOUNTS["accounts"]) > 0
 
-        account = MOCK_ACCOUNTS["accounts"][0]
+        account = cast("JSONObject", cast("list", MOCK_ACCOUNTS["accounts"])[0])
         assert "id" in account
         assert "description" in account
         assert "created" in account
@@ -49,7 +54,9 @@ class TestMockConstants:
         assert isinstance(MOCK_TRANSACTIONS["transactions"], list)
         assert len(MOCK_TRANSACTIONS["transactions"]) > 0
 
-        transaction = MOCK_TRANSACTIONS["transactions"][0]
+        transaction = cast(
+            "JSONObject", cast("list", MOCK_TRANSACTIONS["transactions"])[0]
+        )
         assert "id" in transaction
         assert "amount" in transaction
         assert "created" in transaction
@@ -62,7 +69,7 @@ class TestMockConstants:
         assert isinstance(MOCK_POTS["pots"], list)
         assert len(MOCK_POTS["pots"]) > 0
 
-        pot = MOCK_POTS["pots"][0]
+        pot = cast("JSONObject", cast("list", MOCK_POTS["pots"])[0])
         assert "id" in pot
         assert "name" in pot
         assert "style" in pot
@@ -75,7 +82,7 @@ class TestMockConstants:
         assert isinstance(MOCK_WEBHOOKS["webhooks"], list)
         assert len(MOCK_WEBHOOKS["webhooks"]) > 0
 
-        webhook = MOCK_WEBHOOKS["webhooks"][0]
+        webhook = cast("JSONObject", cast("list", MOCK_WEBHOOKS["webhooks"])[0])
         assert "id" in webhook
         assert "account_id" in webhook
         assert "url" in webhook
@@ -127,19 +134,22 @@ class TestGetMockResponse:
     def test_single_transaction_endpoint(self) -> None:
         """Test single transaction endpoint."""
         result = get_mock_response("/transactions/tx_123", "GET")
-        expected = {"transaction": MOCK_TRANSACTIONS["transactions"][0]}
+        transactions_list = cast("list", MOCK_TRANSACTIONS["transactions"])
+        expected = {"transaction": transactions_list[0]}
         assert result == expected
 
     def test_single_pot_endpoint(self) -> None:
         """Test single pot endpoint."""
         result = get_mock_response("/pots/pot_123", "GET")
-        expected = {"pot": MOCK_POTS["pots"][0]}
+        pots_list = cast("list", MOCK_POTS["pots"])
+        expected = {"pot": pots_list[0]}
         assert result == expected
 
     def test_single_webhook_endpoint(self) -> None:
         """Test single webhook endpoint."""
         result = get_mock_response("/webhooks/webhook_123", "GET")
-        expected = {"webhook": MOCK_WEBHOOKS["webhooks"][0]}
+        webhooks_list = cast("list", MOCK_WEBHOOKS["webhooks"])
+        expected = {"webhook": webhooks_list[0]}
         assert result == expected
 
     def test_unhandled_endpoint(self) -> None:

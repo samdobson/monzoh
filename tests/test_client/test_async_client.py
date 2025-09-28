@@ -1,6 +1,6 @@
 """Tests for the async client."""
 
-from typing import Any
+from typing import cast
 from unittest.mock import Mock, patch
 
 import httpx
@@ -18,7 +18,7 @@ from monzoh.exceptions import (
 class TestAsyncMonzoClient:
     """Test AsyncMonzoClient."""
 
-    def test_init(self, mock_async_http_client: Any) -> None:
+    def test_init(self, mock_async_http_client: Mock) -> None:
         """Test client initialization.
 
         Args:
@@ -29,7 +29,7 @@ class TestAsyncMonzoClient:
         assert client._base_client._http_client is mock_async_http_client
 
     @pytest.mark.asyncio
-    async def test_context_manager(self, mock_async_http_client: Any) -> None:
+    async def test_context_manager(self, mock_async_http_client: Mock) -> None:
         """Test async context manager.
 
         Args:
@@ -43,8 +43,8 @@ class TestAsyncMonzoClient:
     @pytest.mark.asyncio
     async def test_whoami(
         self,
-        async_monzo_client: Any,
-        mock_async_response: Any,
+        async_monzo_client: AsyncMonzoClient,
+        mock_async_response: Mock,
     ) -> None:
         """Test whoami endpoint.
 
@@ -59,7 +59,7 @@ class TestAsyncMonzoClient:
                 "user_id": "test_user_id",
             }
         )
-        async_monzo_client._base_client._get.return_value = mock_response
+        cast("Mock", async_monzo_client._base_client._get).return_value = mock_response
 
         result = await async_monzo_client.whoami()
 
@@ -67,7 +67,7 @@ class TestAsyncMonzoClient:
         assert result.client_id == "test_client_id"
         assert result.user_id == "test_user_id"
 
-    def test_create_oauth_client(self, mock_async_http_client: Any) -> None:
+    def test_create_oauth_client(self, mock_async_http_client: Mock) -> None:
         """Test OAuth client creation.
 
         Args:
@@ -85,7 +85,7 @@ class TestAsyncMonzoClient:
         assert oauth_client.client_secret == "test_secret"
 
     @pytest.mark.asyncio
-    async def test_token_loading_from_cache(self, mock_async_http_client: Any) -> None:
+    async def test_token_loading_from_cache(self, mock_async_http_client: Mock) -> None:
         """Test loading token from cache.
 
         Args:
@@ -99,7 +99,7 @@ class TestAsyncMonzoClient:
 
     @pytest.mark.asyncio
     async def test_init_without_token_raises_error(
-        self, mock_async_http_client: Any
+        self, mock_async_http_client: Mock
     ) -> None:
         """Test initialization without token raises error.
 
@@ -113,7 +113,9 @@ class TestAsyncMonzoClient:
                 AsyncMonzoClient(http_client=mock_async_http_client)
 
     @pytest.mark.asyncio
-    async def test_api_endpoints_initialized(self, mock_async_http_client: Any) -> None:
+    async def test_api_endpoints_initialized(
+        self, mock_async_http_client: Mock
+    ) -> None:
         """Test that all API endpoints are initialized.
 
         Args:
@@ -184,7 +186,7 @@ class TestBaseAsyncClient:
         assert "monzoh-python-client" in str(http_client.headers["User-Agent"])
 
     @pytest.mark.asyncio
-    async def test_network_error_handling(self, mock_async_http_client: Any) -> None:
+    async def test_network_error_handling(self, mock_async_http_client: Mock) -> None:
         """Test network error handling.
 
         Args:
@@ -203,7 +205,7 @@ class TestBaseAsyncClient:
             await client._request("GET", "/test")
 
     @pytest.mark.asyncio
-    async def test_http_error_handling(self, mock_async_http_client: Any) -> None:
+    async def test_http_error_handling(self, mock_async_http_client: Mock) -> None:
         """Test HTTP error handling.
 
         Args:

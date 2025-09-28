@@ -1,7 +1,7 @@
 """Webhook payload parsing and validation utilities."""
 
 import json
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel, ValidationError
 
@@ -17,7 +17,7 @@ class WebhookPayload(BaseModel):
     """Base webhook payload structure."""
 
     type: str
-    data: dict[str, Any]
+    data: dict[str, object]
 
 
 class TransactionWebhookPayload(BaseModel):
@@ -31,7 +31,7 @@ class BalanceWebhookPayload(BaseModel):
     """Balance update webhook payload."""
 
     type: Literal["balance.updated"]
-    data: dict[str, Any]
+    data: dict[str, object]
 
 
 def parse_webhook_payload(

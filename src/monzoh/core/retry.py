@@ -6,7 +6,7 @@ import asyncio
 import random
 import time
 from functools import wraps
-from typing import TYPE_CHECKING, Any, TypeVar
+from typing import TYPE_CHECKING, TypeVar
 
 if TYPE_CHECKING:
     from collections.abc import Awaitable, Callable
@@ -112,10 +112,12 @@ class RetryConfig:
 
             # Fallback to response data for custom retry_after field
             if hasattr(exception, "response_data"):
-                retry_after = exception.response_data.get("retry_after")
-                if retry_after is not None:
+                retry_after_raw = exception.response_data.get("retry_after")
+                if retry_after_raw is not None and isinstance(
+                    retry_after_raw, (str, int, float)
+                ):
                     try:
-                        return float(retry_after)
+                        return float(retry_after_raw)
                     except (ValueError, TypeError):
                         pass
         return None
@@ -137,7 +139,7 @@ def with_retry(
 
     def decorator(func: Callable[..., T]) -> Callable[..., T]:
         @wraps(func)
-        def wrapper(*args: Any, **kwargs: Any) -> T:
+        def wrapper(*args: object, **kwargs: object) -> T:
             attempt = 0
             while True:
                 try:
@@ -173,7 +175,7 @@ def with_async_retry(
 
     def decorator(func: Callable[..., Awaitable[T]]) -> Callable[..., Awaitable[T]]:
         @wraps(func)
-        async def wrapper(*args: Any, **kwargs: Any) -> T:
+        async def wrapper(*args: object, **kwargs: object) -> T:
             attempt = 0
             while True:
                 try:

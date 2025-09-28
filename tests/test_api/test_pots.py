@@ -2,9 +2,10 @@
 
 import uuid
 from decimal import Decimal
-from typing import Any
-from unittest.mock import patch
+from typing import Any, cast
+from unittest.mock import Mock, patch
 
+from monzoh.client import MonzoClient
 from monzoh.models import Pot
 
 
@@ -13,8 +14,8 @@ class TestPotsAPI:
 
     def test_list_pots(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test listing pots.
@@ -25,7 +26,7 @@ class TestPotsAPI:
             sample_pot: Sample pot data fixture.
         """
         mock_response = mock_response(json_data={"pots": [sample_pot]})
-        monzo_client._base_client._get.return_value = mock_response
+        cast("Mock", monzo_client._base_client._get).return_value = mock_response
 
         pots = monzo_client.pots.list("acc_123")
 
@@ -35,15 +36,15 @@ class TestPotsAPI:
         assert pots[0].name == sample_pot["name"]
         assert pots[0].balance == Decimal("1337.00")
 
-        monzo_client._base_client._get.assert_called_once()
-        call_args = monzo_client._base_client._get.call_args
+        cast("Mock", monzo_client._base_client._get).assert_called_once()
+        call_args = cast("Mock", monzo_client._base_client._get).call_args
         assert "/pots" in call_args[0][0]
         assert call_args[1]["params"]["current_account_id"] == "acc_123"
 
     def test_deposit(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test depositing into a pot.
@@ -57,7 +58,7 @@ class TestPotsAPI:
         updated_pot["balance"] = 150000
 
         mock_response = mock_response(json_data=updated_pot)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         pot = monzo_client.pots.deposit(
             pot_id="pot_123",
@@ -69,8 +70,8 @@ class TestPotsAPI:
         assert isinstance(pot, Pot)
         assert pot.balance == Decimal("1500.00")
 
-        monzo_client._base_client._put.assert_called_once()
-        call_args = monzo_client._base_client._put.call_args
+        cast("Mock", monzo_client._base_client._put).assert_called_once()
+        call_args = cast("Mock", monzo_client._base_client._put).call_args
         assert "/pots/pot_123/deposit" in call_args[0][0]
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
         assert call_args[1]["data"]["amount"] == "1000"
@@ -78,8 +79,8 @@ class TestPotsAPI:
 
     def test_withdraw(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test withdrawing from a pot.
@@ -93,7 +94,7 @@ class TestPotsAPI:
         updated_pot["balance"] = 120000
 
         mock_response = mock_response(json_data=updated_pot)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         pot = monzo_client.pots.withdraw(
             pot_id="pot_123",
@@ -105,8 +106,8 @@ class TestPotsAPI:
         assert isinstance(pot, Pot)
         assert pot.balance == Decimal("1200.00")
 
-        monzo_client._base_client._put.assert_called_once()
-        call_args = monzo_client._base_client._put.call_args
+        cast("Mock", monzo_client._base_client._put).assert_called_once()
+        call_args = cast("Mock", monzo_client._base_client._put).call_args
         assert "/pots/pot_123/withdraw" in call_args[0][0]
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
         assert call_args[1]["data"]["amount"] == "500"
@@ -114,8 +115,8 @@ class TestPotsAPI:
 
     def test_deposit_auto_dedupe_id(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test depositing into a pot with auto-generated dedupe_id.
@@ -129,7 +130,7 @@ class TestPotsAPI:
         updated_pot["balance"] = 150000
 
         mock_response = mock_response(json_data=updated_pot)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         with patch("monzoh.api.pots.uuid.uuid4") as mock_uuid:
             mock_uuid.return_value = uuid.UUID("12345678-1234-5678-9012-123456789abc")
@@ -143,8 +144,8 @@ class TestPotsAPI:
         assert isinstance(pot, Pot)
         assert pot.balance == 1500
 
-        monzo_client._base_client._put.assert_called_once()
-        call_args = monzo_client._base_client._put.call_args
+        cast("Mock", monzo_client._base_client._put).assert_called_once()
+        call_args = cast("Mock", monzo_client._base_client._put).call_args
         assert "/pots/pot_123/deposit" in call_args[0][0]
         assert call_args[1]["data"]["source_account_id"] == "acc_123"
         assert call_args[1]["data"]["amount"] == "100000"
@@ -154,8 +155,8 @@ class TestPotsAPI:
 
     def test_withdraw_auto_dedupe_id(
         self,
-        monzo_client: Any,
-        mock_response: Any,
+        monzo_client: MonzoClient,
+        mock_response: Mock,
         sample_pot: dict[str, Any],
     ) -> None:
         """Test withdrawing from a pot with auto-generated dedupe_id.
@@ -169,7 +170,7 @@ class TestPotsAPI:
         updated_pot["balance"] = 120000
 
         mock_response = mock_response(json_data=updated_pot)
-        monzo_client._base_client._put.return_value = mock_response
+        cast("Mock", monzo_client._base_client._put).return_value = mock_response
 
         with patch("monzoh.api.pots.uuid.uuid4") as mock_uuid:
             mock_uuid.return_value = uuid.UUID("87654321-4321-8765-2109-987654321cba")
@@ -183,8 +184,8 @@ class TestPotsAPI:
         assert isinstance(pot, Pot)
         assert pot.balance == 1200
 
-        monzo_client._base_client._put.assert_called_once()
-        call_args = monzo_client._base_client._put.call_args
+        cast("Mock", monzo_client._base_client._put).assert_called_once()
+        call_args = cast("Mock", monzo_client._base_client._put).call_args
         assert "/pots/pot_123/withdraw" in call_args[0][0]
         assert call_args[1]["data"]["destination_account_id"] == "acc_123"
         assert call_args[1]["data"]["amount"] == "50000"
