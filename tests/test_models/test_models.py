@@ -5,12 +5,15 @@ from decimal import Decimal
 from typing import Any
 from unittest.mock import AsyncMock, Mock, patch
 
+import httpx
 import pytest
 
+from monzoh.api.attachments import AttachmentsAPI
 from monzoh.core.async_base import BaseAsyncClient
 from monzoh.core.base import BaseSyncClient
 from monzoh.models import (
     Account,
+    Attachment,
     Balance,
     OAuthToken,
     Pot,
@@ -232,7 +235,7 @@ class TestPotMethods:
             deleted=False,
         )
 
-        mock_client = Mock()
+        mock_client = Mock(spec=BaseSyncClient)
         result = pot._set_client(mock_client)
 
         assert result is pot
@@ -269,7 +272,7 @@ class TestPotMethods:
         )
 
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "id": "pot_123",
             "name": "Savings",
@@ -286,7 +289,9 @@ class TestPotMethods:
         pot._source_account_id = "acc_123"
 
         with patch("monzoh.models.pots.uuid4") as mock_uuid:
-            mock_uuid.return_value = Mock(__str__=Mock(return_value="test-uuid"))
+            mock_uuid_instance = Mock()
+            mock_uuid_instance.__str__ = Mock(return_value="test-uuid")  # type: ignore[method-assign]
+            mock_uuid.return_value = mock_uuid_instance
             result = await pot.awithdraw(amount=Decimal("50.00"))
 
         mock_client._put.assert_called_once_with(
@@ -380,7 +385,7 @@ class TestAccountMethods:
         )
 
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {"transactions": []}
         mock_client._get.return_value = mock_response
         mock_client._prepare_expand_params.return_value = [("expand[]", "merchant")]
@@ -430,10 +435,10 @@ class TestTransactionMethods:
         mock_client = Mock(spec=BaseSyncClient)
         transaction._set_client(mock_client)
 
-        mock_attachment = Mock()
+        mock_attachment = Mock(spec=Attachment)
 
         with patch("monzoh.api.attachments.AttachmentsAPI") as mock_api_class:
-            mock_api = Mock()
+            mock_api = Mock(spec=AttachmentsAPI)
             mock_api.upload.return_value = mock_attachment
             mock_api_class.return_value = mock_api
 
@@ -490,7 +495,7 @@ class TestTransactionMethods:
         mock_client = Mock(spec=BaseAsyncClient)
         transaction._set_client(mock_client)
 
-        mock_attachment = Mock()
+        mock_attachment = Mock(spec=Attachment)
 
         with patch(
             "monzoh.api.async_attachments.AsyncAttachmentsAPI"
@@ -551,7 +556,7 @@ class TestTransactionMethods:
         )
 
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "transaction": {
                 "id": "tx_123",
@@ -607,7 +612,7 @@ class TestTransactionMethods:
         )
 
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "transaction": {
                 "id": "tx_123",

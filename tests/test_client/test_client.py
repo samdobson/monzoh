@@ -274,7 +274,7 @@ class TestBaseSyncClient:
 
     def test_init_with_http_client(self) -> None:
         """Test initialization with provided HTTP client."""
-        mock_client = Mock()
+        mock_client = Mock(spec=httpx.Client)
         client = BaseSyncClient("test_token", http_client=mock_client, timeout=60.0)
 
         assert client.access_token == "test_token"
@@ -309,7 +309,7 @@ class TestBaseSyncClient:
 
     def test_http_client_property_returns_existing(self) -> None:
         """Test http_client property returns existing client."""
-        mock_client = Mock()
+        mock_client = Mock(spec=httpx.Client)
         client = BaseSyncClient("test_token", http_client=mock_client)
 
         result = client.http_client
@@ -348,7 +348,7 @@ class TestBaseSyncClient:
 
     def test_context_manager_without_own_client(self) -> None:
         """Test context manager when client doesn't own HTTP client."""
-        mock_client = Mock()
+        mock_client = Mock(spec=httpx.Client)
         client = BaseSyncClient("test_token", http_client=mock_client)
 
         with client as ctx_client:
@@ -374,8 +374,8 @@ class TestBaseSyncClient:
 
     def test_request_real_mode_success(self) -> None:
         """Test _request method in real mode with success."""
-        mock_http_client = Mock()
-        mock_response = Mock()
+        mock_http_client = Mock(spec=httpx.Client)
+        mock_response = Mock(spec=httpx.Response)
         mock_response.status_code = 200
         mock_http_client.request.return_value = mock_response
 
@@ -405,8 +405,8 @@ class TestBaseSyncClient:
 
     def test_request_real_mode_http_error(self) -> None:
         """Test _request method with HTTP error status."""
-        mock_http_client = Mock()
-        mock_response = Mock()
+        mock_http_client = Mock(spec=httpx.Client)
+        mock_response = Mock(spec=httpx.Response)
         mock_response.status_code = 400
         mock_response.text = "Bad Request"
         mock_response.json.return_value = {"error": "invalid_request"}
@@ -419,8 +419,8 @@ class TestBaseSyncClient:
 
     def test_request_real_mode_http_error_no_json(self) -> None:
         """Test _request method with HTTP error and invalid JSON."""
-        mock_http_client = Mock()
-        mock_response = Mock()
+        mock_http_client = Mock(spec=httpx.Client)
+        mock_response = Mock(spec=httpx.Response)
         mock_response.status_code = 500
         mock_response.text = "Internal Server Error"
         mock_response.json.side_effect = ValueError("Invalid JSON")
@@ -433,7 +433,7 @@ class TestBaseSyncClient:
 
     def test_request_network_error(self) -> None:
         """Test _request method with network error."""
-        mock_http_client = Mock()
+        mock_http_client = Mock(spec=httpx.Client)
         mock_http_client.request.side_effect = httpx.RequestError("Connection failed")
 
         client = BaseSyncClient("real_token", http_client=mock_http_client)
@@ -446,7 +446,7 @@ class TestBaseSyncClient:
         client = BaseSyncClient("test")
 
         with patch.object(client, "_request") as mock_request:
-            mock_response = Mock()
+            mock_response = Mock(spec=httpx.Response)
             mock_request.return_value = mock_response
 
             result = client._get("/test", params={"p": "v"}, headers={"h": "v"})
@@ -585,7 +585,7 @@ class TestClientTokenLoading:
             "client_secret": "test_secret",
             "redirect_uri": "test_uri",
         }
-        mock_oauth_instance = Mock()
+        mock_oauth_instance = Mock(spec=MonzoOAuth)
         mock_oauth_class.return_value = mock_oauth_instance
         mock_refresh.return_value = "refreshed_token"
 

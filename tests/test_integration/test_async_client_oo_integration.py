@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
+import httpx
 import pytest
 
 from monzoh.async_client import AsyncMonzoClient
@@ -17,7 +18,7 @@ class TestAsyncClientOOIntegration:
     async def test_client_accounts_list_sets_client(self) -> None:
         """Test that client.accounts.list() returns accounts with client set."""
         mock_base_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "accounts": [
                 {
@@ -41,7 +42,7 @@ class TestAsyncClientOOIntegration:
         assert account.id == "acc_123"
         assert account._client == mock_base_client
 
-        mock_balance_response = Mock()
+        mock_balance_response = Mock(spec=httpx.Response)
         mock_balance_response.json.return_value = {
             "balance": 5000,
             "total_balance": 6000,
@@ -61,7 +62,7 @@ class TestAsyncClientOOIntegration:
     async def test_client_pots_list_sets_client_and_account(self) -> None:
         """Test that client.pots.list() returns pots with client and account set."""
         mock_base_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "pots": [
                 {
@@ -90,7 +91,7 @@ class TestAsyncClientOOIntegration:
         assert pot._client == mock_base_client
         assert pot._source_account_id == "acc_123"
 
-        mock_deposit_response = Mock()
+        mock_deposit_response = Mock(spec=httpx.Response)
         mock_deposit_response.json.return_value = {
             "id": "pot_123",
             "name": "Savings",
@@ -112,7 +113,7 @@ class TestAsyncClientOOIntegration:
         mock_base_client = Mock(spec=BaseAsyncClient)
         mock_base_client._prepare_pagination_params.return_value = {}
         mock_base_client._prepare_expand_params.return_value = []
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "transactions": [
                 {
@@ -138,7 +139,7 @@ class TestAsyncClientOOIntegration:
         assert transaction.id == "tx_123"
         assert transaction._client == mock_base_client
 
-        mock_annotate_response = Mock()
+        mock_annotate_response = Mock(spec=httpx.Response)
         mock_annotate_response.json.return_value = {
             "transaction": {
                 "id": "tx_123",
@@ -161,7 +162,7 @@ class TestAsyncClientOOIntegration:
         mock_base_client._prepare_pagination_params.return_value = {}
         mock_base_client._prepare_expand_params.return_value = []
 
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "transactions": [
                 {
@@ -197,7 +198,7 @@ class TestAsyncClientOOIntegration:
         """Test that account.alist_pots() sets client and account on returned pots."""
         mock_base_client = Mock(spec=BaseAsyncClient)
 
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "pots": [
                 {

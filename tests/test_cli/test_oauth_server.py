@@ -1,5 +1,6 @@
 """Tests for CLI OAuth server functionality."""
 
+import threading
 from threading import Event
 from unittest.mock import Mock, patch
 
@@ -108,9 +109,9 @@ class TestStartCallbackServer:
             mock_server_class: Mock server class fixture.
             mock_thread: Mock thread fixture.
         """
-        mock_server = Mock()
+        mock_server = Mock(spec=OAuthCallbackServer)
         mock_server_class.return_value = mock_server
-        mock_thread_instance = Mock()
+        mock_thread_instance = Mock(spec=threading.Thread)
         mock_thread.return_value = mock_thread_instance
 
         result = start_callback_server(3000)

@@ -181,7 +181,7 @@ def mock_async_response() -> Callable[..., Mock]:
     def create_response(
         status_code: int = 200, json_data: dict[str, Any] | None = None
     ) -> Mock:
-        response = Mock()
+        response = Mock(spec=httpx.Response)
         response.status_code = status_code
         response.json.return_value = json_data or {}
         response.text = str(json_data) if json_data else ""

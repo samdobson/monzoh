@@ -10,6 +10,7 @@ from unittest.mock import Mock, patch
 
 from rich.console import Console
 
+from monzoh.auth import MonzoOAuth
 from monzoh.cli.token_cache import (
     clear_token_cache,
     get_token_cache_path,
@@ -205,7 +206,7 @@ class TestTryRefreshToken:
     def test_refresh_token_success(self) -> None:
         """Test successful token refresh."""
         cached_token: JSONObject = {"refresh_token": "test_refresh"}
-        oauth_mock = Mock()
+        oauth_mock = Mock(spec=MonzoOAuth)
         console = Console()
 
         new_token = OAuthToken(
@@ -232,7 +233,7 @@ class TestTryRefreshToken:
     def test_refresh_token_failure(self) -> None:
         """Test failed token refresh."""
         cached_token: JSONObject = {"refresh_token": "test_refresh"}
-        oauth_mock = Mock()
+        oauth_mock = Mock(spec=MonzoOAuth)
         console = Console()
 
         oauth_mock.refresh_token.side_effect = ValueError("Refresh failed")
@@ -251,7 +252,7 @@ class TestTryRefreshToken:
     def test_refresh_token_no_refresh_token(self) -> None:
         """Test refresh when no refresh token available."""
         cached_token: dict[str, Any] = {}
-        oauth_mock = Mock()
+        oauth_mock = Mock(spec=MonzoOAuth)
         console = Console()
 
         result = try_refresh_token(cached_token, oauth_mock, console)

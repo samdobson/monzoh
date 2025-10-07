@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest.mock import Mock
 from uuid import uuid4
 
+import httpx
 import pytest
 
 from monzoh.core import BaseSyncClient
@@ -40,7 +41,7 @@ class TestAccountOOInterface:
     def test_account_get_balance(self) -> None:
         """Test Account.get_balance() method."""
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "balance": 5000,
             "total_balance": 6000,
@@ -77,7 +78,7 @@ class TestAccountOOInterface:
         mock_client = Mock(spec=BaseSyncClient)
         mock_client._prepare_pagination_params.return_value = {"limit": 10}
         mock_client._prepare_expand_params.return_value = []
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "transactions": [
                 {
@@ -110,7 +111,7 @@ class TestAccountOOInterface:
     def test_account_list_pots(self) -> None:
         """Test Account.list_pots() method."""
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "pots": [
                 {
@@ -148,7 +149,7 @@ class TestAccountOOInterface:
         from monzoh.models.feed import FeedItemParams
 
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {}
         mock_client._post.return_value = mock_response
 
@@ -179,7 +180,7 @@ class TestAccountOOInterface:
         from monzoh.models.feed import FeedItemParams
 
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {}
         mock_client._post.return_value = mock_response
 
@@ -241,7 +242,7 @@ class TestPotOOInterface:
     def test_pot_deposit(self) -> None:
         """Test Pot.deposit() method."""
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         updated_pot_data = {
             "id": "pot_123",
             "name": "Savings",
@@ -284,7 +285,7 @@ class TestPotOOInterface:
     def test_pot_deposit_with_custom_dedupe_id(self) -> None:
         """Test Pot.deposit() with custom dedupe_id."""
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "id": "pot_123",
             "name": "Savings",
@@ -318,7 +319,7 @@ class TestPotOOInterface:
     def test_pot_withdraw(self) -> None:
         """Test Pot.withdraw() method."""
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         updated_pot_data = {
             "id": "pot_123",
             "name": "Savings",
@@ -400,7 +401,7 @@ class TestTransactionOOInterface:
     def test_transaction_annotate(self) -> None:
         """Test Transaction.annotate() method."""
         mock_client = Mock(spec=BaseSyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         updated_transaction_data = {
             "id": "tx_123",
             "amount": -1000,
@@ -436,7 +437,7 @@ class TestTransactionOOInterface:
         """Test Transaction.refresh() method."""
         mock_client = Mock(spec=BaseSyncClient)
         mock_client._prepare_expand_params.return_value = [("expand[]", "merchant")]
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         refreshed_transaction_data = {
             "id": "tx_123",
             "amount": -1000,
