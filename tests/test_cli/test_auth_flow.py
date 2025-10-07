@@ -3,9 +3,13 @@
 from unittest.mock import Mock, patch
 
 import pytest
+from rich.console import Console
 
+from monzoh.auth import MonzoOAuth
 from monzoh.cli import main
 from monzoh.cli.auth_flow import authenticate
+from monzoh.client import MonzoClient
+from monzoh.models import OAuthToken, WhoAmI
 
 
 class TestAuthenticate:
@@ -25,8 +29,8 @@ class TestAuthenticate:
         cached_token = {"access_token": "cached_token", "user_id": "user123"}
         mock_load_cache.return_value = cached_token
 
-        mock_client = Mock()
-        mock_whoami = Mock()
+        mock_client = Mock(spec=MonzoClient)
+        mock_whoami = Mock(spec=WhoAmI)
         mock_whoami.user_id = "user123"
         mock_client.whoami.return_value = mock_whoami
         mock_client.__enter__ = Mock(return_value=mock_client)
@@ -34,7 +38,7 @@ class TestAuthenticate:
         mock_client_class.return_value = mock_client
 
         with patch("monzoh.cli.auth_flow.Console") as mock_console_class:
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             result = authenticate()
@@ -65,7 +69,7 @@ class TestAuthenticate:
             patch("monzoh.cli.auth_flow.webbrowser.open"),
             patch("monzoh.cli.auth_flow.MonzoClient") as mock_client_class,
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {"client_id": None, "client_secret": None}
@@ -83,7 +87,7 @@ class TestAuthenticate:
             mock_server.state = "test_state"
             mock_start_server.return_value = mock_server
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.__enter__ = Mock(return_value=mock_oauth)
             mock_oauth.__exit__ = Mock(return_value=None)
@@ -91,7 +95,7 @@ class TestAuthenticate:
 
             mock_token.return_value = "test_state"
 
-            mock_oauth_token = Mock()
+            mock_oauth_token = Mock(spec=OAuthToken)
             mock_oauth_token.access_token = "new_access_token"
             mock_oauth_token.expires_in = 3600
             mock_oauth_token.refresh_token = "refresh_token"
@@ -100,8 +104,8 @@ class TestAuthenticate:
             mock_oauth_token.client_id = "test_id"
             mock_oauth.exchange_code_for_token.return_value = mock_oauth_token
 
-            mock_client = Mock()
-            mock_whoami = Mock()
+            mock_client = Mock(spec=MonzoClient)
+            mock_whoami = Mock(spec=WhoAmI)
             mock_whoami.user_id = "user123"
             mock_client.whoami.return_value = mock_whoami
             mock_client.__enter__ = Mock(return_value=mock_client)
@@ -146,7 +150,7 @@ class TestAuthenticate:
             patch("monzoh.cli.auth_flow.secrets.token_urlsafe"),
             patch("monzoh.cli.auth_flow.webbrowser.open"),
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {"client_id": None, "client_secret": None}
@@ -161,7 +165,7 @@ class TestAuthenticate:
             mock_server.callback_received.wait.return_value = False
             mock_start_server.return_value = mock_server
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.get_authorization_url.return_value = "http://auth.url"
 
@@ -217,7 +221,7 @@ class TestAuthenticateErrorHandling:
         cached_token = {"access_token": "invalid_token", "user_id": "user123"}
         mock_load_cache.return_value = cached_token
 
-        mock_client = Mock()
+        mock_client = Mock(spec=MonzoClient)
         mock_client.whoami.side_effect = OSError("Connection failed")
         mock_client.__enter__ = Mock(return_value=mock_client)
         mock_client.__exit__ = Mock(return_value=None)
@@ -236,7 +240,7 @@ class TestAuthenticateErrorHandling:
             patch("monzoh.cli.auth_flow.secrets.token_urlsafe"),
             patch("monzoh.cli.auth_flow.webbrowser.open"),
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {"client_id": None, "client_secret": None}
@@ -251,7 +255,7 @@ class TestAuthenticateErrorHandling:
             mock_server.callback_received.wait.return_value = False
             mock_start_server.return_value = mock_server
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.get_authorization_url.return_value = "http://auth.url"
 
@@ -272,7 +276,7 @@ class TestAuthenticateErrorHandling:
         cached_token = {"access_token": "invalid_token", "refresh_token": "refresh123"}
         mock_load_cache.return_value = cached_token
 
-        mock_client = Mock()
+        mock_client = Mock(spec=MonzoClient)
         mock_client.whoami.side_effect = ValueError("Invalid token")
         mock_client.__enter__ = Mock(return_value=mock_client)
         mock_client.__exit__ = Mock(return_value=None)
@@ -284,7 +288,7 @@ class TestAuthenticateErrorHandling:
             patch("monzoh.cli.auth_flow.try_refresh_token") as mock_refresh,
             patch("monzoh.cli.auth_flow.MonzoOAuth") as mock_oauth_class,
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {
@@ -293,7 +297,7 @@ class TestAuthenticateErrorHandling:
                 "redirect_uri": "http://localhost:8080/callback",
             }
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
 
             mock_refresh.return_value = "new_access_token"
@@ -322,7 +326,7 @@ class TestAuthenticateErrorHandling:
             patch("monzoh.cli.auth_flow.secrets.token_urlsafe"),
             patch("monzoh.cli.auth_flow.webbrowser.open"),
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {"client_id": None, "client_secret": None}
@@ -339,7 +343,7 @@ class TestAuthenticateErrorHandling:
             mock_server.shutdown = Mock()
             mock_start_server.return_value = mock_server
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.get_authorization_url.return_value = "http://auth.url"
 
@@ -367,7 +371,7 @@ class TestAuthenticateErrorHandling:
             patch("monzoh.cli.auth_flow.secrets.token_urlsafe"),
             patch("monzoh.cli.auth_flow.webbrowser.open"),
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {"client_id": None, "client_secret": None}
@@ -385,7 +389,7 @@ class TestAuthenticateErrorHandling:
             mock_server.shutdown = Mock()
             mock_start_server.return_value = mock_server
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.get_authorization_url.return_value = "http://auth.url"
 
@@ -413,7 +417,7 @@ class TestAuthenticateErrorHandling:
             patch("monzoh.cli.auth_flow.secrets.token_urlsafe") as mock_token,
             patch("monzoh.cli.auth_flow.webbrowser.open"),
         ):
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             mock_load_env.return_value = {"client_id": None, "client_secret": None}
@@ -432,7 +436,7 @@ class TestAuthenticateErrorHandling:
             mock_server.shutdown = Mock()
             mock_start_server.return_value = mock_server
 
-            mock_oauth = Mock()
+            mock_oauth = Mock(spec=MonzoOAuth)
             mock_oauth_class.return_value = mock_oauth
             mock_oauth.get_authorization_url.return_value = "http://auth.url"
 
@@ -451,7 +455,7 @@ class TestAuthenticateErrorHandling:
         mock_load_cache.side_effect = ValueError("General error")
 
         with patch("monzoh.cli.auth_flow.Console") as mock_console_class:
-            mock_console = Mock()
+            mock_console = Mock(spec=Console)
             mock_console_class.return_value = mock_console
 
             result = authenticate()

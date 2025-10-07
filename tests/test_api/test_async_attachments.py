@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any, cast
 from unittest.mock import AsyncMock, Mock, patch
 
+import httpx
 import pytest
 
 from monzoh.api.async_attachments import AsyncAttachmentsAPI
@@ -58,9 +59,9 @@ class TestAsyncAttachmentsAPI:
         }
         register_response_data = {"attachment": attachment_data}
 
-        upload_response = Mock()
+        upload_response = Mock(spec=httpx.Response)
         upload_response.json.return_value = upload_data
-        register_response = Mock()
+        register_response = Mock(spec=httpx.Response)
         register_response.json.return_value = register_response_data
 
         async def mock_post_side_effect(*args: str, **_kwargs: dict[str, Any]) -> Mock:
@@ -68,12 +69,12 @@ class TestAsyncAttachmentsAPI:
                 return upload_response
             if args[0] == "/attachment/register":
                 return register_response
-            return Mock()
+            return Mock(spec=httpx.Response)
 
         cast("Mock", mock_async_base_client._post).side_effect = mock_post_side_effect
 
         mock_client = Mock()
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.raise_for_status = Mock()
         mock_client.put = AsyncMock(return_value=mock_response)
         mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
@@ -133,9 +134,9 @@ class TestAsyncAttachmentsAPI:
             }
             register_response_data = {"attachment": attachment_data}
 
-            upload_response = Mock()
+            upload_response = Mock(spec=httpx.Response)
             upload_response.json.return_value = upload_data
-            register_response = Mock()
+            register_response = Mock(spec=httpx.Response)
             register_response.json.return_value = register_response_data
 
             async def mock_post_side_effect(
@@ -145,14 +146,14 @@ class TestAsyncAttachmentsAPI:
                     return upload_response
                 if args[0] == "/attachment/register":
                     return register_response
-                return Mock()
+                return Mock(spec=httpx.Response)
 
             cast(
                 "Mock", mock_async_base_client._post
             ).side_effect = mock_post_side_effect
 
             mock_client = Mock()
-            mock_response = Mock()
+            mock_response = Mock(spec=httpx.Response)
             mock_response.raise_for_status = Mock()
             mock_client.put = AsyncMock(return_value=mock_response)
             mock_httpx_client_class.return_value.__aenter__.return_value = mock_client
@@ -215,7 +216,7 @@ class TestAsyncAttachmentsAPI:
             "created": "2015-11-12T18:37:02Z",
         }
         response_data = {"attachment": attachment_data}
-        response_mock = Mock()
+        response_mock = Mock(spec=httpx.Response)
         response_mock.json.return_value = response_data
 
         async def mock_post(*_args: str, **_kwargs: dict[str, Any]) -> Mock:
@@ -275,7 +276,7 @@ class TestAsyncAttachmentsAPI:
             attachments_api: Async attachments API fixture.
         """
         mock_client = Mock()
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.raise_for_status = Mock()
         mock_client.put = AsyncMock(return_value=mock_response)
         mock_httpx_client_class.return_value.__aenter__.return_value = mock_client

@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 from unittest.mock import AsyncMock, Mock
 
+import httpx
 import pytest
 
 from monzoh.core.async_base import BaseAsyncClient
@@ -41,7 +42,7 @@ class TestAsyncAccountOOInterface:
     async def test_account_aget_balance(self) -> None:
         """Test Account.aget_balance() method."""
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "balance": 5000,
             "total_balance": 6000,
@@ -98,7 +99,7 @@ class TestAsyncAccountOOInterface:
         from monzoh.models.feed import FeedItemParams
 
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {}
         mock_client._post = AsyncMock(return_value=mock_response)
 
@@ -160,7 +161,7 @@ class TestAsyncPotOOInterface:
     async def test_pot_adeposit(self) -> None:
         """Test Pot.adeposit() method."""
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "id": "pot_123",
             "name": "Savings",
@@ -232,7 +233,7 @@ class TestAsyncTransactionOOInterface:
     async def test_transaction_aannotate(self) -> None:
         """Test Transaction.aannotate() method."""
         mock_client = Mock(spec=BaseAsyncClient)
-        mock_response = Mock()
+        mock_response = Mock(spec=httpx.Response)
         mock_response.json.return_value = {
             "transaction": {
                 "id": "tx_123",

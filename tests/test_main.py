@@ -2,10 +2,12 @@
 
 from unittest.mock import Mock, patch
 
+import httpx
 import pytest
 
 from monzoh.client import MonzoClient, _load_cached_token
 from monzoh.exceptions import MonzoAuthenticationError
+from monzoh.models import WhoAmI
 
 
 class TestLoadCachedToken:
@@ -128,7 +130,7 @@ class TestMonzoClient:
         """
         client = MonzoClient("test_token", http_client=mock_http_client)
 
-        mock_whoami_result = Mock()
+        mock_whoami_result = Mock(spec=WhoAmI)
         with patch.object(client._base_client, "whoami") as mock_whoami:
             mock_whoami.return_value = mock_whoami_result
 
@@ -141,7 +143,7 @@ class TestMonzoClient:
         """Test create_oauth_client class method."""
         from monzoh.auth import MonzoOAuth
 
-        mock_http_client = Mock()
+        mock_http_client = Mock(spec=httpx.Client)
         oauth_client = MonzoClient.create_oauth_client(
             client_id="test_id",
             client_secret="test_secret",
